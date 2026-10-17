@@ -71,11 +71,13 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
 - UNVERIFIED: no scheduled run of the robot had fired as of ~17:25 EDT (only the manual run 39061448187); GitHub often
   delays new schedules by hours. If still none after ~3 h, look at whether the schedule is disabled. A session cron job
   was checking every 15 min (session-only; gone with that session).
-- Known issues not fixed: a carrier's deal is attached to every plan of that carrier (e.g. T-Mobile's Experience Beyond
-  deal shows on Essentials; Mint's 6-month promo on 12-month plans) - needs a `plans` field in deals.json; picking the
-  base phone still matches deals for its Pro variants (prefix match); "4+" lines is priced as exactly 4; Galaxy "S25 FE"
-  matches base S25; Total Wireless robot text says free Galaxy but `freePhone` stays false; deal text age is not shown
-  to users; Android state is not saved across process death (only rotation is handled).
+- Fixed 2026-10-17 (uncommitted, Android installed on vivo, iOS compiled only): per-plan deal scoping via optional `plans`
+  name fragments in deals.json (T-Mobile "Experience", Mint "6-month"; robot never edits `plans`); phone matching is now
+  exact (base phone no longer matches Pro deals; "S25 FE"/"Edge" are separate phones); lines picker is 1-6 (5+ uses the
+  4-line price, results say so); each deal shows "(as of date)" from its per-entry `updated`; the robot re-derives
+  `freePhone` when a carrier's text changes; Android form state survives process death (results screen re-searches).
+- Known issues not fixed: deal scoping `plans` can go stale if the robot replaces a deal's text with a different offer;
+  Android results are re-fetched (not saved) after process death.
 - Data caveats: Mint plan sizes disagree between sources (5GB vs 6GB; 6GB used); the Mint anniversary promo end date is
   unclear; T-Mobile deals URL was corrected to `t-mobile.com/offers`; Cricket has no deal; carrier "View plan" links are
   plain home pages, not affiliate links.

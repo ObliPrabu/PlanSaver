@@ -6,42 +6,54 @@
       "deal": "Get up to $1,000 off iPhone 18 Pro Max when you switch and bring your number, or trade in your eligible phone in any condition on an Experience Beyond plan.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.t-mobile.com/offers"
+      "url": "https://www.t-mobile.com/offers",
+      "updated": "2026-10-17",
+      "plans": [
+        "Experience"
+      ]
     },
     {
       "carrier": "Verizon",
       "deal": "Free phones on new lines with select unlimited plans; switchers can get the iPhone 18 Pro free on Unlimited Ultimate with a trade-in, as bill credits over 36 months.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.verizon.com/deals"
+      "url": "https://www.verizon.com/deals",
+      "updated": "2026-10-17"
     },
     {
       "carrier": "AT&T",
       "deal": "Save up to $800 per line when you switch to AT&T and trade in your old phone or break your contract. Browse free phone offers from Apple, Google, Samsung, Motorola and more.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.att.com/buy/phones/browse/free"
+      "url": "https://www.att.com/buy/phones/browse/free",
+      "updated": "2026-10-17"
     },
     {
       "carrier": "Mint Mobile",
       "deal": "10th-anniversary promo (from Oct 8, 2026): any 6-month plan for $10/month. One source says it ends Oct 22, 2026 - verify. Up to $600 off Samsung Galaxy phones with an unlimited plan.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.mintmobile.com"
+      "url": "https://www.mintmobile.com",
+      "updated": "2026-10-17",
+      "plans": [
+        "6-month"
+      ]
     },
     {
       "carrier": "Visible",
       "deal": "Get Visible+ for as low as $30/mo Switch to the Visible+ or Visible+ Pro monthly plan and save $5/mo for 5 years.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.visible.com"
+      "url": "https://www.visible.com",
+      "updated": "2026-10-17"
     },
     {
       "carrier": "Total Wireless",
       "deal": "5-year price lock for new customers who bring their own phone (Base 5G Unlimited at $20/month with taxes included).",
       "freePhone": false,
       "phones": [],
-      "url": "https://www.totalwireless.com"
+      "url": "https://www.totalwireless.com",
+      "updated": "2026-10-17"
     }
   ]
 }

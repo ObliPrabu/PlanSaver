@@ -3,7 +3,8 @@
 
 For each carrier already in the file: read the carrier's own deals page and a DuckDuckGo HTML search, keep the best
 deal-sounding sentence that came from the carrier's OWN domain, and store it. Any failure keeps the old entry, so a
-blocked request can never wipe the deals. freePhone/phones are never guessed - they stay as they are in the file.
+blocked request can never wipe the deals. phones/plans are never guessed - they stay as they are in the file. freePhone is
+re-derived (conservatively) only when the deal text changes; "updated" on each entry is the date its text last changed.
 Usage: python tools/refresh_deals.py [path/to/deals.json]
 """
 import html
@@ -85,6 +86,15 @@ def score(s):
     return n
 
 
+PHONE_WORDS = re.compile(r"\b(phone|phones|iphone|galaxy|pixel|device)\b", re.I)
+GIVEAWAY = re.compile(r"\bfree\b|\$\s?\d[\d,]*\s+off|bill credits?", re.I)
+
+
+def offers_phone(text):
+    """True only when the text both names a phone/device and says free / $ off / bill credits."""
+    return bool(PHONE_WORDS.search(text) and GIVEAWAY.search(text))
+
+
 def domain(url):
     host = urllib.parse.urlparse(url).netloc.lower()
     return host[4:] if host.startswith("www.") else host
@@ -143,6 +153,8 @@ def main():
         if text != entry["deal"] or url != entry["url"]:
             print(f"  new: {text}")
             entry["deal"], entry["url"] = text, url
+            entry["freePhone"] = offers_phone(text)
+            entry["updated"] = date.today().isoformat()
             changed = True
     if changed:
         data["updated"] = date.today().isoformat()

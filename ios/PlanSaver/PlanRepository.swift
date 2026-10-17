@@ -9,6 +9,13 @@ private struct Deal {
     let deal: String
     let freePhone: Bool
     let url: String
+    /// Plan-name fragments this deal is for (e.g. "Experience", "6-month"); empty = every plan of the carrier.
+    let plans: [String]
+    let updated: String
+
+    func coversPlan(_ name: String) -> Bool {
+        plans.isEmpty || plans.contains { name.range(of: $0, options: .caseInsensitive) != nil }
+    }
 }
 
 enum PlanRepository {
@@ -38,11 +45,12 @@ enum PlanRepository {
 
         fetchDeals(phone: request.phone) { live in
             let merged: [SearchResult] = base.map { r in
-                guard let d = live?.first(where: { sameCarrier($0.carrier, r.plan.carrier) }) else { return r }
+                guard let d = live?.first(where: { sameCarrier($0.carrier, r.plan.carrier) && $0.coversPlan(r.plan.name) }) else { return r }
                 var out = r
                 out.plan.deal = d.deal
                 out.plan.freePhoneOffer = d.freePhone
                 out.plan.dealUrl = d.url
+                out.plan.dealDate = d.updated
                 out.liveDeal = true
                 return out
             }
@@ -57,6 +65,7 @@ enum PlanRepository {
                     out.plan.deal = nil
                     out.plan.freePhoneOffer = false
                     out.plan.dealUrl = ""
+                    out.plan.dealDate = ""
                     out.liveDeal = false
                 }
                 return out
@@ -93,13 +102,15 @@ enum PlanRepository {
             guard let http = response as? HTTPURLResponse, http.statusCode == 200, let data = data,
                   let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let arr = root["deals"] as? [[String: Any]] else { return completion(nil) }
+            let rootUpdated = root["updated"] as? String ?? ""
             let deals: [Deal] = arr.compactMap { o in
                 guard let carrier = o["carrier"] as? String, let deal = o["deal"] as? String else { return nil }
                 let phones = o["phones"] as? [String] ?? []
                 let applies = phones.isEmpty || phone == nil || phones.contains { $0.caseInsensitiveCompare(phone!) == .orderedSame }
                 guard applies else { return nil }
                 return Deal(carrier: carrier, deal: deal, freePhone: o["freePhone"] as? Bool ?? false,
-                            url: o["url"] as? String ?? "")
+                            url: o["url"] as? String ?? "", plans: o["plans"] as? [String] ?? [],
+                            updated: o["updated"] as? String ?? rootUpdated)
             }
             completion(deals)
         }.resume()

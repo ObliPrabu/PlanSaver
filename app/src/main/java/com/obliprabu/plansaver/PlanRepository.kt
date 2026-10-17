@@ -47,10 +47,10 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
         val live = if (dealsUrl.isNotEmpty()) fetchDeals(request.phone) else null
 
         val merged = base.map { r ->
-            val d = live?.firstOrNull { sameCarrier(it.carrier, r.plan.carrier) }
+            val d = live?.firstOrNull { sameCarrier(it.carrier, r.plan.carrier) && it.coversPlan(r.plan.name) }
             if (d == null) r
             else r.copy(
-                plan = r.plan.copy(deal = d.deal, freePhoneOffer = d.freePhone, dealUrl = d.url),
+                plan = r.plan.copy(deal = d.deal, freePhoneOffer = d.freePhone, dealUrl = d.url, dealDate = d.updated),
                 liveDeal = true,
             )
         }
@@ -61,7 +61,7 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
             when {
                 text == null || dealMatchesPhone(text, request.phone) -> r
                 request.includeOtherPhones && dealIsBetterPhone(text, request.phone) -> r.copy(otherPhone = true)
-                else -> r.copy(plan = r.plan.copy(deal = null, freePhoneOffer = false, dealUrl = ""), liveDeal = false)
+                else -> r.copy(plan = r.plan.copy(deal = null, freePhoneOffer = false, dealUrl = "", dealDate = ""), liveDeal = false)
             }
         }.sortedBy { it.otherPhone } // stable: keeps the price order inside each group
         // With downloaded data a carrier with no offer is dropped; without it, keep the bundled flags.
@@ -69,7 +69,11 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
         else relevant.filter { it.plan.freePhoneOffer && (live == null || it.liveDeal) }
     }
 
-    private class Deal(val carrier: String, val deal: String, val freePhone: Boolean, val url: String)
+    /** [plans]: plan-name fragments this deal is for (e.g. "Experience", "6-month"); empty = every plan of the carrier. */
+    private class Deal(val carrier: String, val deal: String, val freePhone: Boolean, val url: String,
+        val plans: List<String>, val updated: String) {
+        fun coversPlan(planName: String) = plans.isEmpty() || plans.any { planName.contains(it, ignoreCase = true) }
+    }
 
     private fun sameCarrier(a: String, b: String): Boolean {
         val x = a.lowercase().replace(" mobile", "").replace("by t-mobile", "").trim()
@@ -86,14 +90,20 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
                 useCaches = false // a Search tap should see the latest file
             }
             if (conn.responseCode != 200) return@withContext null
-            val arr = JSONObject(conn.inputStream.bufferedReader().readText()).getJSONArray("deals")
+            val root = JSONObject(conn.inputStream.bufferedReader().readText())
+            val arr = root.getJSONArray("deals")
             (0 until arr.length()).mapNotNull {
                 val o = arr.getJSONObject(it)
                 val phones = o.optJSONArray("phones")
                 val applies = phones == null || phones.length() == 0 || phone == null ||
                     (0 until phones.length()).any { i -> phones.getString(i).equals(phone, ignoreCase = true) }
                 if (!applies) null
-                else Deal(o.getString("carrier"), o.getString("deal"), o.optBoolean("freePhone"), o.optString("url"))
+                else {
+                    val scope = o.optJSONArray("plans")
+                    Deal(o.getString("carrier"), o.getString("deal"), o.optBoolean("freePhone"), o.optString("url"),
+                        if (scope == null) emptyList() else (0 until scope.length()).map { i -> scope.getString(i) },
+                        o.optString("updated", root.optString("updated")))
+                }
             }
         } catch (e: Exception) {
             null

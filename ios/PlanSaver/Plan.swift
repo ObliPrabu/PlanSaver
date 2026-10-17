@@ -19,6 +19,8 @@ struct Plan {
     var freePhoneOffer: Bool = false
     /// Page the live deal came from (empty for bundled data).
     var dealUrl: String = ""
+    /// Date (YYYY-MM-DD) the live deal text was last refreshed; empty for bundled data.
+    var dealDate: String = ""
     /// Months paid up front (Mint sells 3/6/12-month blocks). 1 = month to month.
     var termMonths: Int = 1
 
@@ -56,11 +58,12 @@ struct SearchResult: Identifiable {
 }
 
 private let phoneMention = try! NSRegularExpression(
-    pattern: "\\b(iphone\\s?duo|iphone\\s?\\d{1,2}(?:\\s?(?:pro max|pro|plus|mini))?|galaxy\\s?(?:s\\d{2}(?:\\+|\\s?ultra|\\s?plus)?|z\\s?(?:flip|fold)\\s?\\d*)|pixel\\s?\\d{1,2}(?:\\s?pro(?:\\s?xl)?)?)",
+    pattern: "\\b(iphone\\s?duo|iphone\\s?\\d{1,2}(?:\\s?(?:pro max|pro|plus|mini))?|galaxy\\s?(?:s\\d{2}(?:\\+|\\s?ultra\\b|\\s?plus\\b|\\s?fe\\b|\\s?edge\\b)?|z\\s?(?:flip|fold)\\s?\\d*)|pixel\\s?\\d{1,2}(?:\\s?pro(?:\\s?xl)?)?)",
     options: [.caseInsensitive])
 
 private func norm(_ s: String) -> String {
-    String(s.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "+" })
+    let n = String(s.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "+" })
+    return n.hasPrefix("galaxy") ? n.replacingOccurrences(of: "plus", with: "+") : n // "S25 Plus" == "S25+"
 }
 
 /// True when a deal's text is about the phone the user picked, or names no specific phone at all (generic offers
@@ -72,7 +75,8 @@ func dealMatchesPhone(_ text: String, phone: String?) -> Bool {
         .map { norm(ns.substring(with: $0.range)) }
     if mentions.isEmpty { return true }
     let want = norm(phone)
-    return mentions.contains { $0.hasPrefix(want) || want.hasPrefix($0) }
+    // Exact match: picking the base "iPhone 16" must not match a deal for the "iPhone 16 Pro", nor "S25" a "S25 FE".
+    return mentions.contains { $0 == want }
 }
 
 private let brandAndGen = try! NSRegularExpression(pattern: "^(iphone|galaxys|galaxyz(?:flip|fold)|pixel)(\\d*)")

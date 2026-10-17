@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,26 +36,49 @@ private val dataChoices = listOf("1-5 GB" to 5, "10 GB" to 10, "25 GB" to 25, "U
 
 @Composable
 fun PlanSaverApp(repo: PlanRepository) {
-    var lines by remember { mutableIntStateOf(1) }
-    var dataIdx by remember { mutableIntStateOf(3) }
-    var current by remember { mutableStateOf("") }
-    var postpaid by remember { mutableStateOf(true) }
-    var freePhone by remember { mutableStateOf(false) }
-    var brand by remember { mutableStateOf("iPhone") }
-    var familyIdx by remember { mutableIntStateOf(3) }
-    var variant by remember { mutableStateOf("") }
-    var familyPicked by remember { mutableStateOf(false) }
-    var otherPhones by remember { mutableStateOf(false) }
+    var lines by rememberSaveable { mutableIntStateOf(1) }
+    var dataIdx by rememberSaveable { mutableIntStateOf(3) }
+    var current by rememberSaveable { mutableStateOf("") }
+    var postpaid by rememberSaveable { mutableStateOf(true) }
+    var freePhone by rememberSaveable { mutableStateOf(false) }
+    var brand by rememberSaveable { mutableStateOf("iPhone") }
+    var familyIdx by rememberSaveable { mutableIntStateOf(3) }
+    var variant by rememberSaveable { mutableStateOf("") }
+    var familyPicked by rememberSaveable { mutableStateOf(false) }
+    var otherPhones by rememberSaveable { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var results by remember { mutableStateOf<List<Result>?>(null) }
-    var searchedPhone by remember { mutableStateOf<String?>(null) }
+    var searchedPhone by rememberSaveable { mutableStateOf<String?>(null) }
+    // Results are not saveable, so remember only that the results screen was open and search again after process death.
+    var resultsOpen by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    fun runSearch() {
+        loading = true
+        val fams = Phones.brands.getValue(brand)
+        val phone = if (freePhone) fams[familyIdx.coerceIn(fams.indices)].name(variant) else null
+        scope.launch {
+            val found = try {
+                repo.search(SearchRequest(lines, dataChoices[dataIdx].second,
+                    current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone, otherPhones))
+            } catch (e: Exception) {
+                emptyList()
+            }
+            searchedPhone = phone
+            results = found
+            resultsOpen = true
+            loading = false
+        }
+    }
+
+    // After the process was killed with the results screen open: rebuild the results from the saved form.
+    LaunchedEffect(Unit) { if (resultsOpen && results == null) runSearch() }
+
     // Two screens: the search form, and the results. Back from results returns to the form.
-    BackHandler(enabled = results != null) { results = null }
+    BackHandler(enabled = resultsOpen) { results = null; resultsOpen = false }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
-        if (results == null) {
+        if (!resultsOpen) {
             Text("PlanSaver", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 16.dp))
             Text("Find the cheapest US phone plan for what you actually use.",
@@ -62,9 +86,9 @@ fun PlanSaverApp(repo: PlanRepository) {
 
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                 Text("How many lines?", fontWeight = FontWeight.SemiBold)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    (1..4).forEach { n ->
-                        FilterChip(selected = lines == n, onClick = { lines = n }, label = { Text(if (n == 4) "4+" else "$n") })
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    (1..6).forEach { n ->
+                        FilterChip(selected = lines == n, onClick = { lines = n }, label = { Text("$n") })
                     }
                 }
                 Spacer(Modifier.height(12.dp))
@@ -143,22 +167,7 @@ fun PlanSaverApp(repo: PlanRepository) {
                 Button(
                     enabled = !loading,
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        loading = true
-                        val fams = Phones.brands.getValue(brand)
-                        val phone = if (freePhone) fams[familyIdx.coerceIn(fams.indices)].name(variant) else null
-                        scope.launch {
-                            val found = try {
-                                repo.search(SearchRequest(lines, dataChoices[dataIdx].second,
-                                    current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone, otherPhones))
-                            } catch (e: Exception) {
-                                emptyList()
-                            }
-                            searchedPhone = phone
-                            results = found
-                            loading = false
-                        }
-                    },
+                    onClick = { runSearch() },
                 ) { Text(if (loading) "Searching..." else "Search plans") }
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 12.dp))
             }
@@ -168,8 +177,9 @@ fun PlanSaverApp(repo: PlanRepository) {
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp))
         } else {
             val list = results.orEmpty()
+            val lineCount = lines
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                TextButton(onClick = { results = null }) { Text("< Back") }
+                TextButton(onClick = { results = null; resultsOpen = false }) { Text("< Back") }
                 Text("Results", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
@@ -178,7 +188,10 @@ fun PlanSaverApp(repo: PlanRepository) {
                         "varies by carrier and changes weekly - confirm on their site.",
                         style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
                 }
-                if (list.isEmpty()) Text("No plans matched. Try more data or include big carriers.")
+                if (lineCount > 4) Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.",
+                    style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+                if (results == null) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 12.dp))
+                else if (list.isEmpty()) Text("No plans matched. Try more data or include big carriers.")
                 else list.forEach { ResultCard(it, current.toDoubleOrNull() != null) }
                 Text("Prices researched Oct 2026 and may have changed - confirm on the carrier's site. " +
                     "PlanSaver may earn a commission if you sign up through a link.",
@@ -198,7 +211,8 @@ private fun ResultCard(r: Result, showSavings: Boolean) {
                 style = MaterialTheme.typography.bodySmall)
             if (r.plan.note.isNotEmpty()) Text(r.plan.note, style = MaterialTheme.typography.bodySmall)
             r.plan.deal?.let {
-                Text((if (r.liveDeal) "Live " else "") + (if (r.otherPhone) "better phone deal: " else if (r.plan.freePhoneOffer) "phone deal: " else "deal: ") + it,
+                Text((if (r.liveDeal) "Live " else "") + (if (r.otherPhone) "better phone deal: " else if (r.plan.freePhoneOffer) "phone deal: " else "deal: ") + it +
+                    (if (r.plan.dealDate.isNotEmpty()) " (as of ${r.plan.dealDate})" else ""),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                 if (r.plan.freePhoneOffer) Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.",
                     style = MaterialTheme.typography.labelSmall)

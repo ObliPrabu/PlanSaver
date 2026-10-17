@@ -41,7 +41,7 @@ struct ContentView: View {
 
                     Text("How many lines?").font(.headline)
                     Picker("Lines", selection: $lines) {
-                        ForEach(1...4, id: \.self) { Text($0 == 4 ? "4+" : "\($0)").tag($0) }
+                        ForEach(1...6, id: \.self) { Text("\($0)").tag($0) }
                     }.pickerStyle(SegmentedPickerStyle())
 
                     Text("Data per line").font(.headline)
@@ -131,6 +131,10 @@ struct ContentView: View {
                         Text("Phone: \(phone). Carriers below advertise phone deals, but whether \(phone) is covered varies by carrier and changes weekly - confirm on their site.")
                             .font(.footnote)
                     }
+                    if lines > 4 {
+                        Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.")
+                            .font(.footnote)
+                    }
                     if list.isEmpty {
                         Text("No plans matched. Try more data or include big carriers.")
                     } else {
@@ -151,7 +155,8 @@ struct ContentView: View {
                 .font(.footnote)
             if !r.plan.note.isEmpty { Text(r.plan.note).font(.footnote) }
             if let deal = r.plan.deal {
-                Text((r.liveDeal ? "Live " : "") + (r.otherPhone ? "better phone deal: " : (r.plan.freePhoneOffer ? "phone deal: " : "deal: ")) + deal)
+                Text((r.liveDeal ? "Live " : "") + (r.otherPhone ? "better phone deal: " : (r.plan.freePhoneOffer ? "phone deal: " : "deal: ")) + deal
+                     + (r.plan.dealDate.isEmpty ? "" : " (as of \(r.plan.dealDate))"))
                     .font(.footnote).foregroundColor(.orange)
                 if r.plan.freePhoneOffer {
                     Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.")

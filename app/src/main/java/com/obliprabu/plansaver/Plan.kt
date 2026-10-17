@@ -20,6 +20,8 @@ data class Plan(
     val freePhoneOffer: Boolean = false,
     /** Page the live deal came from (empty for bundled data). */
     val dealUrl: String = "",
+    /** Date (YYYY-MM-DD) the live deal text was last refreshed; empty for bundled data. */
+    val dealDate: String = "",
     /** Months paid up front (Mint sells 3/6/12-month blocks, cheaper per month the longer). 1 = month to month. */
     val termMonths: Int = 1,
 ) {
@@ -51,10 +53,13 @@ data class Result(val plan: Plan, val monthly: Double, val yearlySavings: Double
     val otherPhone: Boolean = false)
 
 private val phoneMention = Regex(
-    """(?i)\b(iphone\s?duo|iphone\s?\d{1,2}(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra|\s?plus)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:\s?pro(?:\s?xl)?)?)"""
+    """(?i)\b(iphone\s?duo|iphone\s?\d{1,2}(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra\b|\s?plus\b|\s?fe\b|\s?edge\b)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:\s?pro(?:\s?xl)?)?)"""
 )
 
-private fun norm(s: String) = s.lowercase().replace(Regex("[^a-z0-9+]"), "")
+private fun norm(s: String): String {
+    val n = s.lowercase().replace(Regex("[^a-z0-9+]"), "")
+    return if (n.startsWith("galaxy")) n.replace("plus", "+") else n // "S25 Plus" and "S25+" are the same phone
+}
 
 /**
  * True when a deal's text is about the phone the user picked, or names no specific phone at all (generic offers
@@ -65,7 +70,8 @@ fun dealMatchesPhone(text: String, phone: String?): Boolean {
     val mentions = phoneMention.findAll(text).map { norm(it.value) }.toList()
     if (mentions.isEmpty()) return true
     val want = norm(phone)
-    return mentions.any { it.startsWith(want) || want.startsWith(it) }
+    // Exact match: picking the base "iPhone 16" must not match a deal for the "iPhone 16 Pro", nor "S25" a "S25 FE".
+    return mentions.any { it == want }
 }
 
 private val brandAndGen = Regex("^(iphone|galaxys|galaxyz(?:flip|fold)|pixel)(\\d*)")
