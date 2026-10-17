@@ -85,12 +85,10 @@ fun PlanSaverApp(repo: PlanRepository) {
                     Text("Include big-carrier plans (Verizon, AT&T, T-Mobile)")
                 }
 
-                // Press-on toggle: only carriers offering a free or discounted phone.
-                FilterChip(
-                    selected = freePhone,
-                    onClick = { freePhone = !freePhone },
-                    label = { Text("Only carriers offering a free or discounted phone") },
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+                    Checkbox(checked = freePhone, onCheckedChange = { freePhone = it })
+                    Text("Only carriers offering a free or discounted phone")
+                }
 
                 if (freePhone) {
                     Spacer(Modifier.height(12.dp))
@@ -135,6 +133,10 @@ fun PlanSaverApp(repo: PlanRepository) {
                 ) { Text(if (loading) "Searching..." else "Search plans") }
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 12.dp))
             }
+            // Same idea as BuddyVerse's Welcome screen: small, faded, centered, read live from versionName.
+            Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp))
         } else {
             val list = results.orEmpty()
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {

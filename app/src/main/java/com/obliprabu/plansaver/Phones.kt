@@ -5,6 +5,8 @@ object Phones {
     // 17 and 18 have no "Plus" here: Apple replaced it with the Air in the 17 line, and the 18 lineup
     // is unconfirmed. Re-check against Apple's current lineup before release.
     val lineup: Map<Int, List<String>> = mapOf(
+        13 to listOf("", " mini", " Pro", " Pro Max"), // 13 had a mini, not a Plus
+        14 to listOf("", " Plus", " Pro", " Pro Max"),
         15 to listOf("", " Plus", " Pro", " Pro Max"),
         16 to listOf("", " Plus", " Pro", " Pro Max"),
         17 to listOf("", " Pro", " Pro Max"),
