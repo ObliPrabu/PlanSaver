@@ -1,0 +1,47 @@
+import Foundation
+
+/// Researched Oct 2026 from third-party roundups - NOT yet verified on each carrier's own site.
+/// Mirrors the Android PlanData.kt (generated from it); keep both in sync.
+enum PlanData {
+    static let plans: [Plan] = [
+        Plan(carrier: "Mint Mobile", name: "6GB (12-month)", network: "T-Mobile", prepaid: true, dataGb: 6, pricePerLine: [1: 15.0], note: "Paid up front for 12 months", signupUrl: "https://www.mintmobile.com", termMonths: 12),
+        Plan(carrier: "Mint Mobile", name: "17GB (12-month)", network: "T-Mobile", prepaid: true, dataGb: 17, pricePerLine: [1: 20.0], note: "Paid up front for 12 months", signupUrl: "https://www.mintmobile.com", termMonths: 12),
+        Plan(carrier: "Mint Mobile", name: "23GB (12-month)", network: "T-Mobile", prepaid: true, dataGb: 23, pricePerLine: [1: 25.0], note: "Paid up front for 12 months", signupUrl: "https://www.mintmobile.com", termMonths: 12),
+        Plan(carrier: "Mint Mobile", name: "Unlimited (12-month)", network: "T-Mobile", prepaid: true, dataGb: nil, pricePerLine: [1: 30.0], note: "Paid up front for 12 months", signupUrl: "https://www.mintmobile.com", termMonths: 12),
+        Plan(carrier: "Mint Mobile", name: "6GB (3-month)", network: "T-Mobile", prepaid: true, dataGb: 6, pricePerLine: [1: 25.0], note: "Paid up front for 3 months", signupUrl: "https://www.mintmobile.com", termMonths: 3),
+        Plan(carrier: "Mint Mobile", name: "17GB (3-month)", network: "T-Mobile", prepaid: true, dataGb: 17, pricePerLine: [1: 35.0], note: "Paid up front for 3 months", signupUrl: "https://www.mintmobile.com", termMonths: 3),
+        Plan(carrier: "Mint Mobile", name: "23GB (3-month)", network: "T-Mobile", prepaid: true, dataGb: 23, pricePerLine: [1: 45.0], note: "Paid up front for 3 months", signupUrl: "https://www.mintmobile.com", termMonths: 3),
+        Plan(carrier: "Mint Mobile", name: "Unlimited (3-month)", network: "T-Mobile", prepaid: true, dataGb: nil, pricePerLine: [1: 40.0], note: "Paid up front for 3 months", signupUrl: "https://www.mintmobile.com", termMonths: 3),
+        Plan(carrier: "Mint Mobile", name: "Unlimited (6-month)", network: "T-Mobile", prepaid: true, dataGb: nil, pricePerLine: [1: 35.0], note: "Paid up front for 6 months", signupUrl: "https://www.mintmobile.com", termMonths: 6),
+        Plan(carrier: "Visible", name: "Visible", network: "Verizon", prepaid: true, dataGb: nil, pricePerLine: [1: 25.0], note: "Taxes and fees included", signupUrl: "https://www.visible.com"),
+        Plan(carrier: "Visible", name: "Visible+", network: "Verizon", prepaid: true, dataGb: nil, pricePerLine: [1: 35.0], note: "", signupUrl: "https://www.visible.com"),
+        Plan(carrier: "Visible", name: "Visible+ Pro", network: "Verizon", prepaid: true, dataGb: nil, pricePerLine: [1: 45.0], note: "", signupUrl: "https://www.visible.com"),
+        Plan(carrier: "US Mobile", name: "Flex", network: "Choice of networks", prepaid: true, dataGb: 5, pricePerLine: [1: 17.5], note: "Pay-per-use style", signupUrl: "https://www.usmobile.com"),
+        Plan(carrier: "US Mobile", name: "Starter", network: "Choice of networks", prepaid: true, dataGb: nil, pricePerLine: [1: 25.0], note: "", signupUrl: "https://www.usmobile.com"),
+        Plan(carrier: "US Mobile", name: "Premium", network: "Choice of networks", prepaid: true, dataGb: nil, pricePerLine: [1: 44.0], note: "", signupUrl: "https://www.usmobile.com"),
+        Plan(carrier: "Cricket", name: "Sensible", network: "AT&T", prepaid: true, dataGb: 10, pricePerLine: [1: 35.0], note: "", signupUrl: "https://www.cricketwireless.com"),
+        Plan(carrier: "Cricket", name: "Supreme Unlimited", network: "AT&T", prepaid: true, dataGb: nil, pricePerLine: [1: 60.0], note: "", signupUrl: "https://www.cricketwireless.com"),
+        Plan(carrier: "Metro by T-Mobile", name: "Basic", network: "T-Mobile", prepaid: true, dataGb: 10, pricePerLine: [1: 30.0], note: "", signupUrl: "https://www.metrobyt-mobile.com"),
+        Plan(carrier: "Metro by T-Mobile", name: "Flex Unlimited Plus", network: "T-Mobile", prepaid: true, dataGb: nil, pricePerLine: [1: 65.0], note: "", signupUrl: "https://www.metrobyt-mobile.com"),
+        Plan(carrier: "T-Mobile", name: "Essentials", network: "T-Mobile", prepaid: false, dataGb: nil, pricePerLine: [1: 55.0], note: "", signupUrl: "https://www.t-mobile.com"),
+        Plan(carrier: "T-Mobile", name: "Experience More", network: "T-Mobile", prepaid: false, dataGb: nil, pricePerLine: [1: 90.0, 4: 55.0], note: "", signupUrl: "https://www.t-mobile.com", deal: "Keep and Switch: up to $800 to pay off your old phone; free phones with 24-month agreement and trade-in", freePhoneOffer: true),
+        Plan(carrier: "Verizon", name: "Unlimited Plus", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 90.0, 4: 45.0], note: "With autopay", signupUrl: "https://www.verizon.com", deal: "Free phones for new lines on select unlimited plans (credits over 36 months)", freePhoneOffer: true),
+        Plan(carrier: "AT&T", name: "Value 2.0", network: "AT&T", prepaid: false, dataGb: nil, pricePerLine: [1: 50.0], note: "Starting price", signupUrl: "https://www.att.com", deal: "Switcher deals with up to $800 device payoff; trade-in bill credits over 36 months", freePhoneOffer: true),
+        Plan(carrier: "AT&T", name: "Extra 2.0", network: "AT&T", prepaid: false, dataGb: nil, pricePerLine: [4: 40.0], note: "4-line price", signupUrl: "https://www.att.com"),
+        Plan(carrier: "Total Wireless", name: "Total STARTER", network: "Verizon", prepaid: true, dataGb: nil, pricePerLine: [1: 35.0], note: "Autopay; 5-year price lock for new customers", signupUrl: "https://www.totalwireless.com"),
+        Plan(carrier: "Total Wireless", name: "Total MAX 5G", network: "Verizon", prepaid: true, dataGb: nil, pricePerLine: [1: 50.0], note: "Autopay; unlimited hotspot at 5 Mbps", signupUrl: "https://www.totalwireless.com"),
+        Plan(carrier: "Total Wireless", name: "Total ALL ACCESS", network: "Verizon", prepaid: true, dataGb: nil, pricePerLine: [1: 60.0], note: "Autopay; hotspot at 10 Mbps", signupUrl: "https://www.totalwireless.com"),
+        Plan(carrier: "Boost Mobile", name: "Unlimited", network: "AT&T", prepaid: true, dataGb: nil, pricePerLine: [1: 30.0], note: "$25 with autopay", signupUrl: "https://www.boostmobile.com"),
+        Plan(carrier: "Boost Mobile", name: "Unlimited Premium", network: "AT&T", prepaid: true, dataGb: nil, pricePerLine: [1: 65.0], note: "$60 with autopay", signupUrl: "https://www.boostmobile.com"),
+        Plan(carrier: "Straight Talk", name: "Silver Unlimited", network: "Verizon, AT&T or T-Mobile", prepaid: true, dataGb: nil, pricePerLine: [1: 45.0], note: "", signupUrl: "https://www.straighttalk.com"),
+        Plan(carrier: "Straight Talk", name: "Platinum Unlimited", network: "Verizon, AT&T or T-Mobile", prepaid: true, dataGb: nil, pricePerLine: [1: 65.0], note: "", signupUrl: "https://www.straighttalk.com"),
+        Plan(carrier: "Consumer Cellular", name: "Basic", network: "AT&T", prepaid: true, dataGb: 1, pricePerLine: [1: 20.0], note: "", signupUrl: "https://www.consumercellular.com"),
+        Plan(carrier: "Consumer Cellular", name: "Unlimited 50+", network: "AT&T", prepaid: true, dataGb: nil, pricePerLine: [1: 35.0], note: "For ages 50 and up", signupUrl: "https://www.consumercellular.com"),
+        Plan(carrier: "Google Fi", name: "Flexible", network: "T-Mobile", prepaid: true, dataGb: 1, pricePerLine: [1: 20.0], note: "Base price; extra data billed per GB", signupUrl: "https://fi.google.com"),
+        Plan(carrier: "Google Fi", name: "Unlimited Premium", network: "T-Mobile", prepaid: true, dataGb: nil, pricePerLine: [1: 65.0], note: "Data and texting in 200+ countries", signupUrl: "https://fi.google.com"),
+        Plan(carrier: "Xfinity Mobile", name: "Mobile Select", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 30.0], note: "Requires Xfinity internet", signupUrl: "https://www.xfinity.com/mobile"),
+        Plan(carrier: "Xfinity Mobile", name: "Mobile Plus", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 45.0], note: "Requires Xfinity internet", signupUrl: "https://www.xfinity.com/mobile"),
+        Plan(carrier: "Spectrum Mobile", name: "Unlimited", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 30.0], note: "Requires Spectrum internet", signupUrl: "https://www.spectrum.com/mobile"),
+        Plan(carrier: "Spectrum Mobile", name: "Unlimited Plus", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 40.0], note: "Requires Spectrum internet", signupUrl: "https://www.spectrum.com/mobile"),
+    ]
+}

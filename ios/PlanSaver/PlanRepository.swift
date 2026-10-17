@@ -1,0 +1,88 @@
+import Foundation
+
+/// Hosted deals.json (refreshed by the repo's GitHub Action). Needs the PlanSaver repo to be PUBLIC; if it is
+/// private or offline, search quietly falls back to the bundled deals.
+let dealsURL = "https://raw.githubusercontent.com/ObliPrabu/PlanSaver/main/deals-data/deals.json"
+
+private struct Deal {
+    let carrier: String
+    let deal: String
+    let freePhone: Bool
+    let url: String
+}
+
+enum PlanRepository {
+    /// Filter + sort the bundled plans. Mirrors Android's BundledPlanRepository.
+    static func bundledSearch(_ request: SearchRequest) -> [SearchResult] {
+        PlanData.plans
+            .filter { request.includePostpaid || $0.prepaid }
+            .filter { plan in
+                guard let have = plan.dataGb else { return true }
+                guard let need = request.dataNeedGb else { return false }
+                return have >= need
+            }
+            .map { plan in
+                let m = plan.monthly(request.lines)
+                return SearchResult(plan: plan, monthly: m, yearlySavings: (request.currentMonthly - m) * 12)
+            }
+            .sorted { $0.monthly < $1.monthly }
+    }
+
+    /// Runs on every Search tap: bundled plans merged with the freshly downloaded deals.
+    static func search(_ request: SearchRequest, completion: @escaping ([SearchResult]) -> Void) {
+        var bundledRequest = request
+        bundledRequest.freePhoneOnly = false
+        let base = bundledSearch(bundledRequest)
+
+        fetchDeals(phone: request.phone) { live in
+            let merged: [SearchResult] = base.map { r in
+                guard let d = live?.first(where: { sameCarrier($0.carrier, r.plan.carrier) }) else { return r }
+                var out = r
+                out.plan.deal = d.deal
+                out.plan.freePhoneOffer = d.freePhone
+                out.plan.dealUrl = d.url
+                out.liveDeal = true
+                return out
+            }
+            let result: [SearchResult]
+            if !request.freePhoneOnly {
+                result = merged
+            } else {
+                // With downloaded data a carrier with no offer is dropped; without it keep the bundled flags.
+                result = merged.filter { $0.plan.freePhoneOffer && (live == nil || $0.liveDeal) }
+            }
+            DispatchQueue.main.async { completion(result) }
+        }
+    }
+
+    private static func sameCarrier(_ a: String, _ b: String) -> Bool {
+        func norm(_ s: String) -> String {
+            s.lowercased().replacingOccurrences(of: " mobile", with: "")
+                .replacingOccurrences(of: "by t-mobile", with: "")
+                .trimmingCharacters(in: .whitespaces)
+        }
+        let x = norm(a), y = norm(b)
+        return x == y || x.hasPrefix(y) || y.hasPrefix(x)
+    }
+
+    /// Deals that apply to `phone`: entries with an empty "phones" list apply to every phone.
+    private static func fetchDeals(phone: String?, completion: @escaping ([Deal]?) -> Void) {
+        guard let url = URL(string: dealsURL) else { return completion(nil) }
+        var req = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+        req.httpMethod = "GET"
+        URLSession.shared.dataTask(with: req) { data, response, _ in
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200, let data = data,
+                  let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let arr = root["deals"] as? [[String: Any]] else { return completion(nil) }
+            let deals: [Deal] = arr.compactMap { o in
+                guard let carrier = o["carrier"] as? String, let deal = o["deal"] as? String else { return nil }
+                let phones = o["phones"] as? [String] ?? []
+                let applies = phones.isEmpty || phone == nil || phones.contains { $0.caseInsensitiveCompare(phone!) == .orderedSame }
+                guard applies else { return nil }
+                return Deal(carrier: carrier, deal: deal, freePhone: o["freePhone"] as? Bool ?? false,
+                            url: o["url"] as? String ?? "")
+            }
+            completion(deals)
+        }.resume()
+    }
+}
