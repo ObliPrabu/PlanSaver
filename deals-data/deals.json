@@ -3,7 +3,7 @@
   "deals": [
     {
       "carrier": "T-Mobile",
-      "deal": "Keep and Switch: up to $800 to pay off your old phone; several free phones with a 24-month agreement, new line or trade-in required.",
+      "deal": "Get up to $1,000 off iPhone 18 Pro Max when you switch and bring your number, or trade in your eligible phone in any condition on an Experience Beyond plan.",
       "freePhone": true,
       "phones": [],
       "url": "https://www.t-mobile.com/offers"
@@ -17,10 +17,10 @@
     },
     {
       "carrier": "AT&T",
-      "deal": "Switcher deals with up to $800 device payoff; iPhone 18 Pro with 36 monthly bill credits on an eligible unlimited plan.",
+      "deal": "Save up to $800 per line when you switch to AT&T and trade in your old phone or break your contract. Browse free phone offers from Apple, Google, Samsung, Motorola and more.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.att.com/deals"
+      "url": "https://www.att.com/buy/phones/browse/free"
     },
     {
       "carrier": "Mint Mobile",
@@ -31,7 +31,7 @@
     },
     {
       "carrier": "Visible",
-      "deal": "$480 off iPhone 18 Pro with Visible+ Pro, or $5/month off the two top plans for 5 years.",
+      "deal": "Get Visible+ for as low as $30/mo Switch to the Visible+ or Visible+ Pro monthly plan and save $5/mo for 5 years.",
       "freePhone": true,
       "phones": [],
       "url": "https://www.visible.com"
