@@ -2,7 +2,7 @@ name: Refresh deals
 
 on:
   schedule:
-    - cron: "*/10 * * * *" # every 10 minutes; GitHub cron is best-effort and often runs late
+    - cron: "*/5 * * * *" # every 5 minutes (GitHub's minimum); runs are best-effort and often late
   workflow_dispatch:
 
 permissions:
