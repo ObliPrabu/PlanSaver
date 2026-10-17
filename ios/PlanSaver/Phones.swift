@@ -21,6 +21,7 @@ enum Phones {
             PhoneFamily(label: "iPhone 16", variants: iphoneVariants),
             PhoneFamily(label: "iPhone 17", variants: ["", " Pro", " Pro Max"]),
             PhoneFamily(label: "iPhone 18", variants: ["", " Pro", " Pro Max"]),
+            PhoneFamily(label: "iPhone Duo", variants: [""]), // Apple's first foldable, announced Sep 9 2026
         ],
         "Samsung": [
             PhoneFamily(label: "Galaxy S23", variants: ["", "+", " Ultra"]),

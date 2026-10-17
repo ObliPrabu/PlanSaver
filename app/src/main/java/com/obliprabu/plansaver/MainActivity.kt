@@ -203,7 +203,7 @@ private fun ResultCard(r: Result, showSavings: Boolean) {
                 if (r.plan.freePhoneOffer) Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.",
                     style = MaterialTheme.typography.labelSmall)
             }
-            if (r.plan.dealUrl.isNotEmpty()) TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.dealUrl))) }) { Text("See the offer") }
+            if (r.plan.dealUrl.startsWith("https://")) TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.dealUrl))) }) { Text("See the offer") }
             if (r.plan.perks.isNotEmpty()) Text("Perks: " + r.plan.perks.joinToString(", "), style = MaterialTheme.typography.bodySmall)
             Text(String.format(Locale.US, "$%.2f / month", r.monthly), style = MaterialTheme.typography.titleMedium)
             if (r.plan.termMonths > 1)

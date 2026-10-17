@@ -16,6 +16,8 @@ enum PlanRepository {
     static func bundledSearch(_ request: SearchRequest) -> [SearchResult] {
         PlanData.plans
             .filter { request.includePostpaid || $0.prepaid }
+            // A plan only priced for N+ lines (e.g. AT&T Extra at 4 lines) must not show up for fewer lines.
+            .filter { request.lines >= ($0.pricePerLine.keys.min() ?? 1) }
             .filter { plan in
                 guard let have = plan.dataGb else { return true }
                 guard let need = request.dataNeedGb else { return false }

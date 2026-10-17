@@ -158,7 +158,7 @@ struct ContentView: View {
                         .font(.caption2)
                 }
             }
-            if let url = URL(string: r.plan.dealUrl), !r.plan.dealUrl.isEmpty { Link("See the offer", destination: url) }
+            if r.plan.dealUrl.hasPrefix("https://"), let url = URL(string: r.plan.dealUrl) { Link("See the offer", destination: url) }
             Text(String(format: "$%.2f / month", r.monthly)).font(.headline)
             if r.plan.termMonths > 1 {
                 Text(String(format: "Pay $%.0f up front for %d months", r.monthly * Double(r.plan.termMonths), r.plan.termMonths))

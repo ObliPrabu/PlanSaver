@@ -21,6 +21,7 @@ object Phones {
             PhoneFamily("iPhone 16", iphoneVariants),
             PhoneFamily("iPhone 17", listOf("", " Pro", " Pro Max")),
             PhoneFamily("iPhone 18", listOf("", " Pro", " Pro Max")),
+            PhoneFamily("iPhone Duo", listOf("")), // Apple's first foldable, announced Sep 9 2026
         ),
         "Samsung" to listOf(
             PhoneFamily("Galaxy S23", listOf("", "+", " Ultra")),

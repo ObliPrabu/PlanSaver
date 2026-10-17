@@ -51,7 +51,7 @@ data class Result(val plan: Plan, val monthly: Double, val yearlySavings: Double
     val otherPhone: Boolean = false)
 
 private val phoneMention = Regex(
-    """(?i)\b(iphone\s?\d{1,2}(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra|\s?plus)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:\s?pro(?:\s?xl)?)?)"""
+    """(?i)\b(iphone\s?duo|iphone\s?\d{1,2}(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra|\s?plus)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:\s?pro(?:\s?xl)?)?)"""
 )
 
 private fun norm(s: String) = s.lowercase().replace(Regex("[^a-z0-9+]"), "")
@@ -72,6 +72,7 @@ private val brandAndGen = Regex("^(iphone|galaxys|galaxyz(?:flip|fold)|pixel)(\\
 
 /** (brand, generation) of a normalized phone name; generation 0 when the name has no number. */
 private fun brandGen(n: String): Pair<String, Int>? {
+    if (n.startsWith("iphoneduo")) return "iphone" to 99 // newest iPhone, newer than any numbered one
     val m = brandAndGen.find(n) ?: return null
     return m.groupValues[1] to (m.groupValues[2].toIntOrNull() ?: 0)
 }

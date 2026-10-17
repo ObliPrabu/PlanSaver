@@ -56,7 +56,7 @@ struct SearchResult: Identifiable {
 }
 
 private let phoneMention = try! NSRegularExpression(
-    pattern: "\\b(iphone\\s?\\d{1,2}(?:\\s?(?:pro max|pro|plus|mini))?|galaxy\\s?(?:s\\d{2}(?:\\+|\\s?ultra|\\s?plus)?|z\\s?(?:flip|fold)\\s?\\d*)|pixel\\s?\\d{1,2}(?:\\s?pro(?:\\s?xl)?)?)",
+    pattern: "\\b(iphone\\s?duo|iphone\\s?\\d{1,2}(?:\\s?(?:pro max|pro|plus|mini))?|galaxy\\s?(?:s\\d{2}(?:\\+|\\s?ultra|\\s?plus)?|z\\s?(?:flip|fold)\\s?\\d*)|pixel\\s?\\d{1,2}(?:\\s?pro(?:\\s?xl)?)?)",
     options: [.caseInsensitive])
 
 private func norm(_ s: String) -> String {
@@ -79,6 +79,7 @@ private let brandAndGen = try! NSRegularExpression(pattern: "^(iphone|galaxys|ga
 
 /// (brand, generation) of a normalized phone name; generation 0 when the name has no number.
 private func brandGen(_ n: String) -> (String, Int)? {
+    if n.hasPrefix("iphoneduo") { return ("iphone", 99) } // newest iPhone, newer than any numbered one
     let ns = n as NSString
     guard let m = brandAndGen.firstMatch(in: n, range: NSRange(location: 0, length: ns.length)) else { return nil }
     return (ns.substring(with: m.range(at: 1)), Int(ns.substring(with: m.range(at: 2))) ?? 0)

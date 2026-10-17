@@ -23,6 +23,8 @@ class BundledPlanRepository : PlanRepository {
         return PlanData.plans
             .filter { request.includePostpaid || it.prepaid }
             .filter { !request.freePhoneOnly || it.freePhoneOffer }
+            // A plan only priced for N+ lines (e.g. AT&T Extra at 4 lines) must not show up for fewer lines.
+            .filter { request.lines >= it.pricePerLine.keys.min() }
             .filter { it.dataGb == null || (request.dataNeedGb != null && it.dataGb >= request.dataNeedGb) }
             .map {
                 val m = it.monthly(request.lines)
