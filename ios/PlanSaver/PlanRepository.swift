@@ -44,12 +44,29 @@ enum PlanRepository {
                 out.liveDeal = true
                 return out
             }
+            // Deals about your phone (or no phone) stay. Deals about another phone are hidden, unless "better phones"
+            // is ticked and the phone is a newer one of the same brand - those are kept, labeled and listed last.
+            let mapped: [SearchResult] = merged.map { r in
+                guard let text = r.plan.deal, !dealMatchesPhone(text, phone: request.phone) else { return r }
+                var out = r
+                if request.includeOtherPhones && dealIsBetterPhone(text, phone: request.phone) {
+                    out.otherPhone = true
+                } else {
+                    out.plan.deal = nil
+                    out.plan.freePhoneOffer = false
+                    out.plan.dealUrl = ""
+                    out.liveDeal = false
+                }
+                return out
+            }
+            // Stable partition: your-phone results first, better-phone results after, price order kept in each.
+            let relevant = mapped.filter { !$0.otherPhone } + mapped.filter { $0.otherPhone }
             let result: [SearchResult]
             if !request.freePhoneOnly {
-                result = merged
+                result = relevant
             } else {
                 // With downloaded data a carrier with no offer is dropped; without it keep the bundled flags.
-                result = merged.filter { $0.plan.freePhoneOffer && (live == nil || $0.liveDeal) }
+                result = relevant.filter { $0.plan.freePhoneOffer && (live == nil || $0.liveDeal) }
             }
             DispatchQueue.main.async { completion(result) }
         }

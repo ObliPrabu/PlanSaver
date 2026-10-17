@@ -43,6 +43,8 @@ fun PlanSaverApp(repo: PlanRepository) {
     var brand by remember { mutableStateOf("iPhone") }
     var familyIdx by remember { mutableIntStateOf(3) }
     var variant by remember { mutableStateOf("") }
+    var familyPicked by remember { mutableStateOf(false) }
+    var otherPhones by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var results by remember { mutableStateOf<List<Result>?>(null) }
     var searchedPhone by remember { mutableStateOf<String?>(null) }
@@ -103,15 +105,24 @@ fun PlanSaverApp(repo: PlanRepository) {
                                 brand = br
                                 familyIdx = 0
                                 variant = ""
+                                familyPicked = false
                             }, label = { Text(br) })
                         }
                     }
-                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        families.forEachIndexed { i, f ->
-                            FilterChip(selected = familyIdx == i, onClick = {
-                                familyIdx = i
-                                if (variant !in f.variants) variant = ""
-                            }, label = { Text(f.label) })
+                    // Once a model is picked, hide the other generations so it isn't confusing.
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        if (!familyPicked) {
+                            families.forEachIndexed { i, f ->
+                                FilterChip(selected = familyIdx == i, onClick = {
+                                    familyIdx = i
+                                    familyPicked = true
+                                    if (variant !in f.variants) variant = ""
+                                }, label = { Text(f.label) })
+                            }
+                        } else {
+                            FilterChip(selected = true, onClick = { familyPicked = false }, label = { Text(family.label) })
+                            TextButton(onClick = { familyPicked = false }) { Text("Change") }
                         }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -121,6 +132,10 @@ fun PlanSaverApp(repo: PlanRepository) {
                         }
                     }
                     Text("Selected: " + family.name(variant), style = MaterialTheme.typography.bodySmall)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = otherPhones, onCheckedChange = { otherPhones = it })
+                        Text("Check for better phones as well")
+                    }
                 }
                 Spacer(Modifier.height(12.dp))
 
@@ -135,7 +150,7 @@ fun PlanSaverApp(repo: PlanRepository) {
                         scope.launch {
                             val found = try {
                                 repo.search(SearchRequest(lines, dataChoices[dataIdx].second,
-                                    current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone))
+                                    current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone, otherPhones))
                             } catch (e: Exception) {
                                 emptyList()
                             }
@@ -183,7 +198,7 @@ private fun ResultCard(r: Result, showSavings: Boolean) {
                 style = MaterialTheme.typography.bodySmall)
             if (r.plan.note.isNotEmpty()) Text(r.plan.note, style = MaterialTheme.typography.bodySmall)
             r.plan.deal?.let {
-                Text((if (r.liveDeal) "Live " else "") + (if (r.plan.freePhoneOffer) "phone deal: " else "deal: ") + it,
+                Text((if (r.liveDeal) "Live " else "") + (if (r.otherPhone) "better phone deal: " else if (r.plan.freePhoneOffer) "phone deal: " else "deal: ") + it,
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                 if (r.plan.freePhoneOffer) Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.",
                     style = MaterialTheme.typography.labelSmall)

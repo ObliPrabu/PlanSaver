@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var brand = "iPhone"
     @State private var familyIdx = 3
     @State private var variant = ""
+    @State private var otherPhones = false
     @State private var loading = false
     @State private var results: [SearchResult]? = nil
     @State private var searchedPhone: String? = nil
@@ -98,6 +99,7 @@ struct ContentView: View {
                 ForEach(family.variants, id: \.self) { Text($0.isEmpty ? "Base" : $0.trimmingCharacters(in: .whitespaces)).tag($0) }
             }.pickerStyle(SegmentedPickerStyle())
             Text("Selected: " + family.name(variant)).font(.footnote)
+            Toggle("Check for better phones as well", isOn: $otherPhones)
         }
     }
 
@@ -106,7 +108,7 @@ struct ContentView: View {
         let phone = freePhone ? family.name(variant) : nil
         let request = SearchRequest(lines: lines, dataNeedGb: dataChoices[dataIdx].gb,
                                     currentMonthly: Double(current) ?? 0, includePostpaid: postpaid,
-                                    freePhoneOnly: freePhone, phone: phone)
+                                    freePhoneOnly: freePhone, phone: phone, includeOtherPhones: otherPhones)
         PlanRepository.search(request) { found in
             searchedPhone = phone
             results = found
@@ -149,7 +151,7 @@ struct ContentView: View {
                 .font(.footnote)
             if !r.plan.note.isEmpty { Text(r.plan.note).font(.footnote) }
             if let deal = r.plan.deal {
-                Text((r.liveDeal ? "Live " : "") + (r.plan.freePhoneOffer ? "phone deal: " : "deal: ") + deal)
+                Text((r.liveDeal ? "Live " : "") + (r.otherPhone ? "better phone deal: " : (r.plan.freePhoneOffer ? "phone deal: " : "deal: ")) + deal)
                     .font(.footnote).foregroundColor(.orange)
                 if r.plan.freePhoneOffer {
                     Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.")

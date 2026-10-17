@@ -52,9 +52,19 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
                 liveDeal = true,
             )
         }
+        // Deals about your phone (or no phone) stay. Deals about another phone are hidden, unless "better phones"
+        // is ticked and the phone is a newer one of the same brand - those are kept, labeled and listed last.
+        val relevant = merged.map { r ->
+            val text = r.plan.deal
+            when {
+                text == null || dealMatchesPhone(text, request.phone) -> r
+                request.includeOtherPhones && dealIsBetterPhone(text, request.phone) -> r.copy(otherPhone = true)
+                else -> r.copy(plan = r.plan.copy(deal = null, freePhoneOffer = false, dealUrl = ""), liveDeal = false)
+            }
+        }.sortedBy { it.otherPhone } // stable: keeps the price order inside each group
         // With downloaded data a carrier with no offer is dropped; without it, keep the bundled flags.
-        return if (!request.freePhoneOnly) merged
-        else merged.filter { it.plan.freePhoneOffer && (live == null || it.liveDeal) }
+        return if (!request.freePhoneOnly) relevant
+        else relevant.filter { it.plan.freePhoneOffer && (live == null || it.liveDeal) }
     }
 
     private class Deal(val carrier: String, val deal: String, val freePhone: Boolean, val url: String)
