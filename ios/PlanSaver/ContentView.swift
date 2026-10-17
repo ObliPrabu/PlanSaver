@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var loading = false
     @State private var results: [SearchResult]? = nil
     @State private var searchedPhone: String? = nil
+    @State private var sortByData = false
 
     private var families: [PhoneFamily] { Phones.brands[brand] ?? [] }
     private var family: PhoneFamily { families[min(familyIdx, families.count - 1)] }
@@ -131,6 +132,10 @@ struct ContentView: View {
                         Text("Phone: \(phone). Carriers below advertise phone deals, but whether \(phone) is covered varies by carrier and changes weekly - confirm on their site.")
                             .font(.footnote)
                     }
+                    Picker("Sort", selection: $sortByData) {
+                        Text("Lowest price").tag(false)
+                        Text("Most data").tag(true)
+                    }.pickerStyle(SegmentedPickerStyle())
                     if lines > 4 {
                         Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.")
                             .font(.footnote)
@@ -138,12 +143,22 @@ struct ContentView: View {
                     if list.isEmpty {
                         Text("No plans matched. Try more data or include big carriers.")
                     } else {
-                        ForEach(list) { card($0) }
+                        ForEach(sorted(list)) { card($0) }
                     }
                     Text("Prices researched Oct 2026 and may have changed - confirm on the carrier's site. PlanSaver may earn a commission if you sign up through a link.")
                         .font(.footnote).padding(.vertical, 16)
                 }.padding(.horizontal, 16)
             }
+        }
+    }
+
+    /// Better-phone results stay last; inside each group order by price, or by data (unlimited first) then price.
+    private func sorted(_ list: [SearchResult]) -> [SearchResult] {
+        func data(_ r: SearchResult) -> Int { sortByData ? -(r.plan.dataGb ?? 1_000_000) : 0 }
+        return list.sorted {
+            if $0.otherPhone != $1.otherPhone { return !$0.otherPhone }
+            if data($0) != data($1) { return data($0) < data($1) }
+            return $0.monthly < $1.monthly
         }
     }
 
@@ -164,6 +179,9 @@ struct ContentView: View {
                 }
             }
             if r.plan.dealUrl.hasPrefix("https://"), let url = URL(string: r.plan.dealUrl) { Link("See the offer", destination: url) }
+            ForEach(coverageLinks(r.plan.network), id: \.name) { c in
+                if let url = URL(string: c.url) { Link("\(c.name) coverage map", destination: url) }
+            }
             Text(String(format: "$%.2f / month", r.monthly)).font(.headline)
             if r.plan.termMonths > 1 {
                 Text(String(format: "Pay $%.0f up front for %d months", r.monthly * Double(r.plan.termMonths), r.plan.termMonths))

@@ -98,3 +98,12 @@ func dealIsBetterPhone(_ text: String, phone: String?) -> Bool {
         return got.0 == want.0 && got.1 >= want.1
     }
 }
+
+/// Official coverage-map pages for the networks a plan runs on (a plan on several networks gets several links).
+func coverageLinks(_ network: String) -> [(name: String, url: String)] {
+    var out: [(name: String, url: String)] = []
+    if network.contains("Verizon") { out.append(("Verizon", "https://www.verizon.com/coverage-map/")) }
+    if network.contains("AT&T") { out.append(("AT&T", "https://www.att.com/maps/wireless-coverage.html")) }
+    if network.contains("T-Mobile") { out.append(("T-Mobile", "https://www.t-mobile.com/coverage/coverage-map")) }
+    return out
+}

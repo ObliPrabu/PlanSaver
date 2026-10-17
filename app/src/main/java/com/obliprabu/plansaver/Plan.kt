@@ -92,3 +92,10 @@ fun dealIsBetterPhone(text: String, phone: String?): Boolean {
         got != null && got.first == want.first && got.second >= want.second
     }
 }
+
+/** Official coverage-map pages for the networks a plan runs on (a plan on several networks gets several links). */
+fun coverageLinks(network: String): List<Pair<String, String>> = buildList {
+    if (network.contains("Verizon")) add("Verizon" to "https://www.verizon.com/coverage-map/")
+    if (network.contains("AT&T")) add("AT&T" to "https://www.att.com/maps/wireless-coverage.html")
+    if (network.contains("T-Mobile")) add("T-Mobile" to "https://www.t-mobile.com/coverage/coverage-map")
+}

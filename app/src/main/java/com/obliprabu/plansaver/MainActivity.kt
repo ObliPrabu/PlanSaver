@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -28,8 +29,19 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { MaterialTheme { Surface(Modifier.fillMaxSize()) { PlanSaverApp(RemotePlanRepository(BuildConfig.DEALS_URL)) } } }
+        setContent { MaterialTheme(typography = scaledTypography(1.25f)) { Surface(Modifier.fillMaxSize()) { PlanSaverApp(RemotePlanRepository(BuildConfig.DEALS_URL)) } } }
     }
+}
+
+/** Every text style [f] times bigger, so the whole app is easier to read. */
+private fun scaledTypography(f: Float): Typography {
+    fun TextStyle.big() = copy(fontSize = fontSize * f, lineHeight = lineHeight * f)
+    val t = Typography()
+    return t.copy(displayLarge = t.displayLarge.big(), displayMedium = t.displayMedium.big(), displaySmall = t.displaySmall.big(),
+        headlineLarge = t.headlineLarge.big(), headlineMedium = t.headlineMedium.big(), headlineSmall = t.headlineSmall.big(),
+        titleLarge = t.titleLarge.big(), titleMedium = t.titleMedium.big(), titleSmall = t.titleSmall.big(),
+        bodyLarge = t.bodyLarge.big(), bodyMedium = t.bodyMedium.big(), bodySmall = t.bodySmall.big(),
+        labelLarge = t.labelLarge.big(), labelMedium = t.labelMedium.big(), labelSmall = t.labelSmall.big())
 }
 
 private val dataChoices = listOf("1-5 GB" to 5, "10 GB" to 10, "25 GB" to 25, "Unlimited" to null)
@@ -48,6 +60,7 @@ fun PlanSaverApp(repo: PlanRepository) {
     var otherPhones by rememberSaveable { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var results by remember { mutableStateOf<List<Result>?>(null) }
+    var sortByData by rememberSaveable { mutableStateOf(false) }
     var searchedPhone by rememberSaveable { mutableStateOf<String?>(null) }
     // Results are not saveable, so remember only that the results screen was open and search again after process death.
     var resultsOpen by rememberSaveable { mutableStateOf(false) }
@@ -190,9 +203,17 @@ fun PlanSaverApp(repo: PlanRepository) {
                 }
                 if (lineCount > 4) Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.",
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)) {
+                    Text("Sort:")
+                    FilterChip(selected = !sortByData, onClick = { sortByData = false }, label = { Text("Lowest price") })
+                    FilterChip(selected = sortByData, onClick = { sortByData = true }, label = { Text("Most data") })
+                }
                 if (results == null) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 12.dp))
                 else if (list.isEmpty()) Text("No plans matched. Try more data or include big carriers.")
-                else list.forEach { ResultCard(it, current.toDoubleOrNull() != null) }
+                else list.sortedWith(compareBy<Result> { it.otherPhone }
+                    .thenBy { if (sortByData) -(it.plan.dataGb ?: 1_000_000) else 0 }.thenBy { it.monthly })
+                    .forEach { ResultCard(it, current.toDoubleOrNull() != null) }
                 Text("Prices researched Oct 2026 and may have changed - confirm on the carrier's site. " +
                     "PlanSaver may earn a commission if you sign up through a link.",
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 16.dp))
@@ -218,6 +239,9 @@ private fun ResultCard(r: Result, showSavings: Boolean) {
                     style = MaterialTheme.typography.labelSmall)
             }
             if (r.plan.dealUrl.startsWith("https://")) TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.dealUrl))) }) { Text("See the offer") }
+            coverageLinks(r.plan.network).forEach { (name, url) ->
+                TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }) { Text("$name coverage map") }
+            }
             if (r.plan.perks.isNotEmpty()) Text("Perks: " + r.plan.perks.joinToString(", "), style = MaterialTheme.typography.bodySmall)
             Text(String.format(Locale.US, "$%.2f / month", r.monthly), style = MaterialTheme.typography.titleMedium)
             if (r.plan.termMonths > 1)
