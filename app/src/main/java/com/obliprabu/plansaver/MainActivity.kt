@@ -213,8 +213,8 @@ fun PlanSaverApp(repo: PlanRepository) {
                 else if (list.isEmpty()) Text("No plans matched. Try more data or include big carriers.")
                 else list.sortedWith(compareBy<Result> { it.otherPhone }
                     .thenBy { if (sortByData) -(it.plan.dataGb ?: 1_000_000) else 0 }.thenBy { it.monthly })
-                    .forEach { ResultCard(it, current.toDoubleOrNull() != null) }
-                Text("Prices researched Oct 2026 and may have changed - confirm on the carrier's site. " +
+                    .forEach { ResultCard(it, current.toDoubleOrNull() != null, lineCount) }
+                Text("Prices researched Oct 2026 from third-party roundups, not checked with the carriers, and may have changed - confirm on the carrier's site. " +
                     "PlanSaver may earn a commission if you sign up through a link.",
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 16.dp))
             }
@@ -223,7 +223,7 @@ fun PlanSaverApp(repo: PlanRepository) {
 }
 
 @Composable
-private fun ResultCard(r: Result, showSavings: Boolean) {
+private fun ResultCard(r: Result, showSavings: Boolean, lines: Int) {
     val ctx = LocalContext.current
     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
         Column(Modifier.padding(12.dp)) {
@@ -243,6 +243,9 @@ private fun ResultCard(r: Result, showSavings: Boolean) {
                 TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }) { Text("$name coverage map") }
             }
             if (r.plan.perks.isNotEmpty()) Text("Perks: " + r.plan.perks.joinToString(", "), style = MaterialTheme.typography.bodySmall)
+            if (lines > 1 && lines !in r.plan.pricePerLine)
+                Text("Estimate: no $lines-line price on file, so this uses the nearest known per-line price.",
+                    style = MaterialTheme.typography.bodySmall)
             Text(String.format(Locale.US, "$%.2f / month", r.monthly), style = MaterialTheme.typography.titleMedium)
             if (r.plan.termMonths > 1)
                 Text(String.format(Locale.US, "Pay $%.0f up front for %d months", r.monthly * r.plan.termMonths, r.plan.termMonths),

@@ -102,7 +102,6 @@ enum PlanRepository {
             guard let http = response as? HTTPURLResponse, http.statusCode == 200, let data = data,
                   let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let arr = root["deals"] as? [[String: Any]] else { return completion(nil) }
-            let rootUpdated = root["updated"] as? String ?? ""
             let deals: [Deal] = arr.compactMap { o in
                 guard let carrier = o["carrier"] as? String, let deal = o["deal"] as? String else { return nil }
                 let phones = o["phones"] as? [String] ?? []
@@ -110,7 +109,7 @@ enum PlanRepository {
                 guard applies else { return nil }
                 return Deal(carrier: carrier, deal: deal, freePhone: o["freePhone"] as? Bool ?? false,
                             url: o["url"] as? String ?? "", plans: o["plans"] as? [String] ?? [],
-                            updated: o["updated"] as? String ?? rootUpdated)
+                            updated: o["updated"] as? String ?? "")
             }
             completion(deals)
         }.resume()

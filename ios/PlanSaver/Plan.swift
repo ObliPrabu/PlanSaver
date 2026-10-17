@@ -58,7 +58,7 @@ struct SearchResult: Identifiable {
 }
 
 private let phoneMention = try! NSRegularExpression(
-    pattern: "\\b(iphone\\s?duo|iphone\\s?\\d{1,2}(?:\\s?(?:pro max|pro|plus|mini))?|galaxy\\s?(?:s\\d{2}(?:\\+|\\s?ultra\\b|\\s?plus\\b|\\s?fe\\b|\\s?edge\\b)?|z\\s?(?:flip|fold)\\s?\\d*)|pixel\\s?\\d{1,2}(?:\\s?pro(?:\\s?xl)?)?)",
+    pattern: "\\b(iphone\\s?duo|iphone\\s?air|iphone\\s?\\d{1,2}e?(?:\\s?(?:pro max|pro|plus|mini))?|galaxy\\s?(?:s\\d{2}(?:\\+|\\s?ultra\\b|\\s?plus\\b|\\s?fe\\b|\\s?edge\\b)?|z\\s?(?:flip|fold)\\s?\\d*)|pixel\\s?\\d{1,2}(?:\\s?pro(?:\\s?(?:xl|fold))?)?)",
     options: [.caseInsensitive])
 
 private func norm(_ s: String) -> String {
@@ -76,7 +76,20 @@ func dealMatchesPhone(_ text: String, phone: String?) -> Bool {
     if mentions.isEmpty { return true }
     let want = norm(phone)
     // Exact match: picking the base "iPhone 16" must not match a deal for the "iPhone 16 Pro", nor "S25" a "S25 FE".
-    return mentions.contains { $0 == want }
+    // Two exceptions: a bare family mention ("iPhone 16", "Pixel 9") covers the whole family, so it matches the Pro
+    // you picked; and foldables can't be picked by generation, so "Galaxy Z Flip 7" matches the picker's "Galaxy Z Flip".
+    return mentions.contains { $0 == want || (isBareFamily($0) && want.hasPrefix($0)) || foldableFamily($0) == want }
+}
+
+private func isBareFamily(_ n: String) -> Bool {
+    n.range(of: "^(iphone\\d+|galaxys\\d+|pixel\\d+)$", options: .regularExpression) != nil
+}
+
+private func foldableFamily(_ n: String) -> String {
+    guard n.hasPrefix("galaxyz") else { return n }
+    var out = n
+    while let last = out.last, last.isNumber { out.removeLast() }
+    return out
 }
 
 private let brandAndGen = try! NSRegularExpression(pattern: "^(iphone|galaxys|galaxyz(?:flip|fold)|pixel)(\\d*)")

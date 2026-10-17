@@ -90,8 +90,7 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
                 useCaches = false // a Search tap should see the latest file
             }
             if (conn.responseCode != 200) return@withContext null
-            val root = JSONObject(conn.inputStream.bufferedReader().readText())
-            val arr = root.getJSONArray("deals")
+            val arr = JSONObject(conn.inputStream.bufferedReader().readText()).getJSONArray("deals")
             (0 until arr.length()).mapNotNull {
                 val o = arr.getJSONObject(it)
                 val phones = o.optJSONArray("phones")
@@ -102,7 +101,7 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
                     val scope = o.optJSONArray("plans")
                     Deal(o.getString("carrier"), o.getString("deal"), o.optBoolean("freePhone"), o.optString("url"),
                         if (scope == null) emptyList() else (0 until scope.length()).map { i -> scope.getString(i) },
-                        o.optString("updated", root.optString("updated")))
+                        o.optString("updated"))
                 }
             }
         } catch (e: Exception) {

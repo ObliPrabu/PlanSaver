@@ -12,9 +12,9 @@ android {
         applicationId = "com.obliprabu.plansaver"
         minSdk = 24
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.2.2"
-        // Hosted deals.json (refreshed by .github/workflows/refresh-deals.yml). Needs the repo PUBLIC; if it is private the app quietly falls back to bundled deals.
+        versionCode = 5
+        versionName = "0.2.3"
+        // Hosted deals.json (refreshed by .github/workflows/deals-robot.yml). Needs the repo PUBLIC; if it is private the app quietly falls back to bundled deals.
         buildConfigField("String", "DEALS_URL", "\"https://raw.githubusercontent.com/ObliPrabu/PlanSaver/main/deals-data/deals.json\"")
     }
 
@@ -42,4 +42,5 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.material3)
+    testImplementation("junit:junit:4.13.2")
 }

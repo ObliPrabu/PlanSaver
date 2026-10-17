@@ -3,8 +3,9 @@
 
 For each carrier already in the file: read the carrier's own deals page and a DuckDuckGo HTML search, keep the best
 deal-sounding sentence that came from the carrier's OWN domain, and store it. Any failure keeps the old entry, so a
-blocked request can never wipe the deals. phones/plans are never guessed - they stay as they are in the file. freePhone is
-re-derived (conservatively) only when the deal text changes; "updated" on each entry is the date its text last changed.
+blocked request can never wipe the deals. "phones" is never guessed. A "plans" scope is kept only while the new text still
+names one of its plans. freePhone is re-derived when the deal text changes; "updated" on each entry is the date its text
+last changed. A new text must score clearly higher than the stored one, so candidates can't flip-flop.
 Usage: python tools/refresh_deals.py [path/to/deals.json]
 """
 import html
@@ -21,11 +22,13 @@ PATH = sys.argv[1] if len(sys.argv) > 1 else "deals-data/deals.json"
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 KEYWORDS = ("free", "off", "save", "switch", "trade", "bill credit", "per month", "/mo", "iphone", "galaxy", "pixel")
 MIN_SCORE = 5
+MARGIN = 2  # a new deal text must beat the stored one by this much
 MAX_LEN = 240
 
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"})
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9",
+                                               "Accept": "text/html,application/xhtml+xml"})
     with urllib.request.urlopen(req, timeout=20) as r:
         if r.status != 200:
             raise IOError(r.status)
@@ -81,18 +84,35 @@ def score(s):
         return 0
     n = sum(1 for k in KEYWORDS if k in low) + (2 if "$" in s else 0)
     # Ignore legal/boilerplate and obvious non-offers.
-    if any(b in low for b in ("cookie", "privacy", "terms", "sign in", "log in", "javascript")):
+    # Product-listing scraps ("Rated 4.1 out of 5 stars ... Quick view") are not offers.
+    if any(b in low for b in ("cookie", "privacy", "terms", "sign in", "log in", "javascript",
+                              "quick view", "out of 5", "stars", "reviews", "compare ", "price was", "add to cart", "sort by")):
         return 0
     return n
 
 
 PHONE_WORDS = re.compile(r"\b(phone|phones|iphone|galaxy|pixel|device)\b", re.I)
 GIVEAWAY = re.compile(r"\bfree\b|\$\s?\d[\d,]*\s+off|bill credits?", re.I)
+SWITCH_DEAL = re.compile(r"\b(trade[- ]in|switch)\b", re.I)
+MONEY_OFF = re.compile(r"\$\s?\d[\d,]*\s*(off|per line|back)|up to \$\s?\d[\d,]*", re.I)
 
 
 def offers_phone(text):
-    """True only when the text both names a phone/device and says free / $ off / bill credits."""
-    return bool(PHONE_WORDS.search(text) and GIVEAWAY.search(text))
+    """True when the text offers a free / discounted phone: names a phone and says free, $ off or bill credits, or
+    pairs a trade-in/switch with a dollar amount off."""
+    if PHONE_WORDS.search(text) and GIVEAWAY.search(text):
+        return True
+    return bool(SWITCH_DEAL.search(text) and MONEY_OFF.search(text))
+
+
+def fragment_key(s):
+    return re.sub(r"[^a-z0-9]", "", s.lower())
+
+
+def plans_still_apply(entry, text):
+    """The 'plans' scope was written for the old offer; keep it only if the new text still names one of its plans."""
+    key = fragment_key(text)
+    return any(fragment_key(f) in key for f in entry.get("plans", []))
 
 
 def domain(url):
@@ -149,13 +169,21 @@ def main():
         if not best:
             print("  keeping old entry")
             continue
-        _, text, url = best
-        if text != entry["deal"] or url != entry["url"]:
-            print(f"  new: {text}")
-            entry["deal"], entry["url"] = text, url
-            entry["freePhone"] = offers_phone(text)
-            entry["updated"] = date.today().isoformat()
-            changed = True
+        new_score, text, url = best
+        if text == entry["deal"] and url == entry["url"]:
+            continue
+        # Only replace a deal when the new text is clearly better, so two similar candidates can't flip-flop forever.
+        if text != entry["deal"] and new_score < score(entry["deal"]) + MARGIN:
+            print(f"  keeping old entry (new text not clearly better): {text}")
+            continue
+        print(f"  new: {text}")
+        entry["deal"], entry["url"] = text, url
+        entry["freePhone"] = offers_phone(text)
+        entry["updated"] = date.today().isoformat()
+        if entry.get("plans") and not plans_still_apply(entry, text):
+            print(f"  plans scope {entry['plans']} no longer in the text - dropped")
+            del entry["plans"]
+        changed = True
     if changed:
         data["updated"] = date.today().isoformat()
         with open(PATH, "w") as f:

@@ -53,7 +53,7 @@ data class Result(val plan: Plan, val monthly: Double, val yearlySavings: Double
     val otherPhone: Boolean = false)
 
 private val phoneMention = Regex(
-    """(?i)\b(iphone\s?duo|iphone\s?\d{1,2}(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra\b|\s?plus\b|\s?fe\b|\s?edge\b)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:\s?pro(?:\s?xl)?)?)"""
+    """(?i)\b(iphone\s?duo|iphone\s?air|iphone\s?\d{1,2}e?(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra\b|\s?plus\b|\s?fe\b|\s?edge\b)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:\s?pro(?:\s?(?:xl|fold))?)?)"""
 )
 
 private fun norm(s: String): String {
@@ -71,8 +71,13 @@ fun dealMatchesPhone(text: String, phone: String?): Boolean {
     if (mentions.isEmpty()) return true
     val want = norm(phone)
     // Exact match: picking the base "iPhone 16" must not match a deal for the "iPhone 16 Pro", nor "S25" a "S25 FE".
-    return mentions.any { it == want }
+    // Two exceptions: a bare family mention ("iPhone 16", "Pixel 9") covers the whole family, so it matches the Pro
+    // you picked; and foldables can't be picked by generation, so "Galaxy Z Flip 7" matches the picker's "Galaxy Z Flip".
+    return mentions.any { it == want || (bareFamily.matches(it) && want.startsWith(it)) || foldableFamily(it) == want }
 }
+
+private val bareFamily = Regex("^(iphone\\d+|galaxys\\d+|pixel\\d+)$")
+private fun foldableFamily(n: String) = if (n.startsWith("galaxyz")) n.trimEnd { it.isDigit() } else n
 
 private val brandAndGen = Regex("^(iphone|galaxys|galaxyz(?:flip|fold)|pixel)(\\d*)")
 

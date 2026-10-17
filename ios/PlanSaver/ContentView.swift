@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var results: [SearchResult]? = nil
     @State private var searchedPhone: String? = nil
     @State private var sortByData = false
+    @State private var searchedLines = 1
 
     private var families: [PhoneFamily] { Phones.brands[brand] ?? [] }
     private var family: PhoneFamily { families[min(familyIdx, families.count - 1)] }
@@ -41,14 +42,12 @@ struct ContentView: View {
                     Text("Find the cheapest US phone plan for what you actually use.").font(.subheadline)
 
                     Text("How many lines?").font(.headline)
-                    Picker("Lines", selection: $lines) {
-                        ForEach(1...6, id: \.self) { Text("\($0)").tag($0) }
-                    }.pickerStyle(SegmentedPickerStyle())
+                    Stepper(value: $lines, in: 1...6) { Text("\(lines) \(lines == 1 ? "line" : "lines")") }
 
                     Text("Data per line").font(.headline)
                     Picker("Data", selection: $dataIdx) {
                         ForEach(0..<dataChoices.count, id: \.self) { Text(dataChoices[$0].label).tag($0) }
-                    }.pickerStyle(SegmentedPickerStyle())
+                    }.pickerStyle(MenuPickerStyle())
 
                     Text("Your current phone bill (all lines, per month)").font(.headline)
                     HStack {
@@ -112,6 +111,7 @@ struct ContentView: View {
                                     freePhoneOnly: freePhone, phone: phone, includeOtherPhones: otherPhones)
         PlanRepository.search(request) { found in
             searchedPhone = phone
+            searchedLines = lines
             results = found
             loading = false
         }
@@ -143,9 +143,9 @@ struct ContentView: View {
                     if list.isEmpty {
                         Text("No plans matched. Try more data or include big carriers.")
                     } else {
-                        ForEach(sorted(list)) { card($0) }
+                        ForEach(sorted(list)) { card($0, lines: searchedLines) }
                     }
-                    Text("Prices researched Oct 2026 and may have changed - confirm on the carrier's site. PlanSaver may earn a commission if you sign up through a link.")
+                    Text("Prices researched Oct 2026 from third-party roundups, not checked with the carriers, and may have changed - confirm on the carrier's site. PlanSaver may earn a commission if you sign up through a link.")
                         .font(.footnote).padding(.vertical, 16)
                 }.padding(.horizontal, 16)
             }
@@ -162,7 +162,7 @@ struct ContentView: View {
         }
     }
 
-    private func card(_ r: SearchResult) -> some View {
+    private func card(_ r: SearchResult, lines: Int) -> some View {
         let showSavings = Double(current) != nil
         return VStack(alignment: .leading, spacing: 4) {
             Text("\(r.plan.carrier) - \(r.plan.name)").bold()
@@ -179,6 +179,9 @@ struct ContentView: View {
                 }
             }
             if r.plan.dealUrl.hasPrefix("https://"), let url = URL(string: r.plan.dealUrl) { Link("See the offer", destination: url) }
+            if lines > 1 && r.plan.pricePerLine[lines] == nil {
+                Text("Estimate: no \(lines)-line price on file, so this uses the nearest known per-line price.").font(.footnote)
+            }
             ForEach(coverageLinks(r.plan.network), id: \.name) { c in
                 if let url = URL(string: c.url) { Link("\(c.name) coverage map", destination: url) }
             }

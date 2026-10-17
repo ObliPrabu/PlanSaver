@@ -13,7 +13,7 @@ research sources and affiliate payout numbers.
 Android (AGP 9 built-in Kotlin, Compose; copied from the sibling `~/AndroidStudioProjects/Menalith` project):
 - Build debug APK: `./gradlew assembleDebug` -> `app/build/outputs/apk/debug/app-debug.apk`
 - Install on the user's vivo: `~/Library/Android/sdk/platform-tools/adb -s T8ZXNJ896T99FMZX install -r app/build/outputs/apk/debug/app-debug.apk`
-- There are no tests or lint setup yet.
+- Unit tests: `./gradlew testDebugUnitTest` (phone matching). Robot tests: `PYTHONPATH=tools python3 -m unittest discover -s tools -p "test_*.py"` (the workflow runs them before every scrape). No lint setup yet.
 
 iOS (`ios/project.yml` is the source of truth; `ios/PlanSaver.xcodeproj` is generated and gitignored):
 - Regenerate after editing `project.yml` or adding files: `cd ios && xcodegen generate`
@@ -31,7 +31,7 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 - Keep Android and iOS in sync: every logic/data change goes into both. The 39 plans in `PlanData.kt` were converted to
   `ios/PlanSaver/PlanData.swift` by a script - edit both by hand or re-convert.
 - Version is kept equal on both: Android `versionCode`/`versionName` in `app/build.gradle.kts`, iOS
-  `CURRENT_PROJECT_VERSION`/`MARKETING_VERSION` in `ios/project.yml` (currently 0.2.2 / 4). Bump only when asked.
+  `CURRENT_PROJECT_VERSION`/`MARKETING_VERSION` in `ios/project.yml` (currently 0.2.3 / 5). Bump only when asked.
 - No paid services and no API keys. A search/AI key must never be inside the app. The owner is a minor: anything needing
   an adult account (affiliate networks CJ/Impact, a Gemini key, Play payouts) is deferred until a parent does it.
 - Do not invent facts: plan prices/deals come from third-party roundups, unverified against carrier sites - say so.
@@ -76,8 +76,18 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   exact (base phone no longer matches Pro deals; "S25 FE"/"Edge" are separate phones); lines picker is 1-6 (5+ uses the
   4-line price, results say so); each deal shows "(as of date)" from its per-entry `updated`; the robot re-derives
   `freePhone` when a carrier's text changes; Android form state survives process death (results screen re-searches).
-- Known issues not fixed: deal scoping `plans` can go stale if the robot replaces a deal's text with a different offer;
-  Android results are re-fetched (not saved) after process death.
+- Round 2 fixes (2026-10-17): Z Flip/Fold deals match any generation; a bare family mention ("iPhone 16") also matches the
+  Pro you picked; iPhone 16e/Air and Pixel Pro Fold are recognized as other phones; per-entry "as of" dates only (no
+  root-date fallback; an entry gets `updated` only when the robot changes its text); robot rejects product-listing
+  scraps, only replaces a deal when the new text scores 2+ higher (no flip-flop), widens `freePhone` detection, and drops
+  a `plans` scope when the new text no longer names one of its plans; cards say when a multi-line price is only an
+  estimate; iOS text is at least extra-extra-large but never below the user's own setting, lines is a Stepper and data a
+  menu so big text fits.
+- Known issues not fixed: Mint's site returns 403 to scripts (bot protection - not bypassed), so its deal only updates from
+  search snippets; multi-line prices are still mostly 1-line x lines (needs research per plan); prices are unverified;
+  extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; the 5-minute
+  schedule of `deals-robot.yml` had not fired yet when last checked; layout at the larger text sizes and Android
+  process-death restore have not been checked on a device; the repo is public so NOTES.md is exposed (owner's decision).
 - Data caveats: Mint plan sizes disagree between sources (5GB vs 6GB; 6GB used); the Mint anniversary promo end date is
   unclear; T-Mobile deals URL was corrected to `t-mobile.com/offers`; Cricket has no deal; carrier "View plan" links are
   plain home pages, not affiliate links.
