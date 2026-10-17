@@ -22,7 +22,7 @@ iOS (`ios/project.yml` is the source of truth; `ios/PlanSaver.xcodeproj` is gene
   `xcrun devicectl device install app --device C13C4BB8-65E2-5CA7-BB9F-425747B421EE <PlanSaver.app>`.
 
 Deals robot: `python3 tools/refresh_deals.py [path/to/deals.json]` (stdlib only; takes ~1 min because it sleeps between
-requests - test against a COPY of the file, it rewrites in place). Manual workflow run: `gh workflow run refresh-deals.yml`.
+requests - test against a COPY of the file, it rewrites in place). Manual workflow run: `gh workflow run deals-robot.yml`.
 
 ## Working rules (from the owner)
 
@@ -55,7 +55,7 @@ Search flow (identical on both platforms): `MainActivity.kt`/`ContentView.swift`
 4. `freePhoneOnly` keeps only carriers whose deal says free/discounted phone; the picker (`Phones.kt`) shows one model at a
    time after a pick (Android: chip + "Change"; iOS: dropdown).
 
-Deals pipeline: `.github/workflows/refresh-deals.yml` (cron `*/5 * * * *` + manual) runs `tools/refresh_deals.py`, which for
+Deals pipeline: `.github/workflows/deals-robot.yml` (cron `*/5 * * * *` + manual) runs `tools/refresh_deals.py`, which for
 each carrier in `deals.json` reads that carrier's own page and DuckDuckGo's HTML results (keyless scraping; only text from
 the carrier's own domain is accepted, filtered by price/free keywords), keeps the old entry on any failure, and the
 workflow commits as `plansaver-robot` only when the file changed. It never touches `freePhone`/`phones`. The raw URL

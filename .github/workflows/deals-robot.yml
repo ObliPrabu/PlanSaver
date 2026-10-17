@@ -1,4 +1,4 @@
-name: Refresh deals
+name: Deals robot
 
 on:
   schedule:
@@ -8,9 +8,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: deals-robot
+  cancel-in-progress: false
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,5 +29,6 @@ jobs:
             git config user.email "plansaver-robot@users.noreply.github.com"
             git add deals-data/deals.json
             git commit -m "Refresh deals"
+            git pull --rebase -q
             git push
           fi
