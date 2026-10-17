@@ -16,8 +16,12 @@ data class Plan(
     val perks: List<String> = emptyList(),
     /** Current promo text, e.g. "Free iPhone with trade-in". Null when none known. */
     val deal: String? = null,
-    /** True when the carrier is currently advertising a free/heavily discounted phone for switchers. */
+    /** True when the carrier currently advertises a free or discounted phone for switchers (the "free or discounted phone" checkbox filters on this). */
     val freePhoneOffer: Boolean = false,
+    /** Page the live deal came from (empty for bundled data). */
+    val dealUrl: String = "",
+    /** Months paid up front (Mint sells 3/6/12-month blocks, cheaper per month the longer). 1 = month to month. */
+    val termMonths: Int = 1,
 ) {
     fun perLine(lines: Int): Double {
         pricePerLine[lines]?.let { return it }
@@ -39,4 +43,5 @@ data class SearchRequest(
     val phone: String? = null,
 )
 
-data class Result(val plan: Plan, val monthly: Double, val yearlySavings: Double)
+/** [liveDeal] = the deal text came from today's server lookup rather than the bundled snapshot. */
+data class Result(val plan: Plan, val monthly: Double, val yearlySavings: Double, val liveDeal: Boolean = false)

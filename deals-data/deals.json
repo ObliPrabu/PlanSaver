@@ -1,0 +1,47 @@
+{
+  "updated": "2026-10-17",
+  "deals": [
+    {
+      "carrier": "T-Mobile",
+      "deal": "Keep and Switch: up to $800 to pay off your old phone; several free phones with a 24-month agreement, new line or trade-in required.",
+      "freePhone": true,
+      "phones": [],
+      "url": "https://www.t-mobile.com/cell-phone-deals"
+    },
+    {
+      "carrier": "Verizon",
+      "deal": "Free phones on new lines with select unlimited plans; switchers can get the iPhone 18 Pro free on Unlimited Ultimate with a trade-in, as bill credits over 36 months.",
+      "freePhone": true,
+      "phones": [],
+      "url": "https://www.verizon.com/deals"
+    },
+    {
+      "carrier": "AT&T",
+      "deal": "Switcher deals with up to $800 device payoff; iPhone 18 Pro with 36 monthly bill credits on an eligible unlimited plan.",
+      "freePhone": true,
+      "phones": [],
+      "url": "https://www.att.com/deals"
+    },
+    {
+      "carrier": "Mint Mobile",
+      "deal": "10th-anniversary promo (from Oct 8, 2026): any 6-month plan for $10/month. One source says it ends Oct 22, 2026 - verify. Up to $600 off Samsung Galaxy phones with an unlimited plan.",
+      "freePhone": true,
+      "phones": [],
+      "url": "https://www.mintmobile.com"
+    },
+    {
+      "carrier": "Visible",
+      "deal": "$480 off iPhone 18 Pro with Visible+ Pro, or $5/month off the two top plans for 5 years.",
+      "freePhone": true,
+      "phones": [],
+      "url": "https://www.visible.com"
+    },
+    {
+      "carrier": "Total Wireless",
+      "deal": "5-year price lock for new customers who bring their own phone (Base 5G Unlimited at $20/month with taxes included).",
+      "freePhone": false,
+      "phones": [],
+      "url": "https://www.totalwireless.com"
+    }
+  ]
+}

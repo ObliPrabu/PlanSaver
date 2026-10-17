@@ -27,7 +27,7 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { MaterialTheme { Surface(Modifier.fillMaxSize()) { PlanSaverApp(BundledPlanRepository()) } } }
+        setContent { MaterialTheme { Surface(Modifier.fillMaxSize()) { PlanSaverApp(RemotePlanRepository(BuildConfig.DEALS_URL)) } } }
     }
 }
 
@@ -84,7 +84,7 @@ fun PlanSaverApp(repo: PlanRepository) {
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
                     Checkbox(checked = postpaid, onCheckedChange = { postpaid = it })
-                    Text("Include big-carrier plans (Verizon, AT&T, T-Mobile)")
+                    Text("Include big-carrier and cable plans (Verizon, AT&T, T-Mobile, Xfinity, Spectrum)")
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
@@ -183,13 +183,17 @@ private fun ResultCard(r: Result, showSavings: Boolean) {
                 style = MaterialTheme.typography.bodySmall)
             if (r.plan.note.isNotEmpty()) Text(r.plan.note, style = MaterialTheme.typography.bodySmall)
             r.plan.deal?.let {
-                Text((if (r.plan.freePhoneOffer) "Phone deal: " else "Deal: ") + it,
+                Text((if (r.liveDeal) "Live " else "") + (if (r.plan.freePhoneOffer) "phone deal: " else "deal: ") + it,
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                 if (r.plan.freePhoneOffer) Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.",
                     style = MaterialTheme.typography.labelSmall)
             }
+            if (r.plan.dealUrl.isNotEmpty()) TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.dealUrl))) }) { Text("See the offer") }
             if (r.plan.perks.isNotEmpty()) Text("Perks: " + r.plan.perks.joinToString(", "), style = MaterialTheme.typography.bodySmall)
             Text(String.format(Locale.US, "$%.2f / month", r.monthly), style = MaterialTheme.typography.titleMedium)
+            if (r.plan.termMonths > 1)
+                Text(String.format(Locale.US, "Pay $%.0f up front for %d months", r.monthly * r.plan.termMonths, r.plan.termMonths),
+                    style = MaterialTheme.typography.bodySmall)
             if (showSavings && r.yearlySavings > 0)
                 Text(String.format(Locale.US, "Save about $%.0f a year", r.yearlySavings), color = MaterialTheme.colorScheme.primary)
             TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.signupUrl))) }) { Text("View plan") }

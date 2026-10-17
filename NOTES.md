@@ -15,5 +15,5 @@ NOT yet verified on the carriers' own sites. Verify before publishing.
 - AT&T: switcher deals, up to $800 device payoff
 
 ## Rules
-- Never put a search/AI API key in the app; live search runs on a server (Cloud Function) with caching.
+- No paid server: deals come from a static deals.json (deals-data/) hosted free on GitHub and refreshed by hand.
 - Disclose affiliate commissions in the app and Play listing.
