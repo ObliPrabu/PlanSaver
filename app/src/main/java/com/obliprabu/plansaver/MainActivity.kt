@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -39,7 +40,8 @@ fun PlanSaverApp(repo: PlanRepository) {
     var current by remember { mutableStateOf("") }
     var postpaid by remember { mutableStateOf(true) }
     var freePhone by remember { mutableStateOf(false) }
-    var gen by remember { mutableIntStateOf(16) }
+    var brand by remember { mutableStateOf("iPhone") }
+    var familyIdx by remember { mutableIntStateOf(3) }
     var variant by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var results by remember { mutableStateOf<List<Result>?>(null) }
@@ -91,23 +93,34 @@ fun PlanSaverApp(repo: PlanRepository) {
                 }
 
                 if (freePhone) {
+                    val families = Phones.brands.getValue(brand)
+                    val family = families[familyIdx.coerceIn(families.indices)]
                     Spacer(Modifier.height(12.dp))
                     Text("Which phone do you want?", fontWeight = FontWeight.SemiBold)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Phones.lineup.keys.forEach { g ->
-                            FilterChip(selected = gen == g, onClick = {
-                                gen = g
-                                if (variant !in Phones.lineup.getValue(g)) variant = ""
-                            }, label = { Text("iPhone $g") })
+                        Phones.brands.keys.forEach { br ->
+                            FilterChip(selected = brand == br, onClick = {
+                                brand = br
+                                familyIdx = 0
+                                variant = ""
+                            }, label = { Text(br) })
+                        }
+                    }
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        families.forEachIndexed { i, f ->
+                            FilterChip(selected = familyIdx == i, onClick = {
+                                familyIdx = i
+                                if (variant !in f.variants) variant = ""
+                            }, label = { Text(f.label) })
                         }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Phones.lineup.getValue(gen).forEach { v ->
+                        family.variants.forEach { v ->
                             FilterChip(selected = variant == v, onClick = { variant = v },
                                 label = { Text(v.ifEmpty { "Base" }.trim()) })
                         }
                     }
-                    Text("Selected: " + Phones.name(gen, variant), style = MaterialTheme.typography.bodySmall)
+                    Text("Selected: " + family.name(variant), style = MaterialTheme.typography.bodySmall)
                 }
                 Spacer(Modifier.height(12.dp))
 
@@ -117,7 +130,8 @@ fun PlanSaverApp(repo: PlanRepository) {
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         loading = true
-                        val phone = if (freePhone) Phones.name(gen, variant) else null
+                        val fams = Phones.brands.getValue(brand)
+                        val phone = if (freePhone) fams[familyIdx.coerceIn(fams.indices)].name(variant) else null
                         scope.launch {
                             val found = try {
                                 repo.search(SearchRequest(lines, dataChoices[dataIdx].second,
