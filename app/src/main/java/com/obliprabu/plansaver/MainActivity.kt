@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,73 +39,114 @@ fun PlanSaverApp(repo: PlanRepository) {
     var current by remember { mutableStateOf("") }
     var postpaid by remember { mutableStateOf(true) }
     var freePhone by remember { mutableStateOf(false) }
+    var gen by remember { mutableIntStateOf(16) }
+    var variant by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var results by remember { mutableStateOf<List<Result>?>(null) }
+    var searchedPhone by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    Column(
-        Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp),
-    ) {
-        Text("PlanSaver", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 16.dp))
-        Text("Find the cheapest US phone plan for what you actually use.",
-            style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
+    // Two screens: the search form, and the results. Back from results returns to the form.
+    BackHandler(enabled = results != null) { results = null }
 
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-            Text("How many lines?", fontWeight = FontWeight.SemiBold)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                (1..4).forEach { n ->
-                    FilterChip(selected = lines == n, onClick = { lines = n }, label = { Text(if (n == 4) "4+" else "$n") })
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            Text("Data per line", fontWeight = FontWeight.SemiBold)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                dataChoices.forEachIndexed { i, (label, _) ->
-                    FilterChip(selected = dataIdx == i, onClick = { dataIdx = i }, label = { Text(label) })
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                value = current,
-                onValueChange = { v -> current = v.filter { it.isDigit() || it == '.' }.take(7) },
-                label = { Text("What you pay now per month (total)") },
-                prefix = { Text("$") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
-                Checkbox(checked = postpaid, onCheckedChange = { postpaid = it })
-                Text("Include big-carrier plans (Verizon, AT&T, T-Mobile)")
-            }
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
+        if (results == null) {
+            Text("PlanSaver", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 16.dp))
+            Text("Find the cheapest US phone plan for what you actually use.",
+                style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
-                Checkbox(checked = freePhone, onCheckedChange = { freePhone = it })
-                Text("Only carriers offering a free or discounted phone")
-            }
-
-            // Every tap runs a fresh search.
-            Button(
-                enabled = !loading,
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    loading = true
-                    scope.launch {
-                        results = try {
-                            repo.search(SearchRequest(lines, dataChoices[dataIdx].second, current.toDoubleOrNull() ?: 0.0, postpaid, freePhone))
-                        } catch (e: Exception) {
-                            emptyList()
-                        }
-                        loading = false
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                Text("How many lines?", fontWeight = FontWeight.SemiBold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    (1..4).forEach { n ->
+                        FilterChip(selected = lines == n, onClick = { lines = n }, label = { Text(if (n == 4) "4+" else "$n") })
                     }
-                },
-            ) { Text(if (loading) "Searching..." else "Search plans") }
+                }
+                Spacer(Modifier.height(12.dp))
+                Text("Data per line", fontWeight = FontWeight.SemiBold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    dataChoices.forEachIndexed { i, (label, _) ->
+                        FilterChip(selected = dataIdx == i, onClick = { dataIdx = i }, label = { Text(label) })
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = current,
+                    onValueChange = { v -> current = v.filter { it.isDigit() || it == '.' }.take(7) },
+                    label = { Text("Your current phone bill (all lines, per month)") },
+                    prefix = { Text("$") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
+                    Checkbox(checked = postpaid, onCheckedChange = { postpaid = it })
+                    Text("Include big-carrier plans (Verizon, AT&T, T-Mobile)")
+                }
 
-            if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 12.dp))
+                // Press-on toggle: only carriers offering a free or discounted phone.
+                FilterChip(
+                    selected = freePhone,
+                    onClick = { freePhone = !freePhone },
+                    label = { Text("Only carriers offering a free or discounted phone") },
+                )
 
-            results?.let { list ->
-                Spacer(Modifier.height(16.dp))
+                if (freePhone) {
+                    Spacer(Modifier.height(12.dp))
+                    Text("Which phone do you want?", fontWeight = FontWeight.SemiBold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Phones.lineup.keys.forEach { g ->
+                            FilterChip(selected = gen == g, onClick = {
+                                gen = g
+                                if (variant !in Phones.lineup.getValue(g)) variant = ""
+                            }, label = { Text("iPhone $g") })
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Phones.lineup.getValue(gen).forEach { v ->
+                            FilterChip(selected = variant == v, onClick = { variant = v },
+                                label = { Text(v.ifEmpty { "Base" }.trim()) })
+                        }
+                    }
+                    Text("Selected: " + Phones.name(gen, variant), style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(Modifier.height(12.dp))
+
+                // Every tap runs a fresh search.
+                Button(
+                    enabled = !loading,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        loading = true
+                        val phone = if (freePhone) Phones.name(gen, variant) else null
+                        scope.launch {
+                            val found = try {
+                                repo.search(SearchRequest(lines, dataChoices[dataIdx].second,
+                                    current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone))
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                            searchedPhone = phone
+                            results = found
+                            loading = false
+                        }
+                    },
+                ) { Text(if (loading) "Searching..." else "Search plans") }
+                if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 12.dp))
+            }
+        } else {
+            val list = results.orEmpty()
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                TextButton(onClick = { results = null }) { Text("< Back") }
+                Text("Results", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            }
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                searchedPhone?.let {
+                    Text("Phone: $it. Carriers below advertise phone deals, but whether $it is covered " +
+                        "varies by carrier and changes weekly - confirm on their site.",
+                        style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+                }
                 if (list.isEmpty()) Text("No plans matched. Try more data or include big carriers.")
                 else list.forEach { ResultCard(it, current.toDoubleOrNull() != null) }
                 Text("Prices researched Oct 2026 and may have changed - confirm on the carrier's site. " +

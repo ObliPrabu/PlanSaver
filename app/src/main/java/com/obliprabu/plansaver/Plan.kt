@@ -35,6 +35,8 @@ data class SearchRequest(
     val currentMonthly: Double,
     val includePostpaid: Boolean,
     val freePhoneOnly: Boolean = false,
+    /** e.g. "iPhone 16 Pro"; only set when freePhoneOnly is on. */
+    val phone: String? = null,
 )
 
 data class Result(val plan: Plan, val monthly: Double, val yearlySavings: Double)
