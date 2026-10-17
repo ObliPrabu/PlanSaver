@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#6A5AE0"
+        android:pathData="M0,0h108v108h-108z" />
+    <!-- Simple checkered-flag-ish mark: a bold "B" stands in for a real logo
+         until a designed icon replaces this placeholder. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,28 h22 a14,14 0 0 1 0,28 h-22 z M34,56 h24 a14,14 0 0 1 0,28 h-24 z M34,28 v56 h12 v-56 z" />
+</vector>
