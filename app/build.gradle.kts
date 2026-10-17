@@ -12,10 +12,10 @@ android {
         applicationId = "com.obliprabu.plansaver"
         minSdk = 24
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.2.0"
-        // URL of the hosted deals.json (see deals-data/); empty = bundled data only.
-        buildConfigField("String", "DEALS_URL", "\"\"")
+        versionCode = 3
+        versionName = "0.2.1"
+        // Hosted deals.json (refreshed by .github/workflows/refresh-deals.yml). Needs the repo PUBLIC; if it is private the app quietly falls back to bundled deals.
+        buildConfigField("String", "DEALS_URL", "\"https://raw.githubusercontent.com/ObliPrabu/PlanSaver/main/deals-data/deals.json\"")
     }
 
     buildFeatures {
