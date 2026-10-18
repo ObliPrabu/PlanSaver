@@ -31,7 +31,7 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
   circumstances, even if asked generically to install "on my devices" - the only iPhone target is Mithran Prabu's
   (`C13C4BB8-65E2-5CA7-BB9F-425747B421EE`).
 - Do not install on Mithran Prabu's iPhone unless asked (the owner often uses it); do not commit/push unless asked.
-- Keep Android and iOS in sync: every logic/data change goes into both. The 39 plans in `PlanData.kt` were converted to
+- Keep Android and iOS in sync: every logic/data change goes into both. The 45 plans in `PlanData.kt` were converted to
   `ios/PlanSaver/PlanData.swift` by a script - edit both by hand or re-convert.
 - Version is kept equal on both: Android `versionCode`/`versionName` in `app/build.gradle.kts`, iOS
   `CURRENT_PROJECT_VERSION`/`MARKETING_VERSION` in `ios/project.yml` (currently 0.2.3 / 5). Bump only when asked.
@@ -105,11 +105,18 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   trade-in checkbox/value, typed by the user (no phone prices are stored - none researched); each card has "How much will I
   pay in total?" showing 12/24/36 months of plan + phone (full price minus trade-in) via `totalCost`. Carrier bill credits
   are NOT modeled (card says so). Logic in Plan.kt/Plan.swift, tested in `TotalCostTest.kt`.
-- Switching costs (2026-10-18, UNCOMMITTED): the form has "I want a new phone" (price, "I'll trade in", old phone MODEL as text -
+- Switching costs (2026-10-18, UNCOMMITTED): the free-or-discounted-phone checkbox section has (phone picker, then "I'll trade in", old phone picked from the same brand/model/version lists -
   no value typed; a trade-in only exists with a new phone). The robot adds `activation` and `tradein` extras and parses numbers
   into `activationFee` (per line; 0 = none) and `tradeInMax` ("up to $N", a best case) on a carrier's deals.json entry. The
   total card adds activation x lines and subtracts `tradeInMax` as the credit; if the robot found nothing it says so and counts
   nothing. Robot only trusts the carrier's own domain, so findings may be sparse (not found when tested on 2026-10-18).
+- Results filters (2026-10-18, UNCOMMITTED): chips under the sort row - Verizon / AT&T / T-Mobile (any of the chosen), Prepaid /
+  Postpaid, Has a deal, Unlimited only - applied by `applyFilters` (Plan.kt/.swift, `FilterTest.kt`), with "Showing X of Y plans".
+  They stay set between searches. "Most data" looks the same as "Lowest price" when only unlimited plans match (all tie on data).
+- Added 7 plans 2026-10-18 from web roundups (UNCOMMITTED, 1-line prices only, unverified): Tello 10GB $15 / 20GB $20 / Unlimited $25 (50GB),
+  Verizon Unlimited Welcome $55 and Ultimate $85 (Droid Life, May 2026), AT&T Premium 2.0 $90, T-Mobile Experience Beyond $100. Sources
+  disagree: Droid Life lists Verizon Unlimited Plus at $70 but the plan already in the app says $80 (left as is - check on verizon.com).
+  Helium Mobile, Red Pocket and Ultra Mobile were skipped: only weak or marketing sources.
 - Known issues not fixed: Mint's site returns 403 to scripts (bot protection - not bypassed), so its deal only updates from
   search snippets; multi-line prices are still mostly 1-line x lines (needs research per plan); prices are unverified;
   extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; layout at the larger text sizes and Android

@@ -36,26 +36,30 @@ struct ContentView: View {
     @State private var postpaid = true
     @State private var freePhone = false
     @State private var brand = "iPhone"
-    @State private var familyIdx = 3
+    @State private var familyIdx = Phones.defaultIphoneIdx
     @State private var variant = ""
     @State private var otherPhones = false
     @State private var quizOpen = false
     @State private var quizUsage = -1 // -1 = not answered yet
     @State private var quizWifi = true
     @State private var quizHotspot = false
-    @State private var phonePrice = ""
-    @State private var wantPhone = false
     @State private var tradeIn = false
-    @State private var oldPhone = ""
+    @State private var oldBrand = "iPhone"
+    @State private var oldFamilyIdx = Phones.defaultIphoneIdx
+    @State private var oldVariant = ""
     @State private var totalOpen: Set<UUID> = []
     @State private var loading = false
     @State private var results: [SearchResult]? = nil
     @State private var searchedPhone: String? = nil
     @State private var sortByData = false
+    @State private var filters = ResultFilters()
     @State private var searchedLines = 1
 
     private var families: [PhoneFamily] { Phones.brands[brand] ?? [] }
     private var family: PhoneFamily { families[min(familyIdx, families.count - 1)] }
+    private var oldFamilies: [PhoneFamily] { Phones.brands[oldBrand] ?? [] }
+    private var oldFamily: PhoneFamily { oldFamilies[min(oldFamilyIdx, oldFamilies.count - 1)] }
+    private var oldPhone: String { oldFamily.name(oldVariant) }
     private var versionLabel: String {
         "v" + (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")
     }
@@ -123,18 +127,6 @@ struct ContentView: View {
                         }.pickerStyle(MenuPickerStyle())
                         Button(quizOpen ? "Hide the quiz" : "Not sure? Answer 3 quick questions") { quizOpen.toggle() }
                         if quizOpen { quiz }
-                    }
-
-                    Toggle("I want a new phone", isOn: $wantPhone)
-                    if wantPhone {
-                        moneyField("Price of the phone you want", text: $phonePrice)
-                        // A trade-in credit only comes with buying a new phone, so it is only offered here.
-                        Toggle("I'll trade in my old phone", isOn: $tradeIn)
-                        if tradeIn {
-                            TextField("Model of your old phone", text: $oldPhone)
-                                .padding(8)
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
-                        }
                     }
 
                     Text("Your current phone bill (all lines, per month)").font(.headline)
@@ -218,11 +210,37 @@ struct ContentView: View {
             .pickerStyle(MenuPickerStyle())
             .onChange(of: familyIdx) { _ in if !family.variants.contains(variant) { variant = "" } }
 
-            Picker("Version", selection: $variant) {
-                ForEach(family.variants, id: \.self) { Text($0.isEmpty ? "Base" : $0.trimmingCharacters(in: .whitespaces)).tag($0) }
-            }.pickerStyle(SegmentedPickerStyle())
+            // Five variants (e.g. Pixel 10 Pro Fold) don't fit a segmented control at big text sizes, so use a menu.
+            if family.variants.count > 4 {
+                Picker("Version", selection: $variant) {
+                    ForEach(family.variants, id: \.self) { Text($0.isEmpty ? "Base" : $0.trimmingCharacters(in: .whitespaces)).tag($0) }
+                }.pickerStyle(MenuPickerStyle())
+            } else {
+                Picker("Version", selection: $variant) {
+                    ForEach(family.variants, id: \.self) { Text($0.isEmpty ? "Base" : $0.trimmingCharacters(in: .whitespaces)).tag($0) }
+                }.pickerStyle(SegmentedPickerStyle())
+            }
             Text("Selected: " + family.name(variant)).font(.footnote)
             Toggle("Check for better phones as well", isOn: $otherPhones)
+            // A trade-in only comes with buying a new phone, so it is only offered here.
+            Toggle("I'll trade in my old phone", isOn: $tradeIn)
+            if tradeIn {
+                Text("Which phone are you trading in?").font(.headline)
+                Picker("Old brand", selection: $oldBrand) {
+                    ForEach(Phones.brandOrder, id: \.self) { Text($0).tag($0) }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .onChange(of: oldBrand) { _ in oldFamilyIdx = 0; oldVariant = "" }
+                Picker("Old model", selection: $oldFamilyIdx) {
+                    ForEach(0..<oldFamilies.count, id: \.self) { Text(oldFamilies[$0].label).tag($0) }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .onChange(of: oldFamilyIdx) { _ in if !oldFamily.variants.contains(oldVariant) { oldVariant = "" } }
+                Picker("Old version", selection: $oldVariant) {
+                    ForEach(oldFamily.variants, id: \.self) { Text($0.isEmpty ? "Base" : $0.trimmingCharacters(in: .whitespaces)).tag($0) }
+                }.pickerStyle(MenuPickerStyle())
+                Text("Trading in: " + oldFamily.name(oldVariant)).font(.footnote)
+            }
         }
     }
 
@@ -243,8 +261,9 @@ struct ContentView: View {
 
     // MARK: Results
 
-    private func resultsScreen(_ list: [SearchResult]) -> some View {
-        VStack(spacing: 0) {
+    private func resultsScreen(_ all: [SearchResult]) -> some View {
+        let list = applyFilters(all, filters)
+        return VStack(spacing: 0) {
             HStack {
                 Button("< Back") { results = nil }
                 Text("Results").font(.title2).bold()
@@ -260,12 +279,28 @@ struct ContentView: View {
                         Text("Lowest price").tag(false)
                         Text("Most data").tag(true)
                     }.pickerStyle(SegmentedPickerStyle())
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            Text("Filter:").font(.footnote)
+                            ForEach(["Verizon", "AT&T", "T-Mobile"], id: \.self) { n in
+                                chip(n, on: filters.networks.contains(n)) {
+                                    if filters.networks.contains(n) { filters.networks.remove(n) } else { filters.networks.insert(n) }
+                                }
+                            }
+                            chip("Prepaid", on: filters.type == 1) { filters.type = filters.type == 1 ? 0 : 1 }
+                            chip("Postpaid", on: filters.type == 2) { filters.type = filters.type == 2 ? 0 : 2 }
+                            chip("Has a deal", on: filters.dealOnly) { filters.dealOnly.toggle() }
+                            chip("Unlimited only", on: filters.unlimitedOnly) { filters.unlimitedOnly.toggle() }
+                        }
+                    }
+                    if !all.isEmpty { Text("Showing \(list.count) of \(all.count) plans").font(.footnote) }
                     if lines > 4 {
                         Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.")
                             .font(.footnote)
                     }
                     if list.isEmpty {
-                        Text("No plans matched. Try more data or include big carriers.")
+                        Text(all.isEmpty ? "No plans matched. Try more data or include big carriers."
+                             : "No plans match these filters. Turn one off to see more.")
                     } else {
                         let picks = topPicks(list)
                         if !picks.isEmpty {
@@ -287,6 +322,16 @@ struct ContentView: View {
                         .font(.footnote).padding(.vertical, 16)
                 }.padding(.horizontal, 16)
             }
+        }
+    }
+
+    private func chip(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label).font(.footnote)
+                .padding(.horizontal, 10).padding(.vertical, 6)
+                .background(on ? Color.blue : Color(UIColor.secondarySystemBackground))
+                .foregroundColor(on ? .white : .primary)
+                .clipShape(Capsule())
         }
     }
 
@@ -353,14 +398,12 @@ struct ContentView: View {
                 if totalOpen.contains(r.id) { totalOpen.remove(r.id) } else { totalOpen.insert(r.id) }
             }
             if totalOpen.contains(r.id) {
-                let price = wantPhone ? (Double(phonePrice) ?? 0) : 0
-                let tradingIn = wantPhone && tradeIn
-                let credit = (tradingIn && price > 0) ? (r.plan.tradeInMax ?? 0) : 0
+                let tradingIn = freePhone && tradeIn
                 let activation = (r.plan.activationFee ?? 0) * Double(lines)
                 let old = oldPhone.trimmingCharacters(in: .whitespaces)
                 ForEach([12, 24, 36], id: \.self) { m in
-                    let c = totalCost(monthly: r.monthly, months: m, phonePrice: price, tradeIn: credit, activation: activation)
-                    Text(String(format: "%d months: plan $%.0f", m, c.plan) + (price > 0 ? String(format: " + phone $%.0f", c.phone) : "")
+                    let c = totalCost(monthly: r.monthly, months: m, phonePrice: 0, tradeIn: 0, activation: activation)
+                    Text(String(format: "%d months: plan $%.0f", m, c.plan)
                          + (activation > 0 ? String(format: " + activation $%.0f", activation) : "")
                          + String(format: " = $%.0f", c.total)).font(.footnote)
                 }
@@ -370,24 +413,20 @@ struct ContentView: View {
                 } else {
                     Text("No activation fee found for \(r.plan.carrier) yet, so none is counted - ask the carrier.").font(.caption2)
                 }
-                if price > 0 {
-                    Text("The phone is counted at full price, paid once" + (credit > 0 ? " minus the trade-in credit" : "") + ".").font(.caption2)
-                } else {
-                    Text("Tick \"I want a new phone\" and enter its price on the search screen to include a phone.").font(.caption2)
-                }
-                if price > 0 && tradingIn {
+                Text("The phone itself is not counted here.").font(.caption2)
+                if tradingIn {
                     if let max = r.plan.tradeInMax {
                         Text(String(format: "Trade-in%@: this carrier's own text says up to $%.0f. That is a best case; what your phone gets depends on its model and condition, so confirm with the carrier.",
                                     old.isEmpty ? "" : " of \(old)", max)).font(.caption2)
                     } else {
-                        Text("No trade-in amount found for \(r.plan.carrier), so none is subtracted - ask the carrier what your \(old.isEmpty ? "old phone" : old) gets.").font(.caption2)
+                        Text("No trade-in amount found for \(r.plan.carrier), - ask the carrier what your \(old.isEmpty ? "old phone" : old) gets.").font(.caption2)
                     }
                 }
-                if price > 0 && r.plan.freePhoneOffer {
-                    Text("This carrier advertises a phone deal; its bill credits could lower the phone part, but only if you stay 24-36 months, and the amount isn't checked here.")
+                if r.plan.freePhoneOffer {
+                    Text("This carrier advertises a phone deal; its bill credits could lower the phone's cost, but only if you stay 24-36 months, and the amount isn't checked here.")
                         .font(.caption2)
                 }
-                Text("Not included: taxes, fees, activation, accessories.").font(.caption2)
+                Text("Not included: the phone, taxes, other fees, accessories.").font(.caption2)
             }
             if let url = URL(string: r.plan.signupUrl) { Link("View plan", destination: url) }
         }

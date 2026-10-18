@@ -157,3 +157,16 @@ fun totalCost(monthly: Double, months: Int, phonePrice: Double, tradeIn: Double,
     val phone = if (phonePrice > 0) (phonePrice - tradeIn).coerceAtLeast(0.0) else 0.0
     return TotalCost(months, monthly * months, phone, activation, monthly * months + phone + activation)
 }
+
+/** Results-screen filters. [networks] empty = any network; [type]: 0 any, 1 prepaid, 2 postpaid. */
+data class ResultFilters(val networks: Set<String> = emptySet(), val type: Int = 0,
+    val dealOnly: Boolean = false, val unlimitedOnly: Boolean = false)
+
+/** Customized-lines results are judged by their priciest plan, and skip "unlimited only" (they mix capped and unlimited plans). */
+fun applyFilters(list: List<Result>, f: ResultFilters): List<Result> = list.filter { r ->
+    val p = r.plan
+    (f.networks.isEmpty() || f.networks.any { p.network.contains(it, ignoreCase = true) }) &&
+        (f.type == 0 || (f.type == 1) == p.prepaid) &&
+        (!f.dealOnly || p.deal != null) &&
+        (!f.unlimitedOnly || r.assignments != null || p.dataGb == null)
+}

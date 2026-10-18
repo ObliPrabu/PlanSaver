@@ -50,5 +50,12 @@ object PlanData {
         Plan("Xfinity Mobile", "Mobile Plus", "Verizon", false, null, mapOf(1 to 45.0), "Requires Xfinity internet", "https://www.xfinity.com/mobile"),
         Plan("Spectrum Mobile", "Unlimited", "Verizon", false, null, mapOf(1 to 30.0), "Requires Spectrum internet", "https://www.spectrum.com/mobile"),
         Plan("Spectrum Mobile", "Unlimited Plus", "Verizon", false, null, mapOf(1 to 40.0), "Requires Spectrum internet", "https://www.spectrum.com/mobile"),
+        Plan("Tello", "10GB", "T-Mobile", true, 10, mapOf(1 to 15.0), "", "https://tello.com"),
+        Plan("Tello", "20GB", "T-Mobile", true, 20, mapOf(1 to 20.0), "", "https://tello.com"),
+        Plan("Tello", "Unlimited", "T-Mobile", true, 50, mapOf(1 to 25.0), "50GB high-speed data, 10GB hotspot; promos can lower the first months", "https://tello.com"),
+        Plan("Verizon", "Unlimited Welcome", "Verizon", false, null, mapOf(1 to 55.0), "Single-line price; sources disagree on autopay discounts", "https://www.verizon.com"),
+        Plan("Verizon", "Unlimited Ultimate", "Verizon", false, null, mapOf(1 to 85.0), "Single-line price; one source lists $90", "https://www.verizon.com"),
+        Plan("AT&T", "Premium 2.0", "AT&T", false, null, mapOf(1 to 90.0), "Single-line price; older Premium PL was about $86", "https://www.att.com"),
+        Plan("T-Mobile", "Experience Beyond", "T-Mobile", false, null, mapOf(1 to 100.0), "With autopay; sources date unclear", "https://www.t-mobile.com"),
     )
 }

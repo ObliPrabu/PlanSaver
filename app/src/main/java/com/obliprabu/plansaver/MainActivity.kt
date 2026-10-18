@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -19,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -52,21 +54,25 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
     var postpaid by rememberSaveable { mutableStateOf(true) }
     var freePhone by rememberSaveable { mutableStateOf(false) }
     var brand by rememberSaveable { mutableStateOf("iPhone") }
-    var familyIdx by rememberSaveable { mutableIntStateOf(3) }
+    var familyIdx by rememberSaveable { mutableIntStateOf(Phones.defaultIphoneIdx) }
     var variant by rememberSaveable { mutableStateOf("") }
-    var familyPicked by rememberSaveable { mutableStateOf(false) }
+    var familyPicked by rememberSaveable { mutableStateOf(true) } // starts on the default iPhone 16, shown as one chip + "Change"
     var otherPhones by rememberSaveable { mutableStateOf(false) }
     var quizOpen by rememberSaveable { mutableStateOf(false) }
     var quizUsage by rememberSaveable { mutableIntStateOf(-1) } // -1 = not answered yet
     var quizWifi by rememberSaveable { mutableStateOf(true) }
     var quizHotspot by rememberSaveable { mutableStateOf(false) }
-    var phonePrice by rememberSaveable { mutableStateOf("") }
-    var wantPhone by rememberSaveable { mutableStateOf(false) }
     var tradeIn by rememberSaveable { mutableStateOf(false) }
-    var oldPhone by rememberSaveable { mutableStateOf("") }
+    var oldBrand by rememberSaveable { mutableStateOf("iPhone") }
+    var oldFamilyIdx by rememberSaveable { mutableIntStateOf(Phones.defaultIphoneIdx) }
+    var oldVariant by rememberSaveable { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var results by remember { mutableStateOf<List<Result>?>(null) }
     var sortByData by rememberSaveable { mutableStateOf(false) }
+    var filterNetworksCsv by rememberSaveable { mutableStateOf("") }
+    var filterType by rememberSaveable { mutableIntStateOf(0) } // 0 any, 1 prepaid, 2 postpaid
+    var filterDeal by rememberSaveable { mutableStateOf(false) }
+    var filterUnlimited by rememberSaveable { mutableStateOf(false) }
     var searchedPhone by rememberSaveable { mutableStateOf<String?>(null) }
     // Results are not saveable, so remember only that the results screen was open and search again after process death.
     var resultsOpen by rememberSaveable { mutableStateOf(false) }
@@ -113,8 +119,8 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                if (lines > 1) Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = customLines, onCheckedChange = { customLines = it })
+                if (lines > 1) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.toggleable(value = customLines, role = Role.Checkbox, onValueChange = { customLines = it })) {
+                    Checkbox(checked = customLines, onCheckedChange = null)
                     Text("Different data for each line")
                 }
                 if (customLines && lines > 1) {
@@ -144,12 +150,12 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                                 FilterChip(selected = quizUsage == i, onClick = { quizUsage = i; applyQuiz() }, label = { Text(label) })
                             }
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = quizWifi, onCheckedChange = { quizWifi = it; applyQuiz() })
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.toggleable(value = quizWifi, role = Role.Checkbox, onValueChange = { quizWifi = it; applyQuiz() })) {
+                            Checkbox(checked = quizWifi, onCheckedChange = null)
                             Text("I have Wi-Fi at home")
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = quizHotspot, onCheckedChange = { quizHotspot = it; applyQuiz() })
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.toggleable(value = quizHotspot, role = Role.Checkbox, onValueChange = { quizHotspot = it; applyQuiz() })) {
+                            Checkbox(checked = quizHotspot, onCheckedChange = null)
                             Text("I share my data as a hotspot")
                         }
                         Text(if (quizUsage < 0) "Pick what you do most and I'll choose the data for you."
@@ -167,38 +173,13 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                    Checkbox(checked = wantPhone, onCheckedChange = { wantPhone = it })
-                    Text("I want a new phone")
-                }
-                if (wantPhone) OutlinedTextField(
-                    value = phonePrice,
-                    onValueChange = { v -> phonePrice = v.filter { it.isDigit() || it == '.' }.take(7) },
-                    label = { Text("Price of the phone you want") },
-                    prefix = { Text("$") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                // A trade-in credit only comes with buying a new phone, so it is only offered here.
-                if (wantPhone) Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = tradeIn, onCheckedChange = { tradeIn = it })
-                    Text("I'll trade in my old phone")
-                }
-                if (wantPhone && tradeIn) OutlinedTextField(
-                    value = oldPhone,
-                    onValueChange = { oldPhone = it.take(40) },
-                    label = { Text("Model of your old phone") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
-                    Checkbox(checked = postpaid, onCheckedChange = { postpaid = it })
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.toggleable(value = postpaid, role = Role.Checkbox, onValueChange = { postpaid = it }).padding(vertical = 8.dp)) {
+                    Checkbox(checked = postpaid, onCheckedChange = null)
                     Text("Include big-carrier and cable plans (Verizon, AT&T, T-Mobile, Xfinity, Spectrum)")
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
-                    Checkbox(checked = freePhone, onCheckedChange = { freePhone = it })
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.toggleable(value = freePhone, role = Role.Checkbox, onValueChange = { freePhone = it }).padding(bottom = 8.dp)) {
+                    Checkbox(checked = freePhone, onCheckedChange = null)
                     Text("Only carriers offering a free or discounted phone")
                 }
 
@@ -233,17 +214,48 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                             TextButton(onClick = { familyPicked = false }) { Text("Change") }
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         family.variants.forEach { v ->
                             FilterChip(selected = variant == v, onClick = { variant = v },
                                 label = { Text(v.ifEmpty { "Base" }.trim()) })
                         }
                     }
                     Text("Selected: " + family.name(variant), style = MaterialTheme.typography.bodySmall)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = otherPhones, onCheckedChange = { otherPhones = it })
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.toggleable(value = otherPhones, role = Role.Checkbox, onValueChange = { otherPhones = it })) {
+                        Checkbox(checked = otherPhones, onCheckedChange = null)
                         Text("Check for better phones as well")
                     }
+                // A trade-in only comes with buying a new phone, so it is only offered here.
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.toggleable(value = tradeIn, role = Role.Checkbox, onValueChange = { tradeIn = it })) {
+                    Checkbox(checked = tradeIn, onCheckedChange = null)
+                    Text("I'll trade in my old phone")
+                }
+                if (tradeIn) {
+                    val oldFamilies = Phones.brands.getValue(oldBrand)
+                    val oldFamily = oldFamilies[oldFamilyIdx.coerceIn(oldFamilies.indices)]
+                    Text("Which phone are you trading in?", fontWeight = FontWeight.SemiBold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Phones.brands.keys.forEach { br ->
+                            FilterChip(selected = oldBrand == br, onClick = { oldBrand = br; oldFamilyIdx = 0; oldVariant = "" },
+                                label = { Text(br) })
+                        }
+                    }
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        oldFamilies.forEachIndexed { i, f ->
+                            FilterChip(selected = oldFamilyIdx == i, onClick = {
+                                oldFamilyIdx = i
+                                if (oldVariant !in f.variants) oldVariant = ""
+                            }, label = { Text(f.label) })
+                        }
+                    }
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        oldFamily.variants.forEach { v ->
+                            FilterChip(selected = oldVariant == v, onClick = { oldVariant = v },
+                                label = { Text(v.ifEmpty { "Base" }.trim()) })
+                        }
+                    }
+                    Text("Trading in: " + oldFamily.name(oldVariant), style = MaterialTheme.typography.bodySmall)
+                }
                 }
                 Spacer(Modifier.height(12.dp))
 
@@ -260,7 +272,9 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(8.dp))
         } else {
-            val list = results.orEmpty()
+            val all = results.orEmpty()
+            val filterNetworks = filterNetworksCsv.split(",").filter { it.isNotEmpty() }.toSet()
+            val list = applyFilters(all, ResultFilters(filterNetworks, filterType, filterDeal, filterUnlimited))
             val lineCount = lines
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
                 TextButton(onClick = { results = null; resultsOpen = false }) { Text("< Back") }
@@ -280,7 +294,23 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                     FilterChip(selected = !sortByData, onClick = { sortByData = false }, label = { Text("Lowest price") })
                     FilterChip(selected = sortByData, onClick = { sortByData = true }, label = { Text("Most data") })
                 }
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically, ) {
+                    Text("Filter:")
+                    listOf("Verizon", "AT&T", "T-Mobile").forEach { n ->
+                        FilterChip(selected = n in filterNetworks, onClick = {
+                            filterNetworksCsv = (if (n in filterNetworks) filterNetworks - n else filterNetworks + n).joinToString(",")
+                        }, label = { Text(n) })
+                    }
+                    FilterChip(selected = filterType == 1, onClick = { filterType = if (filterType == 1) 0 else 1 }, label = { Text("Prepaid") })
+                    FilterChip(selected = filterType == 2, onClick = { filterType = if (filterType == 2) 0 else 2 }, label = { Text("Postpaid") })
+                    FilterChip(selected = filterDeal, onClick = { filterDeal = !filterDeal }, label = { Text("Has a deal") })
+                    FilterChip(selected = filterUnlimited, onClick = { filterUnlimited = !filterUnlimited }, label = { Text("Unlimited only") })
+                }
+                if (all.isNotEmpty()) Text("Showing ${list.size} of ${all.size} plans", style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 8.dp))
                 if (results == null) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 12.dp))
+                else if (all.isNotEmpty() && list.isEmpty()) Text("No plans match these filters. Turn one off to see more.")
                 else if (list.isEmpty()) Text("No plans matched. Try more data or include big carriers.")
                 else {
                     val picks = topPicks(list)
@@ -297,8 +327,8 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                 if (results != null && list.isNotEmpty()) list.sortedWith(compareBy<Result> { it.otherPhone }
                     .thenBy { if (sortByData) -(it.plan.dataGb ?: 1_000_000) else 0 }.thenBy { it.monthly })
                     .forEach {
-                        ResultCard(it, current.toDoubleOrNull() != null, lineCount,
-                            if (wantPhone) phonePrice.toDoubleOrNull() ?: 0.0 else 0.0, wantPhone && tradeIn, oldPhone.trim())
+                        ResultCard(it, current.toDoubleOrNull() != null, lineCount, freePhone && tradeIn,
+                            Phones.brands.getValue(oldBrand).let { it[oldFamilyIdx.coerceIn(it.indices)].name(oldVariant) })
                     }
                 Text("Prices researched Oct 2026 from third-party roundups, not checked with the carriers, and may have changed - confirm on the carrier's site. " +
                     "PlanSaver may earn a commission if you sign up through a link.",
@@ -332,7 +362,7 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
 }
 
 @Composable
-private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, phonePrice: Double, tradeIn: Boolean, oldPhone: String) {
+private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, tradeIn: Boolean, oldPhone: String) {
     val ctx = LocalContext.current
     var showTotal by rememberSaveable { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
@@ -381,29 +411,25 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, phonePrice: 
                 Text(String.format(Locale.US, "Save about $%.0f a year", r.yearlySavings), color = MaterialTheme.colorScheme.primary)
             TextButton(onClick = { showTotal = !showTotal }) { Text(if (showTotal) "Hide my total cost" else "How much will I pay in total?") }
             if (showTotal) {
-                val credit = if (tradeIn && phonePrice > 0) r.plan.tradeInMax ?: 0.0 else 0.0
                 val activation = (r.plan.activationFee ?: 0.0) * lines
                 listOf(12, 24, 36).forEach { m ->
-                    val c = totalCost(r.monthly, m, phonePrice, credit, activation)
+                    val c = totalCost(r.monthly, m, 0.0, 0.0, activation)
                     Text(String.format(Locale.US, "%d months: plan $%.0f", m, c.plan) +
-                        (if (phonePrice > 0) String.format(Locale.US, " + phone $%.0f", c.phone) else "") +
                         (if (activation > 0) String.format(Locale.US, " + activation $%.0f", activation) else "") +
                         String.format(Locale.US, " = $%.0f", c.total), style = MaterialTheme.typography.bodySmall)
                 }
                 Text(r.plan.activationFee?.let {
                     String.format(Locale.US, "Activation fee found online: $%.0f per line, so $%.0f for %d line%s (unverified).", it, activation, lines, if (lines == 1) "" else "s")
                 } ?: "No activation fee found for ${r.plan.carrier} yet, so none is counted - ask the carrier.", style = MaterialTheme.typography.labelSmall)
-                if (phonePrice > 0) Text("The phone is counted at full price, paid once" + (if (credit > 0) " minus the trade-in credit" else "") + ".",
-                    style = MaterialTheme.typography.labelSmall)
-                else Text("Tick \"I want a new phone\" and enter its price on the search screen to include a phone.", style = MaterialTheme.typography.labelSmall)
-                if (phonePrice > 0 && tradeIn) Text(r.plan.tradeInMax?.let {
+                Text("The phone itself is not counted here.", style = MaterialTheme.typography.labelSmall)
+                if (tradeIn) Text(r.plan.tradeInMax?.let {
                     String.format(Locale.US, "Trade-in%s: this carrier's own text says up to $%.0f. That is a best case; what your phone gets depends on its model and condition, so confirm with the carrier.",
                         if (oldPhone.isNotEmpty()) " of $oldPhone" else "", it)
-                } ?: "No trade-in amount found for ${r.plan.carrier}, so none is subtracted - ask the carrier what your ${oldPhone.ifEmpty { "old phone" }} gets.",
+                } ?: "No trade-in amount found for ${r.plan.carrier} - ask the carrier what your ${oldPhone.ifEmpty { "old phone" }} gets.",
                     style = MaterialTheme.typography.labelSmall)
-                if (phonePrice > 0 && r.plan.freePhoneOffer) Text("This carrier advertises a phone deal; its bill credits could lower the phone part, " +
+                if (r.plan.freePhoneOffer) Text("This carrier advertises a phone deal; its bill credits could lower the phone's cost, " +
                     "but only if you stay 24-36 months, and the amount isn't checked here.", style = MaterialTheme.typography.labelSmall)
-                Text("Not included: taxes, fees, activation, accessories.", style = MaterialTheme.typography.labelSmall)
+                Text("Not included: the phone, taxes, other fees, accessories.", style = MaterialTheme.typography.labelSmall)
             }
             TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.signupUrl))) }) { Text("View plan") }
         }

@@ -42,5 +42,12 @@ enum PlanData {
         Plan(carrier: "Xfinity Mobile", name: "Mobile Plus", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 45.0], note: "Requires Xfinity internet", signupUrl: "https://www.xfinity.com/mobile"),
         Plan(carrier: "Spectrum Mobile", name: "Unlimited", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 30.0], note: "Requires Spectrum internet", signupUrl: "https://www.spectrum.com/mobile"),
         Plan(carrier: "Spectrum Mobile", name: "Unlimited Plus", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 40.0], note: "Requires Spectrum internet", signupUrl: "https://www.spectrum.com/mobile"),
+        Plan(carrier: "Tello", name: "10GB", network: "T-Mobile", prepaid: true, dataGb: 10, pricePerLine: [1: 15.0], note: "", signupUrl: "https://tello.com"),
+        Plan(carrier: "Tello", name: "20GB", network: "T-Mobile", prepaid: true, dataGb: 20, pricePerLine: [1: 20.0], note: "", signupUrl: "https://tello.com"),
+        Plan(carrier: "Tello", name: "Unlimited", network: "T-Mobile", prepaid: true, dataGb: 50, pricePerLine: [1: 25.0], note: "50GB high-speed data, 10GB hotspot; promos can lower the first months", signupUrl: "https://tello.com"),
+        Plan(carrier: "Verizon", name: "Unlimited Welcome", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 55.0], note: "Single-line price; sources disagree on autopay discounts", signupUrl: "https://www.verizon.com"),
+        Plan(carrier: "Verizon", name: "Unlimited Ultimate", network: "Verizon", prepaid: false, dataGb: nil, pricePerLine: [1: 85.0], note: "Single-line price; one source lists $90", signupUrl: "https://www.verizon.com"),
+        Plan(carrier: "AT&T", name: "Premium 2.0", network: "AT&T", prepaid: false, dataGb: nil, pricePerLine: [1: 90.0], note: "Single-line price; older Premium PL was about $86", signupUrl: "https://www.att.com"),
+        Plan(carrier: "T-Mobile", name: "Experience Beyond", network: "T-Mobile", prepaid: false, dataGb: nil, pricePerLine: [1: 100.0], note: "With autopay; sources date unclear", signupUrl: "https://www.t-mobile.com"),
     ]
 }

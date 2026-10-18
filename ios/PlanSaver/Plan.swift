@@ -191,3 +191,22 @@ func totalCost(monthly: Double, months: Int, phonePrice: Double, tradeIn: Double
     return TotalCost(months: months, plan: monthly * Double(months), phone: phone, activation: activation,
                      total: monthly * Double(months) + phone + activation)
 }
+
+/// Results-screen filters. `networks` empty = any network; `type`: 0 any, 1 prepaid, 2 postpaid.
+struct ResultFilters {
+    var networks: Set<String> = []
+    var type = 0
+    var dealOnly = false
+    var unlimitedOnly = false
+}
+
+/// Customized-lines results are judged by their priciest plan, and skip "unlimited only" (they mix capped and unlimited plans).
+func applyFilters(_ list: [SearchResult], _ f: ResultFilters) -> [SearchResult] {
+    list.filter { r in
+        let p = r.plan
+        return (f.networks.isEmpty || f.networks.contains { p.network.range(of: $0, options: .caseInsensitive) != nil })
+            && (f.type == 0 || (f.type == 1) == p.prepaid)
+            && (!f.dealOnly || p.deal != nil)
+            && (!f.unlimitedOnly || r.assignments != nil || p.dataGb == nil)
+    }
+}
