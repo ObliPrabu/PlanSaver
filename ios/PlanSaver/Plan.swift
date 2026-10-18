@@ -21,6 +21,11 @@ struct Plan {
     var dealUrl: String = ""
     /// Date (YYYY-MM-DD) the live deal text was last refreshed; empty for bundled data.
     var dealDate: String = ""
+    /// Multi-line price sentence the robot found on the carrier's pages (unverified; shown, never used to compute prices).
+    var linesNote: String = ""
+    var linesDate: String = ""
+    /// Hotspot / international / perks / slowdown sentences the robot found for the carrier (unverified), already labeled.
+    var extraNotes: [String] = []
     /// Months paid up front (Mint sells 3/6/12-month blocks). 1 = month to month.
     var termMonths: Int = 1
 

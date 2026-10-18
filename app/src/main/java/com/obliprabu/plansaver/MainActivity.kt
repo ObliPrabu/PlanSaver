@@ -239,6 +239,14 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int) {
                     style = MaterialTheme.typography.labelSmall)
             }
             if (r.plan.dealUrl.startsWith("https://")) TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.dealUrl))) }) { Text("See the offer") }
+            if (lines > 1 && r.plan.linesNote.isNotEmpty())
+                Text("Multi-line price found online" + (if (r.plan.linesDate.isNotEmpty()) " (as of ${r.plan.linesDate})" else "") +
+                    ", unverified: " + r.plan.linesNote, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary)
+            if (r.plan.extraNotes.isNotEmpty()) {
+                Text("Found online for ${r.plan.carrier} (unverified; may differ by plan):", style = MaterialTheme.typography.labelSmall)
+                r.plan.extraNotes.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+            }
             coverageLinks(r.plan.network).forEach { (name, url) ->
                 TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }) { Text("$name coverage map") }
             }

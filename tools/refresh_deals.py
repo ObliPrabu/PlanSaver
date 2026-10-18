@@ -83,12 +83,30 @@ def score(s):
     if ("$" not in s and "free" not in low) or any(g in low for g in GENERIC):
         return 0
     n = sum(1 for k in KEYWORDS if k in low) + (2 if "$" in s else 0)
-    # Ignore legal/boilerplate and obvious non-offers.
-    # Product-listing scraps ("Rated 4.1 out of 5 stars ... Quick view") are not offers.
-    if any(b in low for b in ("cookie", "privacy", "terms", "sign in", "log in", "javascript",
-                              "quick view", "out of 5", "stars", "reviews", "compare ", "price was", "add to cart", "sort by")):
+    if is_noise(low):
         return 0
     return n
+
+
+def is_noise(low):
+    """Legal/boilerplate and product-listing scraps ("Rated 4.1 out of 5 stars ... Quick view") are not offers."""
+    return any(b in low for b in ("cookie", "privacy", "terms", "sign in", "log in", "javascript",
+                                  "quick view", "out of 5", "stars", "reviews", "compare ", "price was",
+                                  "add to cart", "sort by"))
+
+
+# A price tied to a number of lines: "$25 per line for 4 lines", "4 lines for $100/mo", "2 lines $60".
+LINE_PRICE = re.compile(
+    r"\$\s?\d+(?:\.\d\d)?[^.]{0,40}\bper line\b[^.]{0,30}\b[2-9]\s*lines?\b"
+    r"|\b[2-9]\s*lines?\b[^.$]{0,30}\$\s?\d+(?:\.\d\d)?"
+    r"|\bper line\b[^.]{0,30}\b[2-9]\s*lines?\b[^.]{0,30}\$\s?\d+", re.I)
+
+
+def lines_score(s):
+    """0 unless the sentence gives a price for a specific number of lines (2+) and is not boilerplate."""
+    if is_noise(s.lower()) or not LINE_PRICE.search(s):
+        return 0
+    return 1 + score(s)
 
 
 PHONE_WORDS = re.compile(r"\b(phone|phones|iphone|galaxy|pixel|device)\b", re.I)
@@ -137,25 +155,108 @@ def ddg_results(query):
     return out
 
 
-def best_candidate(entry):
+# Other things shoppers ask about. Each kind: (what the sentence must mention, label shown in the app, needs a number).
+EXTRAS = {
+    "hotspot": (re.compile(r"\bhot-?spot\b|\btethering\b", re.I), "Hotspot", True),
+    "international": (re.compile(r"\b(canada|mexico|international|roaming|abroad)\b", re.I), "International", False),
+    "perks": (re.compile(r"\b(netflix|disney\+?|hulu|apple tv|apple one|peacock|youtube|streaming)\b", re.I), "Perks", False),
+    "slowdown": (re.compile(r"\b(deprioriti[sz]\w*|throttl\w*|network management|slowed|reduced speeds?)\b"
+                            r"|\bafter\s+\d+\s*gb\b", re.I), "Slowdown", False),
+}
+
+
+def extra_score(kind, s):
+    """0 unless the sentence is about [kind] and is not boilerplate; concrete numbers and prices rank higher."""
+    pattern, _, needs_number = EXTRAS[kind]
+    low = s.lower()
+    if is_noise(low) or any(g in low for g in GENERIC) or not pattern.search(s):
+        return 0
+    has_number = bool(re.search(r"\d", s))
+    if needs_number and not has_number:
+        return 0
+    return 1 + (2 if has_number else 0) + (1 if "$" in s else 0)
+
+
+def best_extra(kind, found):
+    candidates = [(extra_score(kind, t), t, u) for t, u in found]
+    candidates = [c for c in candidates if c[0] > 0]
+    return max(candidates, key=lambda c: (c[0], -len(c[1]))) if candidates else None
+
+
+def update_extra(entry, kind, best):
+    new_score, text, _ = best
+    notes = entry.setdefault("extras", {})
+    old = notes.get(kind, {}).get("text", "")
+    if text == old or (old and new_score < extra_score(kind, old) + MARGIN):
+        return False
+    print(f"  new {kind} note: {text}")
+    notes[kind] = {"text": text, "updated": date.today().isoformat()}
+    return True
+
+
+def gather(entry):
+    """Every cleaned (text, url) sentence from the carrier's page and its own-domain search results."""
     base = entry["url"]
-    candidates = []  # (score, text, url)
+    out = []
     try:
-        for s in sentences(fetch(base)):
-            s = tidy(s)
-            candidates.append((score(s), s, base))
+        out += [(tidy(x), base) for x in sentences(fetch(base))]
     except Exception as e:
         print(f"  page failed: {e}")
-    time.sleep(2)
-    try:
-        for url, snippet in ddg_results(entry["carrier"] + " phone deals"):
-            snippet = tidy(snippet)
-            if url.startswith("https://") and same_site(url, base) and 25 <= len(snippet) <= MAX_LEN:
-                candidates.append((score(snippet), snippet, url))
-    except Exception as e:
-        print(f"  search failed: {e}")
+    for query in (entry["carrier"] + " phone deals", entry["carrier"] + " plans price per line multiple lines",
+                  entry["carrier"] + " unlimited plan hotspot data international roaming perks"):
+        if "multiple lines" in query and best_lines(out):
+            continue  # the page already gave a multi-line price; spare DuckDuckGo a request
+        time.sleep(2)
+        try:
+            for url, snippet in ddg_results(query):
+                snippet = tidy(snippet)
+                if url.startswith("https://") and same_site(url, base) and 25 <= len(snippet) <= MAX_LEN:
+                    out.append((snippet, url))
+        except Exception as e:
+            print(f"  search failed: {e}")
+    return out
+
+
+def best_candidate(found):
+    candidates = [(score(t), t, u) for t, u in found]
     candidates = [c for c in candidates if c[0] >= MIN_SCORE]
     return max(candidates, key=lambda c: c[0]) if candidates else None
+
+
+def best_lines(found):
+    candidates = [(lines_score(t), t, u) for t, u in found]
+    candidates = [c for c in candidates if c[0] > 0]
+    return max(candidates, key=lambda c: c[0]) if candidates else None
+
+
+def update_deal(entry, best):
+    new_score, text, url = best
+    if text == entry["deal"] and url == entry["url"]:
+        return False
+    # Only replace a deal when the new text is clearly better, so two similar candidates can't flip-flop forever.
+    if text != entry["deal"] and new_score < score(entry["deal"]) + MARGIN:
+        print(f"  keeping old deal (new text not clearly better): {text}")
+        return False
+    print(f"  new: {text}")
+    entry["deal"], entry["url"] = text, url
+    entry["freePhone"] = offers_phone(text)
+    entry["updated"] = date.today().isoformat()
+    if entry.get("plans") and not plans_still_apply(entry, text):
+        print(f"  plans scope {entry['plans']} no longer in the text - dropped")
+        del entry["plans"]
+    return True
+
+
+def update_lines(entry, best):
+    """Store the best multi-line price sentence as a note (shown on cards; never used to compute prices)."""
+    new_score, text, _ = best
+    old = entry.get("lines", "")
+    if text == old or (old and new_score < lines_score(old) + MARGIN):
+        return False
+    print(f"  new multi-line note: {text}")
+    entry["lines"] = text
+    entry["linesUpdated"] = date.today().isoformat()
+    return True
 
 
 def main():
@@ -164,26 +265,22 @@ def main():
     changed = False
     for entry in data["deals"]:
         print(entry["carrier"])
-        best = best_candidate(entry)
+        found = gather(entry)
         time.sleep(3)
+        best = best_candidate(found)
         if not best:
-            print("  keeping old entry")
-            continue
-        new_score, text, url = best
-        if text == entry["deal"] and url == entry["url"]:
-            continue
-        # Only replace a deal when the new text is clearly better, so two similar candidates can't flip-flop forever.
-        if text != entry["deal"] and new_score < score(entry["deal"]) + MARGIN:
-            print(f"  keeping old entry (new text not clearly better): {text}")
-            continue
-        print(f"  new: {text}")
-        entry["deal"], entry["url"] = text, url
-        entry["freePhone"] = offers_phone(text)
-        entry["updated"] = date.today().isoformat()
-        if entry.get("plans") and not plans_still_apply(entry, text):
-            print(f"  plans scope {entry['plans']} no longer in the text - dropped")
-            del entry["plans"]
-        changed = True
+            print("  keeping old deal")
+        else:
+            changed |= update_deal(entry, best)
+        lines = best_lines(found)
+        if lines:
+            changed |= update_lines(entry, lines)
+        else:
+            print("  no multi-line price found")
+        for kind in EXTRAS:
+            extra = best_extra(kind, found)
+            if extra:
+                changed |= update_extra(entry, kind, extra)
     if changed:
         data["updated"] = date.today().isoformat()
         with open(PATH, "w") as f:

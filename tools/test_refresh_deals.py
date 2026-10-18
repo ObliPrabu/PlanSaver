@@ -22,6 +22,20 @@ class ScraperTests(unittest.TestCase):
         self.assertTrue(r.offers_phone("$800 off when you switch and trade in."))
         self.assertFalse(r.offers_phone("5-year price lock for new customers who bring their own phone ($20/month)."))
 
+    def test_line_prices(self):
+        self.assertGreater(r.lines_score("Unlimited is $25 per line for 4 lines with autopay."), 0)
+        self.assertGreater(r.lines_score("Get 3 lines for $90/mo on our best plan."), 0)
+        self.assertEqual(r.lines_score("Unlimited is $50 per month for one line."), 0)
+        self.assertEqual(r.lines_score("Rated 4.1 out of 5 stars: $25 per line for 4 lines Quick view"), 0)
+
+    def test_extras(self):
+        self.assertGreater(r.extra_score("hotspot", "Includes 50GB of premium hotspot data each month."), 0)
+        self.assertEqual(r.extra_score("hotspot", "Use your phone as a hotspot anywhere you like."), 0)
+        self.assertGreater(r.extra_score("perks", "Netflix on Us is included with Unlimited Premium."), 0)
+        self.assertGreater(r.extra_score("international", "Free calling and texting in Canada and Mexico."), 0)
+        self.assertGreater(r.extra_score("slowdown", "Speeds may be slowed after 100GB of usage."), 0)
+        self.assertEqual(r.extra_score("perks", "Rated 4.1 out of 5 stars Netflix Quick view"), 0)
+
     def test_plans_scope(self):
         entry = {"plans": ["6-month"]}
         self.assertTrue(r.plans_still_apply(entry, "Any 6 month plan for $10/month"))

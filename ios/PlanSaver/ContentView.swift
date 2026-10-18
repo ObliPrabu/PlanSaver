@@ -182,6 +182,15 @@ struct ContentView: View {
             if lines > 1 && r.plan.pricePerLine[lines] == nil {
                 Text("Estimate: no \(lines)-line price on file, so this uses the nearest known per-line price.").font(.footnote)
             }
+            if lines > 1 && !r.plan.linesNote.isEmpty {
+                Text("Multi-line price found online" + (r.plan.linesDate.isEmpty ? "" : " (as of \(r.plan.linesDate))")
+                     + ", unverified: " + r.plan.linesNote)
+                    .font(.footnote).foregroundColor(.orange)
+            }
+            if !r.plan.extraNotes.isEmpty {
+                Text("Found online for \(r.plan.carrier) (unverified; may differ by plan):").font(.caption2)
+                ForEach(r.plan.extraNotes, id: \.self) { Text($0).font(.footnote) }
+            }
             ForEach(coverageLinks(r.plan.network), id: \.name) { c in
                 if let url = URL(string: c.url) { Link("\(c.name) coverage map", destination: url) }
             }

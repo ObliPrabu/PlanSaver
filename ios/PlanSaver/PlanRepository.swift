@@ -12,6 +12,9 @@ private struct Deal {
     /// Plan-name fragments this deal is for (e.g. "Experience", "6-month"); empty = every plan of the carrier.
     let plans: [String]
     let updated: String
+    let linesNote: String
+    let linesUpdated: String
+    let extras: [String]
 
     func coversPlan(_ name: String) -> Bool {
         plans.isEmpty || plans.contains { name.range(of: $0, options: .caseInsensitive) != nil }
@@ -45,8 +48,15 @@ enum PlanRepository {
 
         fetchDeals(phone: request.phone) { live in
             let merged: [SearchResult] = base.map { r in
-                guard let d = live?.first(where: { sameCarrier($0.carrier, r.plan.carrier) && $0.coversPlan(r.plan.name) }) else { return r }
+                let carrierDeals = (live ?? []).filter { sameCarrier($0.carrier, r.plan.carrier) }
                 var out = r
+                // The multi-line note is about the carrier, not one deal, so any of its entries may supply it.
+                if let n = carrierDeals.first(where: { !$0.linesNote.isEmpty }) {
+                    out.plan.linesNote = n.linesNote
+                    out.plan.linesDate = n.linesUpdated
+                }
+                if let e = carrierDeals.first(where: { !$0.extras.isEmpty }) { out.plan.extraNotes = e.extras }
+                guard let d = carrierDeals.first(where: { $0.coversPlan(r.plan.name) }) else { return out }
                 out.plan.deal = d.deal
                 out.plan.freePhoneOffer = d.freePhone
                 out.plan.dealUrl = d.url
@@ -83,6 +93,16 @@ enum PlanRepository {
         }
     }
 
+    /// "Hotspot: text (as of date)" for each extra the robot found.
+    private static func extraNotes(_ o: [String: Any]?) -> [String] {
+        let labels = ["hotspot": "Hotspot", "international": "International", "perks": "Perks", "slowdown": "Slowdown"]
+        return (o ?? [:]).keys.sorted().compactMap { k in
+            guard let n = o?[k] as? [String: Any], let text = n["text"] as? String, !text.isEmpty else { return nil }
+            let date = n["updated"] as? String ?? ""
+            return "\(labels[k] ?? k): \(text)" + (date.isEmpty ? "" : " (as of \(date))")
+        }
+    }
+
     private static func sameCarrier(_ a: String, _ b: String) -> Bool {
         func norm(_ s: String) -> String {
             s.lowercased().replacingOccurrences(of: " mobile", with: "")
@@ -109,7 +129,9 @@ enum PlanRepository {
                 guard applies else { return nil }
                 return Deal(carrier: carrier, deal: deal, freePhone: o["freePhone"] as? Bool ?? false,
                             url: o["url"] as? String ?? "", plans: o["plans"] as? [String] ?? [],
-                            updated: o["updated"] as? String ?? "")
+                            updated: o["updated"] as? String ?? "",
+                            linesNote: o["lines"] as? String ?? "", linesUpdated: o["linesUpdated"] as? String ?? "",
+                            extras: extraNotes(o["extras"] as? [String: Any]))
             }
             completion(deals)
         }.resume()

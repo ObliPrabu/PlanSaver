@@ -47,10 +47,16 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
         val live = if (dealsUrl.isNotEmpty()) fetchDeals(request.phone) else null
 
         val merged = base.map { r ->
-            val d = live?.firstOrNull { sameCarrier(it.carrier, r.plan.carrier) && it.coversPlan(r.plan.name) }
-            if (d == null) r
-            else r.copy(
-                plan = r.plan.copy(deal = d.deal, freePhoneOffer = d.freePhone, dealUrl = d.url, dealDate = d.updated),
+            val carrierDeals = live?.filter { sameCarrier(it.carrier, r.plan.carrier) }.orEmpty()
+            val d = carrierDeals.firstOrNull { it.coversPlan(r.plan.name) }
+            // The multi-line note is about the carrier, not one deal, so any of its entries may supply it.
+            val withLines = carrierDeals.firstOrNull { it.linesNote.isNotEmpty() }
+                ?.let { r.copy(plan = r.plan.copy(linesNote = it.linesNote, linesDate = it.linesUpdated)) } ?: r
+            val noted = carrierDeals.firstOrNull { it.extras.isNotEmpty() }
+                ?.let { withLines.copy(plan = withLines.plan.copy(extraNotes = it.extras)) } ?: withLines
+            if (d == null) noted
+            else noted.copy(
+                plan = noted.plan.copy(deal = d.deal, freePhoneOffer = d.freePhone, dealUrl = d.url, dealDate = d.updated),
                 liveDeal = true,
             )
         }
@@ -71,9 +77,20 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
 
     /** [plans]: plan-name fragments this deal is for (e.g. "Experience", "6-month"); empty = every plan of the carrier. */
     private class Deal(val carrier: String, val deal: String, val freePhone: Boolean, val url: String,
-        val plans: List<String>, val updated: String) {
+        val plans: List<String>, val updated: String, val linesNote: String, val linesUpdated: String,
+        val extras: List<String>) {
         fun coversPlan(planName: String) = plans.isEmpty() || plans.any { planName.contains(it, ignoreCase = true) }
     }
+
+    /** "Hotspot: text (as of date)" for each extra the robot found, in file order. */
+    private fun extraNotes(o: JSONObject?): List<String> = o?.keys()?.asSequence()?.mapNotNull { k ->
+        val n = o.optJSONObject(k) ?: return@mapNotNull null
+        val text = n.optString("text")
+        if (text.isEmpty()) return@mapNotNull null
+        val label = when (k) { "hotspot" -> "Hotspot"; "international" -> "International"; "perks" -> "Perks"; "slowdown" -> "Slowdown"; else -> k }
+        val date = n.optString("updated")
+        "$label: $text" + if (date.isNotEmpty()) " (as of $date)" else ""
+    }?.toList().orEmpty()
 
     private fun sameCarrier(a: String, b: String): Boolean {
         val x = a.lowercase().replace(" mobile", "").replace("by t-mobile", "").trim()
@@ -101,7 +118,7 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
                     val scope = o.optJSONArray("plans")
                     Deal(o.getString("carrier"), o.getString("deal"), o.optBoolean("freePhone"), o.optString("url"),
                         if (scope == null) emptyList() else (0 until scope.length()).map { i -> scope.getString(i) },
-                        o.optString("updated"))
+                        o.optString("updated"), o.optString("lines"), o.optString("linesUpdated"), extraNotes(o.optJSONObject("extras")))
                 }
             }
         } catch (e: Exception) {

@@ -22,6 +22,11 @@ data class Plan(
     val dealUrl: String = "",
     /** Date (YYYY-MM-DD) the live deal text was last refreshed; empty for bundled data. */
     val dealDate: String = "",
+    /** Multi-line price sentence the robot found on the carrier's pages (unverified; shown, never used to compute prices). */
+    val linesNote: String = "",
+    val linesDate: String = "",
+    /** Hotspot / international / perks / slowdown sentences the robot found for the carrier (unverified), already labeled. */
+    val extraNotes: List<String> = emptyList(),
     /** Months paid up front (Mint sells 3/6/12-month blocks, cheaper per month the longer). 1 = month to month. */
     val termMonths: Int = 1,
 ) {

@@ -83,6 +83,11 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   a `plans` scope when the new text no longer names one of its plans; cards say when a multi-line price is only an
   estimate; iOS text is at least extra-extra-large but never below the user's own setting, lines is a Stepper and data a
   menu so big text fits.
+- Robot also looks for multi-line prices ("$25 per line for 4 lines"): the best sentence is stored as `lines`/`linesUpdated`
+  on the carrier's deals.json entry and shown on cards when 2+ lines are searched, labeled unverified. It never changes the
+  computed prices. Not run live yet (DuckDuckGo answered 202 to repeated local requests, so nothing was found in testing).
+- Robot also looks for hotspot / international / perks / slowdown sentences per carrier (`extras` in deals.json, each with its
+  own `updated`), shown on every card as "Found online ... (unverified; may differ by plan)". Carrier-level, not per plan.
 - Known issues not fixed: Mint's site returns 403 to scripts (bot protection - not bypassed), so its deal only updates from
   search snippets; multi-line prices are still mostly 1-line x lines (needs research per plan); prices are unverified;
   extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; the 5-minute
