@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-17",
+  "updated": "2026-10-18",
   "deals": [
     {
       "carrier": "T-Mobile",
@@ -9,7 +9,17 @@
       "url": "https://www.t-mobile.com/offers",
       "plans": [
         "Experience"
-      ]
+      ],
+      "extras": {
+        "international": {
+          "text": "Mastercard is a registered trademark of Mastercard International Incorporated.",
+          "updated": "2026-10-18"
+        },
+        "slowdown": {
+          "text": "Taxes & fees, voluntary equipment or speed upgrades, future wireless generations, select limited-time promotions, per-use charges, third-party services, and network management practices aren't included.",
+          "updated": "2026-10-18"
+        }
+      }
     },
     {
       "carrier": "Verizon",
@@ -40,14 +50,46 @@
       "deal": "Get Visible+ for as low as $30/mo Switch to the Visible+ or Visible+ Pro monthly plan and save $5/mo for 5 years.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.visible.com"
+      "url": "https://www.visible.com",
+      "extras": {
+        "hotspot": {
+          "text": "footnote 2 Mobile hotspot with unlimited data at speeds up to 15 Mbps (Visible+ Pro), 10 Mbps (Visible+), or 5 Mbps (Visible Plan).",
+          "updated": "2026-10-18"
+        },
+        "international": {
+          "text": "footnote 3 Unlimited calling and messaging to Mexico and Canada when you are in the US.",
+          "updated": "2026-10-18"
+        },
+        "perks": {
+          "text": "Streaming video defaults to 480p; customers can change to any higher video quality available under their plan in account settings.",
+          "updated": "2026-10-18"
+        },
+        "slowdown": {
+          "text": "After 2 GB/day of data, speeds reduced to 3G.",
+          "updated": "2026-10-18"
+        }
+      }
     },
     {
       "carrier": "Total Wireless",
       "deal": "5-year price lock for new customers who bring their own phone (Base 5G Unlimited at $20/month with taxes included).",
       "freePhone": false,
       "phones": [],
-      "url": "https://www.totalwireless.com"
+      "url": "https://www.totalwireless.com",
+      "extras": {
+        "hotspot": {
+          "text": "footnote 2 Plans have unlimited hotspot data at speeds up to 5 Mbps; Total ALL ACCESS, 10 Mbps.",
+          "updated": "2026-10-18"
+        },
+        "international": {
+          "text": "^ Unlimited 5G built for real life See how we keep up with seamless streaming, daily calls to Mexico, and everything in between.",
+          "updated": "2026-10-18"
+        },
+        "perks": {
+          "text": "^ Unlimited 5G built for real life See how we keep up with seamless streaming, daily calls to Mexico, and everything in between.",
+          "updated": "2026-10-18"
+        }
+      }
     }
   ]
 }
