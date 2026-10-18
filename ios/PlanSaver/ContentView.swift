@@ -3,7 +3,30 @@ import UIKit
 
 private let dataChoices: [(label: String, gb: Int?)] = [("1-5 GB", 5), ("10 GB", 10), ("25 GB", 25), ("Unlimited", nil)]
 
+/// Shown as a visible "Theme" segmented control on the form screen - matches
+/// the Android build's manual override (see Theme.kt's ThemeMode), rather
+/// than relying only on the system appearance setting.
+private enum ThemeMode: String, CaseIterable, Identifiable {
+    case system, light, dark
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .system: return "Auto"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
+}
+
 struct ContentView: View {
+    @State private var themeMode: ThemeMode = .system
     @State private var lines = 1
     @State private var dataIdx = 3
     @State private var customLines = false
@@ -28,11 +51,14 @@ struct ContentView: View {
     }
 
     var body: some View {
-        if let results = results {
-            resultsScreen(results)
-        } else {
-            formScreen
+        Group {
+            if let results = results {
+                resultsScreen(results)
+            } else {
+                formScreen
+            }
         }
+        .preferredColorScheme(themeMode.colorScheme)
     }
 
     // MARK: Search form
@@ -43,6 +69,10 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("PlanSaver").font(.largeTitle).bold()
                     Text("Find the cheapest US phone plan for what you actually use.").font(.subheadline)
+
+                    Picker("Theme", selection: $themeMode) {
+                        ForEach(ThemeMode.allCases) { Text($0.label).tag($0) }
+                    }.pickerStyle(SegmentedPickerStyle())
 
                     Text("How many lines?").font(.headline)
                     Stepper(value: $lines, in: 1...6) { Text("\(lines) \(lines == 1 ? "line" : "lines")") }
