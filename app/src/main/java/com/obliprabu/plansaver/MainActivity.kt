@@ -89,23 +89,13 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
     // Two screens: the search form, and the results. Back from results returns to the form.
     BackHandler(enabled = resultsOpen) { results = null; resultsOpen = false }
 
+    Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
         if (!resultsOpen) {
             Text("PlanSaver", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 16.dp))
+                modifier = Modifier.padding(top = 16.dp, end = 72.dp))
             Text("Find the cheapest US phone plan for what you actually use.",
                 style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
-
-            // Visible override, not just the system setting - some OEM skins
-            // don't forward their own dark-mode toggle to the app (see
-            // Theme.kt's ThemeMode doc comment).
-            Row(modifier = Modifier.padding(bottom = 12.dp).horizontalScroll(rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Theme:", fontWeight = FontWeight.SemiBold)
-                listOf(ThemeMode.SYSTEM to "Auto", ThemeMode.LIGHT to "Light", ThemeMode.DARK to "Dark").forEach { (mode, label) ->
-                    FilterChip(selected = themeMode == mode, onClick = { onThemeModeChange(mode) }, label = { Text(label) })
-                }
-            }
 
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                 Text("How many lines?", fontWeight = FontWeight.SemiBold)
@@ -246,6 +236,29 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 16.dp))
             }
         }
+    }
+
+    // Dark mode toggle, top right - same corner/pill style as the BuddyVerse
+    // app's toggle, floating over the content instead of inline so it stays
+    // put while the form scrolls or the results screen is open. Cycles
+    // Auto -> Light -> Dark -> Auto (see Theme.kt's ThemeMode doc comment for
+    // why a manual override exists at all).
+    val (themeEmoji, themeLabel) = when (themeMode) {
+        ThemeMode.SYSTEM -> "🌓" to "Auto"
+        ThemeMode.LIGHT -> "☀️" to "Light"
+        ThemeMode.DARK -> "🌙" to "Dark"
+    }
+    AssistChip(
+        onClick = {
+            onThemeModeChange(when (themeMode) {
+                ThemeMode.SYSTEM -> ThemeMode.LIGHT
+                ThemeMode.LIGHT -> ThemeMode.DARK
+                ThemeMode.DARK -> ThemeMode.SYSTEM
+            })
+        },
+        label = { Text("$themeEmoji $themeLabel") },
+        modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(12.dp),
+    )
     }
 }
 

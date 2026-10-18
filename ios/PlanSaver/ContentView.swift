@@ -3,24 +3,25 @@ import UIKit
 
 private let dataChoices: [(label: String, gb: Int?)] = [("1-5 GB", 5), ("10 GB", 10), ("25 GB", 25), ("Unlimited", nil)]
 
-/// Shown as a visible "Theme" segmented control on the form screen - matches
-/// the Android build's manual override (see Theme.kt's ThemeMode), rather
-/// than relying only on the system appearance setting.
+/// Shown as a floating top-right toggle over the whole screen - matches the
+/// Android build's manual override (see Theme.kt's ThemeMode) and the same
+/// top-right placement BuddyVerse uses, rather than relying only on the
+/// system appearance setting.
 private enum ThemeMode: String, CaseIterable, Identifiable {
     case system, light, dark
     var id: String { rawValue }
-    var label: String {
-        switch self {
-        case .system: return "Auto"
-        case .light: return "Light"
-        case .dark: return "Dark"
-        }
-    }
     var colorScheme: ColorScheme? {
         switch self {
         case .system: return nil
         case .light: return .light
         case .dark: return .dark
+        }
+    }
+    var toggleLabel: String {
+        switch self {
+        case .system: return "🌓 Auto"
+        case .light: return "☀️ Light"
+        case .dark: return "🌙 Dark"
         }
     }
 }
@@ -51,12 +52,32 @@ struct ContentView: View {
     }
 
     var body: some View {
-        Group {
-            if let results = results {
-                resultsScreen(results)
-            } else {
-                formScreen
+        ZStack(alignment: .topTrailing) {
+            Group {
+                if let results = results {
+                    resultsScreen(results)
+                } else {
+                    formScreen
+                }
             }
+            // Theme toggle, top right - matches the Android build's floating
+            // pill (itself matching BuddyVerse's top-right dark mode toggle),
+            // so it's reachable from both the form and results screens
+            // instead of scrolling away with the form content.
+            Button(action: {
+                themeMode = switch themeMode {
+                case .system: .light
+                case .light: .dark
+                case .dark: .system
+                }
+            }) {
+                Text(themeMode.toggleLabel)
+                    .font(.footnote.bold())
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .clipShape(Capsule())
+            }
+            .padding(12)
         }
         .preferredColorScheme(themeMode.colorScheme)
     }
@@ -67,12 +88,8 @@ struct ContentView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("PlanSaver").font(.largeTitle).bold()
+                    Text("PlanSaver").font(.largeTitle).bold().padding(.trailing, 80)
                     Text("Find the cheapest US phone plan for what you actually use.").font(.subheadline)
-
-                    Picker("Theme", selection: $themeMode) {
-                        ForEach(ThemeMode.allCases) { Text($0.label).tag($0) }
-                    }.pickerStyle(SegmentedPickerStyle())
 
                     Text("How many lines?").font(.headline)
                     Stepper(value: $lines, in: 1...6) { Text("\(lines) \(lines == 1 ? "line" : "lines")") }
