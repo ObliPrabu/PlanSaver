@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 private let dataChoices: [(label: String, gb: Int?)] = [("1-5 GB", 5), ("10 GB", 10), ("25 GB", 25), ("Unlimited", nil)]
 
@@ -233,7 +234,10 @@ struct ContentView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.gray.opacity(0.12))
+        // UIColor.secondarySystemBackground (not a flat gray-opacity overlay)
+        // so result cards read correctly in both light and dark mode instead
+        // of going murky/low-contrast once the system switches to dark.
+        .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(10)
     }
 }
