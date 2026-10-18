@@ -9,7 +9,13 @@
       "url": "https://www.t-mobile.com/offers",
       "plans": [
         "Experience"
-      ]
+      ],
+      "extras": {
+        "international": {
+          "text": "For all Connect by T-Mobile rate plans, add North America calling and texting for $5/month (Mexico and Canada) or Stateside \u2026",
+          "updated": "2026-10-18"
+        }
+      }
     },
     {
       "carrier": "Verizon",
