@@ -155,21 +155,31 @@ def ddg_results(query):
     return out
 
 
-# Other things shoppers ask about. Each kind: (what the sentence must mention, label shown in the app, needs a number).
+# Other things shoppers ask about. Each kind: (what the sentence must mention, label, extra requirement, needs a number).
 EXTRAS = {
-    "hotspot": (re.compile(r"\bhot-?spot\b|\btethering\b", re.I), "Hotspot", True),
-    "international": (re.compile(r"\b(canada|mexico|international|roaming|abroad)\b", re.I), "International", False),
-    "perks": (re.compile(r"\b(netflix|disney\+?|hulu|apple tv|apple one|peacock|youtube|streaming)\b", re.I), "Perks", False),
-    "slowdown": (re.compile(r"\b(deprioriti[sz]\w*|throttl\w*|network management|slowed|reduced speeds?)\b"
-                            r"|\bafter\s+\d+\s*gb\b", re.I), "Slowdown", False),
+    "hotspot": (re.compile(r"\bhot-?spot\b|\btethering\b", re.I), "Hotspot", None, True),
+    "international": (re.compile(r"\b(canada|mexico|international|roaming|abroad)\b", re.I), "International",
+                      re.compile(r"\b(calling|calls|texting|messag\w*|data|roaming|minutes)\b", re.I), False),
+    # Named services only: a bare word like "streaming" shows up in marketing copy and video-quality settings.
+    "perks": (re.compile(r"\b(netflix|disney\+?|hulu|apple tv|apple one|peacock|youtube|max)\b", re.I), "Perks",
+              re.compile(r"\b(included|on us|free|with|bundle\w*)\b", re.I), False),
+    "slowdown": (re.compile(r"\b(deprioriti[sz]\w*|throttl\w*|slowed|reduced speeds?)\b|\bafter\s+\d+\s*gb\b", re.I),
+                 "Slowdown", re.compile(r"\d", re.I), False),
 }
+# Legal fine print and marketing copy that mention the right words without saying anything useful.
+EXTRA_REJECT = ("trademark", "registered", "aren't included", "isn't included", "not included", "defaults to",
+                "see how", "built for", "terms and conditions", "all rights reserved")
+FOOTNOTE = re.compile(r"^(?:\^|footnote\s*\d+)\s*", re.I)
 
 
 def extra_score(kind, s):
     """0 unless the sentence is about [kind] and is not boilerplate; concrete numbers and prices rank higher."""
-    pattern, _, needs_number = EXTRAS[kind]
+    pattern, _, also, needs_number = EXTRAS[kind]
+    s = FOOTNOTE.sub("", s)
     low = s.lower()
-    if is_noise(low) or any(g in low for g in GENERIC) or not pattern.search(s):
+    if is_noise(low) or any(g in low for g in GENERIC) or any(x in low for x in EXTRA_REJECT) or not pattern.search(s):
+        return 0
+    if also and not also.search(s):
         return 0
     has_number = bool(re.search(r"\d", s))
     if needs_number and not has_number:
@@ -178,7 +188,7 @@ def extra_score(kind, s):
 
 
 def best_extra(kind, found):
-    candidates = [(extra_score(kind, t), t, u) for t, u in found]
+    candidates = [(extra_score(kind, t), FOOTNOTE.sub("", t), u) for t, u in found]
     candidates = [c for c in candidates if c[0] > 0]
     return max(candidates, key=lambda c: (c[0], -len(c[1]))) if candidates else None
 

@@ -35,6 +35,15 @@ class ScraperTests(unittest.TestCase):
         self.assertGreater(r.extra_score("international", "Free calling and texting in Canada and Mexico."), 0)
         self.assertGreater(r.extra_score("slowdown", "Speeds may be slowed after 100GB of usage."), 0)
         self.assertEqual(r.extra_score("perks", "Rated 4.1 out of 5 stars Netflix Quick view"), 0)
+        # Junk the first live run saved:
+        self.assertEqual(r.extra_score("international", "Mastercard is a registered trademark of Mastercard International Incorporated."), 0)
+        self.assertEqual(r.extra_score("slowdown", "Taxes & fees, speed upgrades and network management practices aren't included."), 0)
+        self.assertEqual(r.extra_score("perks", "Streaming video defaults to 480p; customers can change it in account settings."), 0)
+        self.assertEqual(r.extra_score("international", "^ Unlimited 5G built for real life See how we keep up with daily calls to Mexico."), 0)
+        # ...and the good lines it found:
+        self.assertGreater(r.extra_score("hotspot", "footnote 2 Mobile hotspot with unlimited data at speeds up to 15 Mbps."), 0)
+        self.assertGreater(r.extra_score("international", "footnote 3 Unlimited calling and messaging to Mexico and Canada when you are in the US."), 0)
+        self.assertGreater(r.extra_score("slowdown", "After 2 GB/day of data, speeds reduced to 3G."), 0)
 
     def test_plans_scope(self):
         entry = {"plans": ["6-month"]}

@@ -9,17 +9,7 @@
       "url": "https://www.t-mobile.com/offers",
       "plans": [
         "Experience"
-      ],
-      "extras": {
-        "international": {
-          "text": "Mastercard is a registered trademark of Mastercard International Incorporated.",
-          "updated": "2026-10-18"
-        },
-        "slowdown": {
-          "text": "Taxes & fees, voluntary equipment or speed upgrades, future wireless generations, select limited-time promotions, per-use charges, third-party services, and network management practices aren't included.",
-          "updated": "2026-10-18"
-        }
-      }
+      ]
     },
     {
       "carrier": "Verizon",
@@ -53,15 +43,11 @@
       "url": "https://www.visible.com",
       "extras": {
         "hotspot": {
-          "text": "footnote 2 Mobile hotspot with unlimited data at speeds up to 15 Mbps (Visible+ Pro), 10 Mbps (Visible+), or 5 Mbps (Visible Plan).",
+          "text": "Mobile hotspot with unlimited data at speeds up to 15 Mbps (Visible+ Pro), 10 Mbps (Visible+), or 5 Mbps (Visible Plan).",
           "updated": "2026-10-18"
         },
         "international": {
-          "text": "footnote 3 Unlimited calling and messaging to Mexico and Canada when you are in the US.",
-          "updated": "2026-10-18"
-        },
-        "perks": {
-          "text": "Streaming video defaults to 480p; customers can change to any higher video quality available under their plan in account settings.",
+          "text": "Unlimited calling and messaging to Mexico and Canada when you are in the US.",
           "updated": "2026-10-18"
         },
         "slowdown": {
@@ -78,15 +64,7 @@
       "url": "https://www.totalwireless.com",
       "extras": {
         "hotspot": {
-          "text": "footnote 2 Plans have unlimited hotspot data at speeds up to 5 Mbps; Total ALL ACCESS, 10 Mbps.",
-          "updated": "2026-10-18"
-        },
-        "international": {
-          "text": "^ Unlimited 5G built for real life See how we keep up with seamless streaming, daily calls to Mexico, and everything in between.",
-          "updated": "2026-10-18"
-        },
-        "perks": {
-          "text": "^ Unlimited 5G built for real life See how we keep up with seamless streaming, daily calls to Mexico, and everything in between.",
+          "text": "Plans have unlimited hotspot data at speeds up to 5 Mbps; Total ALL ACCESS, 10 Mbps.",
           "updated": "2026-10-18"
         }
       }
