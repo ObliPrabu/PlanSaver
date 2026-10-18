@@ -46,6 +46,13 @@ class ScraperTests(unittest.TestCase):
         self.assertGreater(r.extra_score("international", "footnote 3 Unlimited calling and messaging to Mexico and Canada when you are in the US."), 0)
         self.assertGreater(r.extra_score("slowdown", "After 2 GB/day of data, speeds reduced to 3G."), 0)
 
+    def test_bing_parse(self):
+        import base64
+        real = base64.urlsafe_b64encode(b"https://www.visible.com/plans").decode().rstrip("=")
+        page = ('<li class="b_algo" iid=1><a href="https://www.bing.com/ck/a?!&amp;p=x&amp;u=a1' + real +
+                '&amp;ntb=1">Visible</a><p class="b_lineclamp2">Get Visible+ for $30/mo &amp; save.</p></li>')
+        self.assertEqual(r.bing_parse(page), [("https://www.visible.com/plans", "Get Visible+ for $30/mo & save.")])
+
     def test_plans_scope(self):
         entry = {"plans": ["6-month"]}
         self.assertTrue(r.plans_still_apply(entry, "Any 6 month plan for $10/month"))

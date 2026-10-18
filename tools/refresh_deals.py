@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Refresh deals-data/deals.json using only free, keyless sources (stdlib only).
 
-For each carrier already in the file: read the carrier's own deals page and a DuckDuckGo HTML search, keep the best
+For each carrier already in the file: read the carrier's own deals page and a DuckDuckGo HTML search (Bing if DuckDuckGo fails), keep the best
 deal-sounding sentence that came from the carrier's OWN domain, and store it. Any failure keeps the old entry, so a
 blocked request can never wipe the deals. "phones" is never guessed. A "plans" scope is kept only while the new text still
 names one of its plans. freePhone is re-derived when the deal text changes; "updated" on each entry is the date its text
 last changed. A new text must score clearly higher than the stored one, so candidates can't flip-flop.
 Usage: python tools/refresh_deals.py [path/to/deals.json]
 """
+import base64
 import html
 import json
 import re
@@ -206,6 +207,46 @@ def update_extra(entry, kind, best):
     return True
 
 
+def bing_url(href):
+    """Bing wraps results in bing.com/ck/a?...&u=a1<base64 of the real URL>; unwrap it."""
+    m = re.search(r"[?&]u=a1([A-Za-z0-9_-]+)", href)
+    if not m:
+        return href
+    b = m.group(1)
+    try:
+        return base64.urlsafe_b64decode(b + "=" * (-len(b) % 4)).decode("utf-8")
+    except Exception:
+        return href
+
+
+def bing_parse(page):
+    out = []
+    for item in re.findall(r'<li class="b_algo".*?</li>', page, re.S):
+        link = re.search(r'<a[^>]+href="(https?://[^"]+)"', item)
+        snippet = re.search(r"<p[^>]*>(.*?)</p>", item, re.S)
+        if link and snippet:
+            out.append((bing_url(html.unescape(link.group(1))), clean(snippet.group(1))))
+    return out
+
+
+def bing_results(query):
+    """(url, snippet) pairs from Bing's HTML page - the fallback when DuckDuckGo blocks us."""
+    return bing_parse(fetch("https://www.bing.com/search?q=" + urllib.parse.quote_plus(query)))
+
+
+def search(query):
+    """Results from the first search engine that answers with something (DuckDuckGo, then Bing)."""
+    for name, engine in (("DuckDuckGo", ddg_results), ("Bing", bing_results)):
+        try:
+            found = engine(query)
+            if found:
+                return found
+            print(f"  {name} returned no results")
+        except Exception as e:
+            print(f"  {name} failed: {e}")
+    return []
+
+
 def gather(entry):
     """Every cleaned (text, url) sentence from the carrier's page and its own-domain search results."""
     base = entry["url"]
@@ -219,13 +260,10 @@ def gather(entry):
         if "multiple lines" in query and best_lines(out):
             continue  # the page already gave a multi-line price; spare DuckDuckGo a request
         time.sleep(2)
-        try:
-            for url, snippet in ddg_results(query):
-                snippet = tidy(snippet)
-                if url.startswith("https://") and same_site(url, base) and 25 <= len(snippet) <= MAX_LEN:
-                    out.append((snippet, url))
-        except Exception as e:
-            print(f"  search failed: {e}")
+        for url, snippet in search(query):
+            snippet = tidy(snippet)
+            if url.startswith("https://") and same_site(url, base) and 25 <= len(snippet) <= MAX_LEN:
+                out.append((snippet, url))
     return out
 
 
