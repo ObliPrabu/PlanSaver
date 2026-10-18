@@ -29,6 +29,10 @@ data class Plan(
     val extraNotes: List<String> = emptyList(),
     /** Months paid up front (Mint sells 3/6/12-month blocks, cheaper per month the longer). 1 = month to month. */
     val termMonths: Int = 1,
+    /** One-time activation fee per line the robot found for the carrier (unverified); null = not found, 0 = none. */
+    val activationFee: Double? = null,
+    /** Best-case ("up to $N") trade-in credit the carrier's own text mentions; null = not found. */
+    val tradeInMax: Double? = null,
 ) {
     fun perLine(lines: Int): Double {
         pricePerLine[lines]?.let { return it }
@@ -146,9 +150,10 @@ fun topPicks(list: List<Result>): List<TopPick> {
 }
 
 /** What the user pays over [months]: the plan, plus the phone paid in full minus any trade-in value (never below 0). */
-data class TotalCost(val months: Int, val plan: Double, val phone: Double, val total: Double)
+data class TotalCost(val months: Int, val plan: Double, val phone: Double, val activation: Double, val total: Double)
 
-fun totalCost(monthly: Double, months: Int, phonePrice: Double, tradeIn: Double): TotalCost {
+/** [tradeIn] is the credit taken off the phone; [activation] the one-time fee for all lines. */
+fun totalCost(monthly: Double, months: Int, phonePrice: Double, tradeIn: Double, activation: Double = 0.0): TotalCost {
     val phone = if (phonePrice > 0) (phonePrice - tradeIn).coerceAtLeast(0.0) else 0.0
-    return TotalCost(months, monthly * months, phone, monthly * months + phone)
+    return TotalCost(months, monthly * months, phone, activation, monthly * months + phone + activation)
 }

@@ -28,6 +28,10 @@ struct Plan {
     var extraNotes: [String] = []
     /// Months paid up front (Mint sells 3/6/12-month blocks). 1 = month to month.
     var termMonths: Int = 1
+    /// One-time activation fee per line the robot found for the carrier (unverified); nil = not found, 0 = none.
+    var activationFee: Double? = nil
+    /// Best-case ("up to $N") trade-in credit the carrier's own text mentions; nil = not found.
+    var tradeInMax: Double? = nil
 
     func perLine(_ lines: Int) -> Double {
         if let exact = pricePerLine[lines] { return exact }
@@ -177,10 +181,13 @@ struct TotalCost {
     let months: Int
     let plan: Double
     let phone: Double
+    let activation: Double
     let total: Double
 }
 
-func totalCost(monthly: Double, months: Int, phonePrice: Double, tradeIn: Double) -> TotalCost {
+/// `tradeIn` is the credit taken off the phone; `activation` the one-time fee for all lines.
+func totalCost(monthly: Double, months: Int, phonePrice: Double, tradeIn: Double, activation: Double = 0) -> TotalCost {
     let phone = phonePrice > 0 ? max(phonePrice - tradeIn, 0) : 0
-    return TotalCost(months: months, plan: monthly * Double(months), phone: phone, total: monthly * Double(months) + phone)
+    return TotalCost(months: months, plan: monthly * Double(months), phone: phone, activation: activation,
+                     total: monthly * Double(months) + phone + activation)
 }

@@ -61,3 +61,24 @@ class ScraperTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SwitchingCostTests(unittest.TestCase):
+    def test_activation_fee_amount(self):
+        self.assertEqual(35.0, r.activation_amount("A one-time activation fee of $35 applies per line."))
+        self.assertEqual(0.0, r.activation_amount("There is no activation fee when you activate online."))
+        self.assertIsNone(r.activation_amount("The activation fee is $35 in store or $10 online."))
+
+    def test_trade_in_best_case(self):
+        self.assertEqual(800.0, r.trade_in_max("Save up to $800 per line when you trade in your old phone."))
+        self.assertIsNone(r.trade_in_max("Trade in any phone and get credit."))
+
+    def test_extras_pick_up_switching_costs(self):
+        self.assertGreater(r.extra_score("activation", "A one-time activation fee of $35 applies per line."), 0)
+        self.assertGreater(r.extra_score("tradein", "Get up to $800 off when you trade in your old phone."), 0)
+        self.assertEqual(0, r.extra_score("tradein", "Learn more about how trade-in works for your phone."))
+
+    def test_update_extra_stores_the_number(self):
+        entry = {}
+        r.update_extra(entry, "activation", (3, "A one-time activation fee of $35 applies per line.", "u"))
+        self.assertEqual(35.0, entry["activationFee"])

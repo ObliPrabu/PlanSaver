@@ -44,8 +44,9 @@ struct ContentView: View {
     @State private var quizWifi = true
     @State private var quizHotspot = false
     @State private var phonePrice = ""
+    @State private var wantPhone = false
     @State private var tradeIn = false
-    @State private var tradeInValue = ""
+    @State private var oldPhone = ""
     @State private var totalOpen: Set<UUID> = []
     @State private var loading = false
     @State private var results: [SearchResult]? = nil
@@ -124,10 +125,17 @@ struct ContentView: View {
                         if quizOpen { quiz }
                     }
 
-                    Text("Buying a phone? (optional)").font(.headline)
-                    moneyField("Price of the phone you want", text: $phonePrice)
-                    Toggle("I'll trade in my old phone", isOn: $tradeIn)
-                    if tradeIn { moneyField("What your old phone is worth", text: $tradeInValue) }
+                    Toggle("I want a new phone", isOn: $wantPhone)
+                    if wantPhone {
+                        moneyField("Price of the phone you want", text: $phonePrice)
+                        // A trade-in credit only comes with buying a new phone, so it is only offered here.
+                        Toggle("I'll trade in my old phone", isOn: $tradeIn)
+                        if tradeIn {
+                            TextField("Model of your old phone", text: $oldPhone)
+                                .padding(8)
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
+                        }
+                    }
 
                     Text("Your current phone bill (all lines, per month)").font(.headline)
                     HStack {
@@ -345,15 +353,36 @@ struct ContentView: View {
                 if totalOpen.contains(r.id) { totalOpen.remove(r.id) } else { totalOpen.insert(r.id) }
             }
             if totalOpen.contains(r.id) {
-                let price = Double(phonePrice) ?? 0
-                let trade = tradeIn ? (Double(tradeInValue) ?? 0) : 0
+                let price = wantPhone ? (Double(phonePrice) ?? 0) : 0
+                let tradingIn = wantPhone && tradeIn
+                let credit = (tradingIn && price > 0) ? (r.plan.tradeInMax ?? 0) : 0
+                let activation = (r.plan.activationFee ?? 0) * Double(lines)
+                let old = oldPhone.trimmingCharacters(in: .whitespaces)
                 ForEach([12, 24, 36], id: \.self) { m in
-                    let c = totalCost(monthly: r.monthly, months: m, phonePrice: price, tradeIn: trade)
+                    let c = totalCost(monthly: r.monthly, months: m, phonePrice: price, tradeIn: credit, activation: activation)
                     Text(String(format: "%d months: plan $%.0f", m, c.plan) + (price > 0 ? String(format: " + phone $%.0f", c.phone) : "")
+                         + (activation > 0 ? String(format: " + activation $%.0f", activation) : "")
                          + String(format: " = $%.0f", c.total)).font(.footnote)
                 }
-                Text(price > 0 ? "The phone is counted at full price" + (trade > 0 ? " minus your trade-in" : "") + ", paid once."
-                     : "Enter a phone price on the search screen to include a phone.").font(.caption2)
+                if let fee = r.plan.activationFee {
+                    Text(String(format: "Activation fee found online: $%.0f per line, so $%.0f for %d line%@ (unverified).", fee, activation, lines, lines == 1 ? "" : "s"))
+                        .font(.caption2)
+                } else {
+                    Text("No activation fee found for \(r.plan.carrier) yet, so none is counted - ask the carrier.").font(.caption2)
+                }
+                if price > 0 {
+                    Text("The phone is counted at full price, paid once" + (credit > 0 ? " minus the trade-in credit" : "") + ".").font(.caption2)
+                } else {
+                    Text("Tick \"I want a new phone\" and enter its price on the search screen to include a phone.").font(.caption2)
+                }
+                if price > 0 && tradingIn {
+                    if let max = r.plan.tradeInMax {
+                        Text(String(format: "Trade-in%@: this carrier's own text says up to $%.0f. That is a best case; what your phone gets depends on its model and condition, so confirm with the carrier.",
+                                    old.isEmpty ? "" : " of \(old)", max)).font(.caption2)
+                    } else {
+                        Text("No trade-in amount found for \(r.plan.carrier), so none is subtracted - ask the carrier what your \(old.isEmpty ? "old phone" : old) gets.").font(.caption2)
+                    }
+                }
                 if price > 0 && r.plan.freePhoneOffer {
                     Text("This carrier advertises a phone deal; its bill credits could lower the phone part, but only if you stay 24-36 months, and the amount isn't checked here.")
                         .font(.caption2)

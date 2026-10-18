@@ -75,9 +75,12 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
                 ?.let { r.copy(plan = r.plan.copy(linesNote = it.linesNote, linesDate = it.linesUpdated)) } ?: r
             val noted = carrierDeals.firstOrNull { it.extras.isNotEmpty() }
                 ?.let { withLines.copy(plan = withLines.plan.copy(extraNotes = it.extras)) } ?: withLines
-            if (d == null) noted
-            else noted.copy(
-                plan = noted.plan.copy(deal = d.deal, freePhoneOffer = d.freePhone, dealUrl = d.url, dealDate = d.updated),
+            val withFees = noted.copy(plan = noted.plan.copy(
+                activationFee = carrierDeals.firstNotNullOfOrNull { it.activationFee },
+                tradeInMax = carrierDeals.firstNotNullOfOrNull { it.tradeInMax }))
+            if (d == null) withFees
+            else withFees.copy(
+                plan = withFees.plan.copy(deal = d.deal, freePhoneOffer = d.freePhone, dealUrl = d.url, dealDate = d.updated),
                 liveDeal = true,
             )
         }
@@ -99,7 +102,7 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
     /** [plans]: plan-name fragments this deal is for (e.g. "Experience", "6-month"); empty = every plan of the carrier. */
     private class Deal(val carrier: String, val deal: String, val freePhone: Boolean, val url: String,
         val plans: List<String>, val updated: String, val linesNote: String, val linesUpdated: String,
-        val extras: List<String>) {
+        val extras: List<String>, val activationFee: Double?, val tradeInMax: Double?) {
         fun coversPlan(planName: String) = plans.isEmpty() || plans.any { planName.contains(it, ignoreCase = true) }
     }
 
@@ -139,7 +142,9 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
                     val scope = o.optJSONArray("plans")
                     Deal(o.getString("carrier"), o.getString("deal"), o.optBoolean("freePhone"), o.optString("url"),
                         if (scope == null) emptyList() else (0 until scope.length()).map { i -> scope.getString(i) },
-                        o.optString("updated"), o.optString("lines"), o.optString("linesUpdated"), extraNotes(o.optJSONObject("extras")))
+                        o.optString("updated"), o.optString("lines"), o.optString("linesUpdated"), extraNotes(o.optJSONObject("extras")),
+                        if (o.has("activationFee")) o.getDouble("activationFee") else null,
+                        if (o.has("tradeInMax")) o.getDouble("tradeInMax") else null)
                 }
             }
         } catch (e: Exception) {

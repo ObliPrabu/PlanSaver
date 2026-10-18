@@ -12,6 +12,7 @@ class TotalCostTest {
         assertEquals(720.0, c.plan, 0.001)
         assertEquals(600.0, c.phone, 0.001)
         assertEquals(1320.0, c.total, 0.001)
+        assertEquals(1390.0, totalCost(30.0, 24, 800.0, 200.0, 70.0).total, 0.001)
     }
 
     @Test fun tradeInNeverMakesThePhoneNegativeAndNeedsAPhonePrice() {

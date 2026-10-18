@@ -105,6 +105,11 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   trade-in checkbox/value, typed by the user (no phone prices are stored - none researched); each card has "How much will I
   pay in total?" showing 12/24/36 months of plan + phone (full price minus trade-in) via `totalCost`. Carrier bill credits
   are NOT modeled (card says so). Logic in Plan.kt/Plan.swift, tested in `TotalCostTest.kt`.
+- Switching costs (2026-10-18, UNCOMMITTED): the form has "I want a new phone" (price, "I'll trade in", old phone MODEL as text -
+  no value typed; a trade-in only exists with a new phone). The robot adds `activation` and `tradein` extras and parses numbers
+  into `activationFee` (per line; 0 = none) and `tradeInMax` ("up to $N", a best case) on a carrier's deals.json entry. The
+  total card adds activation x lines and subtracts `tradeInMax` as the credit; if the robot found nothing it says so and counts
+  nothing. Robot only trusts the carrier's own domain, so findings may be sparse (not found when tested on 2026-10-18).
 - Known issues not fixed: Mint's site returns 403 to scripts (bot protection - not bypassed), so its deal only updates from
   search snippets; multi-line prices are still mostly 1-line x lines (needs research per plan); prices are unverified;
   extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; layout at the larger text sizes and Android

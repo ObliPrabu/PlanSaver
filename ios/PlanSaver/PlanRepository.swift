@@ -15,6 +15,8 @@ private struct Deal {
     let linesNote: String
     let linesUpdated: String
     let extras: [String]
+    let activationFee: Double?
+    let tradeInMax: Double?
 
     func coversPlan(_ name: String) -> Bool {
         plans.isEmpty || plans.contains { name.range(of: $0, options: .caseInsensitive) != nil }
@@ -83,6 +85,8 @@ enum PlanRepository {
                     out.plan.linesDate = n.linesUpdated
                 }
                 if let e = carrierDeals.first(where: { !$0.extras.isEmpty }) { out.plan.extraNotes = e.extras }
+                out.plan.activationFee = carrierDeals.compactMap { $0.activationFee }.first
+                out.plan.tradeInMax = carrierDeals.compactMap { $0.tradeInMax }.first
                 guard let d = carrierDeals.first(where: { $0.coversPlan(r.plan.name) }) else { return out }
                 out.plan.deal = d.deal
                 out.plan.freePhoneOffer = d.freePhone
@@ -158,7 +162,8 @@ enum PlanRepository {
                             url: o["url"] as? String ?? "", plans: o["plans"] as? [String] ?? [],
                             updated: o["updated"] as? String ?? "",
                             linesNote: o["lines"] as? String ?? "", linesUpdated: o["linesUpdated"] as? String ?? "",
-                            extras: extraNotes(o["extras"] as? [String: Any]))
+                            extras: extraNotes(o["extras"] as? [String: Any]),
+                            activationFee: o["activationFee"] as? Double, tradeInMax: o["tradeInMax"] as? Double)
             }
             completion(deals)
         }.resume()

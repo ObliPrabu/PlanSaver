@@ -61,8 +61,9 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
     var quizWifi by rememberSaveable { mutableStateOf(true) }
     var quizHotspot by rememberSaveable { mutableStateOf(false) }
     var phonePrice by rememberSaveable { mutableStateOf("") }
+    var wantPhone by rememberSaveable { mutableStateOf(false) }
     var tradeIn by rememberSaveable { mutableStateOf(false) }
-    var tradeInValue by rememberSaveable { mutableStateOf("") }
+    var oldPhone by rememberSaveable { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var results by remember { mutableStateOf<List<Result>?>(null) }
     var sortByData by rememberSaveable { mutableStateOf(false) }
@@ -166,8 +167,11 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Text("Buying a phone? (optional)", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
-                OutlinedTextField(
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                    Checkbox(checked = wantPhone, onCheckedChange = { wantPhone = it })
+                    Text("I want a new phone")
+                }
+                if (wantPhone) OutlinedTextField(
                     value = phonePrice,
                     onValueChange = { v -> phonePrice = v.filter { it.isDigit() || it == '.' }.take(7) },
                     label = { Text("Price of the phone you want") },
@@ -176,16 +180,15 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // A trade-in credit only comes with buying a new phone, so it is only offered here.
+                if (wantPhone) Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = tradeIn, onCheckedChange = { tradeIn = it })
                     Text("I'll trade in my old phone")
                 }
-                if (tradeIn) OutlinedTextField(
-                    value = tradeInValue,
-                    onValueChange = { v -> tradeInValue = v.filter { it.isDigit() || it == '.' }.take(7) },
-                    label = { Text("What your old phone is worth") },
-                    prefix = { Text("$") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                if (wantPhone && tradeIn) OutlinedTextField(
+                    value = oldPhone,
+                    onValueChange = { oldPhone = it.take(40) },
+                    label = { Text("Model of your old phone") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -294,8 +297,8 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                 if (results != null && list.isNotEmpty()) list.sortedWith(compareBy<Result> { it.otherPhone }
                     .thenBy { if (sortByData) -(it.plan.dataGb ?: 1_000_000) else 0 }.thenBy { it.monthly })
                     .forEach {
-                        ResultCard(it, current.toDoubleOrNull() != null, lineCount, phonePrice.toDoubleOrNull() ?: 0.0,
-                            if (tradeIn) tradeInValue.toDoubleOrNull() ?: 0.0 else 0.0)
+                        ResultCard(it, current.toDoubleOrNull() != null, lineCount,
+                            if (wantPhone) phonePrice.toDoubleOrNull() ?: 0.0 else 0.0, wantPhone && tradeIn, oldPhone.trim())
                     }
                 Text("Prices researched Oct 2026 from third-party roundups, not checked with the carriers, and may have changed - confirm on the carrier's site. " +
                     "PlanSaver may earn a commission if you sign up through a link.",
@@ -329,7 +332,7 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
 }
 
 @Composable
-private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, phonePrice: Double, tradeIn: Double) {
+private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, phonePrice: Double, tradeIn: Boolean, oldPhone: String) {
     val ctx = LocalContext.current
     var showTotal by rememberSaveable { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
@@ -378,14 +381,26 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, phonePrice: 
                 Text(String.format(Locale.US, "Save about $%.0f a year", r.yearlySavings), color = MaterialTheme.colorScheme.primary)
             TextButton(onClick = { showTotal = !showTotal }) { Text(if (showTotal) "Hide my total cost" else "How much will I pay in total?") }
             if (showTotal) {
+                val credit = if (tradeIn && phonePrice > 0) r.plan.tradeInMax ?: 0.0 else 0.0
+                val activation = (r.plan.activationFee ?: 0.0) * lines
                 listOf(12, 24, 36).forEach { m ->
-                    val c = totalCost(r.monthly, m, phonePrice, tradeIn)
+                    val c = totalCost(r.monthly, m, phonePrice, credit, activation)
                     Text(String.format(Locale.US, "%d months: plan $%.0f", m, c.plan) +
                         (if (phonePrice > 0) String.format(Locale.US, " + phone $%.0f", c.phone) else "") +
+                        (if (activation > 0) String.format(Locale.US, " + activation $%.0f", activation) else "") +
                         String.format(Locale.US, " = $%.0f", c.total), style = MaterialTheme.typography.bodySmall)
                 }
-                Text(if (phonePrice > 0) "The phone is counted at full price" + (if (tradeIn > 0) " minus your trade-in" else "") + ", paid once."
-                    else "Enter a phone price on the search screen to include a phone.", style = MaterialTheme.typography.labelSmall)
+                Text(r.plan.activationFee?.let {
+                    String.format(Locale.US, "Activation fee found online: $%.0f per line, so $%.0f for %d line%s (unverified).", it, activation, lines, if (lines == 1) "" else "s")
+                } ?: "No activation fee found for ${r.plan.carrier} yet, so none is counted - ask the carrier.", style = MaterialTheme.typography.labelSmall)
+                if (phonePrice > 0) Text("The phone is counted at full price, paid once" + (if (credit > 0) " minus the trade-in credit" else "") + ".",
+                    style = MaterialTheme.typography.labelSmall)
+                else Text("Tick \"I want a new phone\" and enter its price on the search screen to include a phone.", style = MaterialTheme.typography.labelSmall)
+                if (phonePrice > 0 && tradeIn) Text(r.plan.tradeInMax?.let {
+                    String.format(Locale.US, "Trade-in%s: this carrier's own text says up to $%.0f. That is a best case; what your phone gets depends on its model and condition, so confirm with the carrier.",
+                        if (oldPhone.isNotEmpty()) " of $oldPhone" else "", it)
+                } ?: "No trade-in amount found for ${r.plan.carrier}, so none is subtracted - ask the carrier what your ${oldPhone.ifEmpty { "old phone" }} gets.",
+                    style = MaterialTheme.typography.labelSmall)
                 if (phonePrice > 0 && r.plan.freePhoneOffer) Text("This carrier advertises a phone deal; its bill credits could lower the phone part, " +
                     "but only if you stay 24-36 months, and the amount isn't checked here.", style = MaterialTheme.typography.labelSmall)
                 Text("Not included: taxes, fees, activation, accessories.", style = MaterialTheme.typography.labelSmall)

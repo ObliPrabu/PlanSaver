@@ -166,6 +166,11 @@ EXTRAS = {
               re.compile(r"\b(included|on us|free|with|bundle\w*)\b", re.I), False),
     "slowdown": (re.compile(r"\b(deprioriti[sz]\w*|throttl\w*|slowed|reduced speeds?)\b|\bafter\s+\d+\s*gb\b", re.I),
                  "Slowdown", re.compile(r"\d", re.I), False),
+    # Costs of switching: the one-time activation fee, and what the carrier says it gives for a trade-in.
+    "activation": (re.compile(r"\b(activation|connection)\s+(fee|charge)", re.I), "Activation fee",
+                   re.compile(r"\$|\bno\b|\bfree\b|\bwaive\w*|\bzero\b", re.I), False),
+    "tradein": (re.compile(r"\btrade-?\s?in\b", re.I), "Trade-in",
+                re.compile(r"\$\s?\d", re.I), True),
 }
 # Legal fine print and marketing copy that mention the right words without saying anything useful.
 EXTRA_REJECT = ("trademark", "registered", "aren't included", "isn't included", "not included", "defaults to",
@@ -196,6 +201,32 @@ def best_extra(kind, found):
     return max(candidates, key=lambda c: (c[0], -len(c[1]))) if candidates else None
 
 
+DOLLARS = re.compile(r"\$\s?(\d[\d,]*(?:\.\d\d)?)")
+
+
+def money(s):
+    return float(s.replace(",", ""))
+
+
+def activation_amount(text):
+    """The activation fee in dollars when the sentence names exactly one amount, 0 for 'no/free/waived' with no amount, else None."""
+    amounts = {money(m) for m in DOLLARS.findall(text)}
+    if len(amounts) == 1:
+        return amounts.pop()
+    if not amounts and re.search(r"\bno\b|\bfree\b|\bwaive\w*|\bzero\b", text, re.I):
+        return 0.0
+    return None
+
+
+def trade_in_max(text):
+    """The 'up to $N' trade-in figure, if the sentence has one (a best case, never a promise)."""
+    amounts = [money(m) for m in re.findall(r"up to \$\s?(\d[\d,]*(?:\.\d\d)?)", text, re.I)]
+    return max(amounts) if amounts else None
+
+
+NUMBER_FIELDS = {"activation": ("activationFee", activation_amount), "tradein": ("tradeInMax", trade_in_max)}
+
+
 def update_extra(entry, kind, best):
     new_score, text, _ = best
     notes = entry.setdefault("extras", {})
@@ -204,6 +235,13 @@ def update_extra(entry, kind, best):
         return False
     print(f"  new {kind} note: {text}")
     notes[kind] = {"text": text, "updated": date.today().isoformat()}
+    if kind in NUMBER_FIELDS:
+        field, parse = NUMBER_FIELDS[kind]
+        value = parse(text)
+        if value is None:
+            entry.pop(field, None)
+        else:
+            entry[field] = value
     return True
 
 
@@ -256,7 +294,8 @@ def gather(entry):
     except Exception as e:
         print(f"  page failed: {e}")
     for query in (entry["carrier"] + " phone deals", entry["carrier"] + " plans price per line multiple lines",
-                  entry["carrier"] + " unlimited plan hotspot data international roaming perks"):
+                  entry["carrier"] + " unlimited plan hotspot data international roaming perks",
+                  "site:" + domain(base) + " activation fee"):
         if "multiple lines" in query and best_lines(out):
             continue  # the page already gave a multi-line price; spare DuckDuckGo a request
         time.sleep(2)
