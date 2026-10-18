@@ -28,14 +28,21 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { PlanSaverTheme { Surface(Modifier.fillMaxSize()) { PlanSaverApp(RemotePlanRepository(BuildConfig.DEALS_URL)) } } }
+        setContent {
+            var themeMode by rememberSaveable { mutableStateOf(ThemeMode.SYSTEM) }
+            PlanSaverTheme(themeMode) {
+                Surface(Modifier.fillMaxSize()) {
+                    PlanSaverApp(RemotePlanRepository(BuildConfig.DEALS_URL), themeMode) { themeMode = it }
+                }
+            }
+        }
     }
 }
 
 private val dataChoices = listOf("1-5 GB" to 5, "10 GB" to 10, "25 GB" to 25, "Unlimited" to null)
 
 @Composable
-fun PlanSaverApp(repo: PlanRepository) {
+fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: (ThemeMode) -> Unit) {
     var lines by rememberSaveable { mutableIntStateOf(1) }
     var dataIdx by rememberSaveable { mutableIntStateOf(3) }
     var customLines by rememberSaveable { mutableStateOf(false) }
@@ -88,6 +95,17 @@ fun PlanSaverApp(repo: PlanRepository) {
                 modifier = Modifier.padding(top = 16.dp))
             Text("Find the cheapest US phone plan for what you actually use.",
                 style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
+
+            // Visible override, not just the system setting - some OEM skins
+            // don't forward their own dark-mode toggle to the app (see
+            // Theme.kt's ThemeMode doc comment).
+            Row(modifier = Modifier.padding(bottom = 12.dp).horizontalScroll(rememberScrollState()),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Theme:", fontWeight = FontWeight.SemiBold)
+                listOf(ThemeMode.SYSTEM to "Auto", ThemeMode.LIGHT to "Light", ThemeMode.DARK to "Dark").forEach { (mode, label) ->
+                    FilterChip(selected = themeMode == mode, onClick = { onThemeModeChange(mode) }, label = { Text(label) })
+                }
+            }
 
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                 Text("How many lines?", fontWeight = FontWeight.SemiBold)
@@ -252,7 +270,7 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int) {
             r.plan.deal?.let {
                 Text((if (r.liveDeal) "Live " else "") + (if (r.otherPhone) "better phone deal: " else if (r.plan.freePhoneOffer) "phone deal: " else "deal: ") + it +
                     (if (r.plan.dealDate.isNotEmpty()) " (as of ${r.plan.dealDate})" else ""),
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.dealColor)
                 if (r.plan.freePhoneOffer) Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.",
                     style = MaterialTheme.typography.labelSmall)
             }
@@ -260,7 +278,7 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int) {
             if (lines > 1 && r.plan.linesNote.isNotEmpty())
                 Text("Multi-line price found online" + (if (r.plan.linesDate.isNotEmpty()) " (as of ${r.plan.linesDate})" else "") +
                     ", unverified: " + r.plan.linesNote, style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.tertiary)
+                    color = MaterialTheme.dealColor)
             if (r.plan.extraNotes.isNotEmpty()) {
                 Text("Found online for ${r.plan.carrier} (unverified; may differ by plan):", style = MaterialTheme.typography.labelSmall)
                 r.plan.extraNotes.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
