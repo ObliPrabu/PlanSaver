@@ -27,7 +27,10 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 ## Working rules (from the owner)
 
 - NEVER use simulators/emulators. iOS is only compiled for the generic device; Android is installed on the real vivo.
-- Do not install on the iPhone unless asked (the owner often uses it); do not commit/push unless asked.
+- NEVER install/download the app on Arjun Prabu's iPhone (`A9E704CA-91F2-5E2D-A171-093F439E4808`), under any
+  circumstances, even if asked generically to install "on my devices" - the only iPhone target is Mithran Prabu's
+  (`C13C4BB8-65E2-5CA7-BB9F-425747B421EE`).
+- Do not install on Mithran Prabu's iPhone unless asked (the owner often uses it); do not commit/push unless asked.
 - Keep Android and iOS in sync: every logic/data change goes into both. The 39 plans in `PlanData.kt` were converted to
   `ios/PlanSaver/PlanData.swift` by a script - edit both by hand or re-convert.
 - Version is kept equal on both: Android `versionCode`/`versionName` in `app/build.gradle.kts`, iOS
