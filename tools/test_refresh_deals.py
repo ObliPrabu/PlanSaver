@@ -40,6 +40,7 @@ class ScraperTests(unittest.TestCase):
         self.assertEqual(r.extra_score("slowdown", "Taxes & fees, speed upgrades and network management practices aren't included."), 0)
         self.assertEqual(r.extra_score("perks", "Streaming video defaults to 480p; customers can change it in account settings."), 0)
         self.assertEqual(r.extra_score("international", "^ Unlimited 5G built for real life See how we keep up with daily calls to Mexico."), 0)
+        self.assertEqual(r.extra_score("international", "fcc.gov/consumer M0026739722VISPLUS00020255 Visible+ Pro plan facts Premium unlimited data, calling and texting to Canada and Mexico."), 0)
         # ...and the good lines it found:
         self.assertGreater(r.extra_score("hotspot", "footnote 2 Mobile hotspot with unlimited data at speeds up to 15 Mbps."), 0)
         self.assertGreater(r.extra_score("international", "footnote 3 Unlimited calling and messaging to Mexico and Canada when you are in the US."), 0)

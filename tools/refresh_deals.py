@@ -168,7 +168,8 @@ EXTRAS = {
 }
 # Legal fine print and marketing copy that mention the right words without saying anything useful.
 EXTRA_REJECT = ("trademark", "registered", "aren't included", "isn't included", "not included", "defaults to",
-                "see how", "built for", "terms and conditions", "all rights reserved")
+                "see how", "built for", "terms and conditions", "all rights reserved", "fcc.gov", "plan facts")
+ID_TOKEN = re.compile(r"\b(?=[A-Za-z0-9]*\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{10,}\b")  # e.g. broadband-label IDs
 FOOTNOTE = re.compile(r"^(?:\^|footnote\s*\d+)\s*", re.I)
 
 
@@ -177,7 +178,8 @@ def extra_score(kind, s):
     pattern, _, also, needs_number = EXTRAS[kind]
     s = FOOTNOTE.sub("", s)
     low = s.lower()
-    if is_noise(low) or any(g in low for g in GENERIC) or any(x in low for x in EXTRA_REJECT) or not pattern.search(s):
+    if is_noise(low) or any(g in low for g in GENERIC) or any(x in low for x in EXTRA_REJECT) or ID_TOKEN.search(s) \
+            or not pattern.search(s):
         return 0
     if also and not also.search(s):
         return 0
