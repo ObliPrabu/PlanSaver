@@ -50,6 +50,9 @@ private val dataChoices = listOf("1-5 GB" to 5, "10 GB" to 10, "25 GB" to 25, "U
 fun PlanSaverApp(repo: PlanRepository) {
     var lines by rememberSaveable { mutableIntStateOf(1) }
     var dataIdx by rememberSaveable { mutableIntStateOf(3) }
+    var customLines by rememberSaveable { mutableStateOf(false) }
+    var lineNeedsCsv by rememberSaveable { mutableStateOf("3,3,3,3,3,3") } // data choice index of each line
+    val lineNeeds = lineNeedsCsv.split(",").map { it.toIntOrNull()?.coerceIn(dataChoices.indices) ?: 3 }
     var current by rememberSaveable { mutableStateOf("") }
     var postpaid by rememberSaveable { mutableStateOf(true) }
     var freePhone by rememberSaveable { mutableStateOf(false) }
@@ -73,7 +76,8 @@ fun PlanSaverApp(repo: PlanRepository) {
         scope.launch {
             val found = try {
                 repo.search(SearchRequest(lines, dataChoices[dataIdx].second,
-                    current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone, otherPhones))
+                    current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone, otherPhones,
+                    lineDataNeeds = if (customLines && lines > 1) (0 until lines).map { dataChoices[lineNeeds[it]].second } else null))
             } catch (e: Exception) {
                 emptyList()
             }
@@ -105,10 +109,27 @@ fun PlanSaverApp(repo: PlanRepository) {
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                Text("Data per line", fontWeight = FontWeight.SemiBold)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    dataChoices.forEachIndexed { i, (label, _) ->
-                        FilterChip(selected = dataIdx == i, onClick = { dataIdx = i }, label = { Text(label) })
+                if (lines > 1) Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = customLines, onCheckedChange = { customLines = it })
+                    Text("Different data for each line")
+                }
+                if (customLines && lines > 1) {
+                    (0 until lines).forEach { k ->
+                        Text("Line ${k + 1}", fontWeight = FontWeight.SemiBold)
+                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            dataChoices.forEachIndexed { i, (label, _) ->
+                                FilterChip(selected = lineNeeds[k] == i, onClick = {
+                                    lineNeedsCsv = lineNeeds.toMutableList().also { it[k] = i }.joinToString(",")
+                                }, label = { Text(label) })
+                            }
+                        }
+                    }
+                } else {
+                    Text("Data per line", fontWeight = FontWeight.SemiBold)
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        dataChoices.forEachIndexed { i, (label, _) ->
+                            FilterChip(selected = dataIdx == i, onClick = { dataIdx = i }, label = { Text(label) })
+                        }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
@@ -227,10 +248,19 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int) {
     val ctx = LocalContext.current
     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
         Column(Modifier.padding(12.dp)) {
+            if (r.assignments != null) {
+                Text("${r.plan.carrier} - a plan for each line", fontWeight = FontWeight.Bold)
+                r.assignments.forEach { a ->
+                    Text(String.format(Locale.US, "Line %d: %s (%s) - $%.2f", a.line, a.plan.name,
+                        a.plan.dataGb?.let { "$it GB" } ?: "Unlimited", a.price), style = MaterialTheme.typography.bodySmall)
+                }
+                Text("Check that ${r.plan.carrier} lets you mix plans on one account.", style = MaterialTheme.typography.labelSmall)
+            } else {
             Text("${r.plan.carrier} - ${r.plan.name}", fontWeight = FontWeight.Bold)
             Text("${r.plan.dataGb?.let { "$it GB" } ?: "Unlimited"} - ${r.plan.network} network - ${if (r.plan.prepaid) "prepaid" else "postpaid"}",
                 style = MaterialTheme.typography.bodySmall)
             if (r.plan.note.isNotEmpty()) Text(r.plan.note, style = MaterialTheme.typography.bodySmall)
+            }
             r.plan.deal?.let {
                 Text((if (r.liveDeal) "Live " else "") + (if (r.otherPhone) "better phone deal: " else if (r.plan.freePhoneOffer) "phone deal: " else "deal: ") + it +
                     (if (r.plan.dealDate.isNotEmpty()) " (as of ${r.plan.dealDate})" else ""),
@@ -251,11 +281,11 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int) {
                 TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }) { Text("$name coverage map") }
             }
             if (r.plan.perks.isNotEmpty()) Text("Perks: " + r.plan.perks.joinToString(", "), style = MaterialTheme.typography.bodySmall)
-            if (lines > 1 && lines !in r.plan.pricePerLine)
+            if (lines > 1 && r.assignments == null && lines !in r.plan.pricePerLine)
                 Text("Estimate: no $lines-line price on file, so this uses the nearest known per-line price.",
                     style = MaterialTheme.typography.bodySmall)
             Text(String.format(Locale.US, "$%.2f / month", r.monthly), style = MaterialTheme.typography.titleMedium)
-            if (r.plan.termMonths > 1)
+            if (r.plan.termMonths > 1 && r.assignments == null)
                 Text(String.format(Locale.US, "Pay $%.0f up front for %d months", r.monthly * r.plan.termMonths, r.plan.termMonths),
                     style = MaterialTheme.typography.bodySmall)
             if (showSavings && r.yearlySavings > 0)

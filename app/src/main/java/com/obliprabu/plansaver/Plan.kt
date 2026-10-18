@@ -50,12 +50,19 @@ data class SearchRequest(
     val phone: String? = null,
     /** Also keep deals that are about a different specific phone (e.g. an iPhone 18 deal when you picked a 16). */
     val includeOtherPhones: Boolean = false,
+    /** Data need of each line (null entry = unlimited). When set, every line gets its own cheapest plan of a carrier. */
+    val lineDataNeeds: List<Int?>? = null,
 )
+
+/** One line's plan in a mixed-plan result. */
+data class LineAssignment(val line: Int, val plan: Plan, val price: Double)
 
 /** [liveDeal] = the deal text came from today's server lookup rather than the bundled snapshot. */
 data class Result(val plan: Plan, val monthly: Double, val yearlySavings: Double, val liveDeal: Boolean = false,
     /** The deal is for a newer phone than the one picked ("check for better phones as well"). */
-    val otherPhone: Boolean = false)
+    val otherPhone: Boolean = false,
+    /** Set when each line got its own plan (customized lines); [plan] is then the carrier's priciest pick. */
+    val assignments: List<LineAssignment>? = null)
 
 private val phoneMention = Regex(
     """(?i)\b(iphone\s?duo|iphone\s?air|iphone\s?\d{1,2}e?(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra\b|\s?plus\b|\s?fe\b|\s?edge\b)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:\s?pro(?:\s?(?:xl|fold))?)?)"""

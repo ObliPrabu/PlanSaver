@@ -24,7 +24,8 @@ private struct Deal {
 enum PlanRepository {
     /// Filter + sort the bundled plans. Mirrors Android's BundledPlanRepository.
     static func bundledSearch(_ request: SearchRequest) -> [SearchResult] {
-        PlanData.plans
+        if let needs = request.lineDataNeeds { return mixedSearch(request, needs: needs) }
+        return PlanData.plans
             .filter { request.includePostpaid || $0.prepaid }
             // A plan only priced for N+ lines (e.g. AT&T Extra at 4 lines) must not show up for fewer lines.
             .filter { request.lines >= ($0.pricePerLine.keys.min() ?? 1) }
@@ -38,6 +39,32 @@ enum PlanRepository {
                 return SearchResult(plan: plan, monthly: m, yearlySavings: (request.currentMonthly - m) * 12)
             }
             .sorted { $0.monthly < $1.monthly }
+    }
+
+    /// Customized lines: for each carrier, every line gets the cheapest of that carrier's plans that covers the line's own
+    /// data need. The carrier's total is the sum (per-line prices still depend on the total line count). Carriers that
+    /// cannot cover every line are left out. Whether a carrier lets you mix plans on one account is not checked.
+    private static func mixedSearch(_ request: SearchRequest, needs: [Int?]) -> [SearchResult] {
+        let eligible = PlanData.plans
+            .filter { request.includePostpaid || $0.prepaid }
+            .filter { request.lines >= ($0.pricePerLine.keys.min() ?? 1) }
+        return Dictionary(grouping: eligible, by: { $0.carrier }).values.compactMap { plans -> SearchResult? in
+            var picks: [LineAssignment] = []
+            for (i, need) in needs.prefix(request.lines).enumerated() {
+                let fits = plans.filter { p in
+                    guard let have = p.dataGb else { return true }
+                    guard let n = need else { return false }
+                    return have >= n
+                }
+                guard let best = fits.min(by: { $0.perLine(request.lines) < $1.perLine(request.lines) }) else { return nil }
+                picks.append(LineAssignment(line: i + 1, plan: best, price: best.perLine(request.lines)))
+            }
+            let total = picks.reduce(0) { $0 + $1.price }
+            guard let primary = picks.max(by: { $0.price < $1.price })?.plan else { return nil }
+            var r = SearchResult(plan: primary, monthly: total, yearlySavings: (request.currentMonthly - total) * 12)
+            r.assignments = picks
+            return r
+        }.sorted { $0.monthly < $1.monthly }
     }
 
     /// Runs on every Search tap: bundled plans merged with the freshly downloaded deals.

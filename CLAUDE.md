@@ -87,6 +87,10 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   computed prices. Not run live yet (DuckDuckGo answered 202 to repeated local requests, so nothing was found in testing).
 - Robot also looks for hotspot / international / perks / slowdown sentences per carrier (`extras` in deals.json, each with its
   own `updated`), shown on every card as "Found online ... (unverified; may differ by plan)". Carrier-level, not per plan.
+- Customized lines (checkbox "Different data for each line", shown for 2+ lines): `SearchRequest.lineDataNeeds`; per carrier
+  every line gets the cheapest plan covering its own data need, total = sum (`mixedSearch` in PlanRepository.kt/.swift),
+  card lists "Line n: plan - price". Whether a carrier allows mixed plans on one account is NOT checked (card says so).
+  Choosing a specific plan by name per line is not built.
 - Known issues not fixed: Mint's site returns 403 to scripts (bot protection - not bypassed), so its deal only updates from
   search snippets; multi-line prices are still mostly 1-line x lines (needs research per plan); prices are unverified;
   extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; layout at the larger text sizes and Android

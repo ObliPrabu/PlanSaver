@@ -18,8 +18,29 @@ interface PlanRepository {
 }
 
 class BundledPlanRepository : PlanRepository {
+    /**
+     * Customized lines: for each carrier, every line gets the cheapest of that carrier's plans that covers the line's own
+     * data need. The carrier's total is the sum (per-line prices still depend on the total line count). Carriers that
+     * cannot cover every line are left out. Whether a carrier lets you mix plans on one account is not checked.
+     */
+    private fun mixedSearch(request: SearchRequest, needs: List<Int?>): List<Result> {
+        val eligible = PlanData.plans
+            .filter { request.includePostpaid || it.prepaid }
+            .filter { request.lines >= it.pricePerLine.keys.min() }
+        return eligible.groupBy { it.carrier }.mapNotNull { (_, plans) ->
+            val picks = needs.take(request.lines).mapIndexed { i, need ->
+                val best = plans.filter { it.dataGb == null || (need != null && it.dataGb >= need) }
+                    .minByOrNull { it.perLine(request.lines) } ?: return@mapNotNull null
+                LineAssignment(i + 1, best, best.perLine(request.lines))
+            }
+            val total = picks.sumOf { it.price }
+            Result(picks.maxBy { it.price }.plan, total, (request.currentMonthly - total) * 12, assignments = picks)
+        }.sortedBy { it.monthly }
+    }
+
     override suspend fun search(request: SearchRequest): List<Result> {
         delay(600) // placeholder for the network round trip
+        request.lineDataNeeds?.let { return mixedSearch(request, it) }
         return PlanData.plans
             .filter { request.includePostpaid || it.prepaid }
             .filter { !request.freePhoneOnly || it.freePhoneOffer }

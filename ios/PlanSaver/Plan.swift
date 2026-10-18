@@ -49,6 +49,16 @@ struct SearchRequest {
     var phone: String? = nil
     /// Also keep deals about a different specific phone (e.g. an iPhone 18 deal when you picked a 16).
     var includeOtherPhones = false
+    /// Data need of each line (nil entry = unlimited). When set, every line gets its own cheapest plan of a carrier.
+    var lineDataNeeds: [Int?]? = nil
+}
+
+/// One line's plan in a mixed-plan result.
+struct LineAssignment: Identifiable {
+    let line: Int
+    let plan: Plan
+    let price: Double
+    var id: Int { line }
 }
 
 struct SearchResult: Identifiable {
@@ -60,6 +70,8 @@ struct SearchResult: Identifiable {
     var liveDeal = false
     /// The deal is for a newer phone than the one picked ("check for better phones as well").
     var otherPhone = false
+    /// Set when each line got its own plan (customized lines); `plan` is then the carrier's priciest pick.
+    var assignments: [LineAssignment]? = nil
 }
 
 private let phoneMention = try! NSRegularExpression(

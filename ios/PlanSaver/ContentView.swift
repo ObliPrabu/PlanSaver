@@ -5,6 +5,8 @@ private let dataChoices: [(label: String, gb: Int?)] = [("1-5 GB", 5), ("10 GB",
 struct ContentView: View {
     @State private var lines = 1
     @State private var dataIdx = 3
+    @State private var customLines = false
+    @State private var lineNeeds = Array(repeating: 3, count: 6) // data choice index of each line
     @State private var current = ""
     @State private var postpaid = true
     @State private var freePhone = false
@@ -44,10 +46,25 @@ struct ContentView: View {
                     Text("How many lines?").font(.headline)
                     Stepper(value: $lines, in: 1...6) { Text("\(lines) \(lines == 1 ? "line" : "lines")") }
 
-                    Text("Data per line").font(.headline)
-                    Picker("Data", selection: $dataIdx) {
-                        ForEach(0..<dataChoices.count, id: \.self) { Text(dataChoices[$0].label).tag($0) }
-                    }.pickerStyle(MenuPickerStyle())
+                    if lines > 1 {
+                        Toggle("Different data for each line", isOn: $customLines)
+                    }
+                    if customLines && lines > 1 {
+                        ForEach(0..<lines, id: \.self) { k in
+                            HStack {
+                                Text("Line \(k + 1)").font(.headline)
+                                Spacer()
+                                Picker("Line \(k + 1) data", selection: $lineNeeds[k]) {
+                                    ForEach(0..<dataChoices.count, id: \.self) { Text(dataChoices[$0].label).tag($0) }
+                                }.pickerStyle(MenuPickerStyle())
+                            }
+                        }
+                    } else {
+                        Text("Data per line").font(.headline)
+                        Picker("Data", selection: $dataIdx) {
+                            ForEach(0..<dataChoices.count, id: \.self) { Text(dataChoices[$0].label).tag($0) }
+                        }.pickerStyle(MenuPickerStyle())
+                    }
 
                     Text("Your current phone bill (all lines, per month)").font(.headline)
                     HStack {
@@ -108,7 +125,8 @@ struct ContentView: View {
         let phone = freePhone ? family.name(variant) : nil
         let request = SearchRequest(lines: lines, dataNeedGb: dataChoices[dataIdx].gb,
                                     currentMonthly: Double(current) ?? 0, includePostpaid: postpaid,
-                                    freePhoneOnly: freePhone, phone: phone, includeOtherPhones: otherPhones)
+                                    freePhoneOnly: freePhone, phone: phone, includeOtherPhones: otherPhones,
+                                    lineDataNeeds: (customLines && lines > 1) ? (0..<lines).map { dataChoices[lineNeeds[$0]].gb } : nil)
         PlanRepository.search(request) { found in
             searchedPhone = phone
             searchedLines = lines
@@ -165,10 +183,19 @@ struct ContentView: View {
     private func card(_ r: SearchResult, lines: Int) -> some View {
         let showSavings = Double(current) != nil
         return VStack(alignment: .leading, spacing: 4) {
-            Text("\(r.plan.carrier) - \(r.plan.name)").bold()
-            Text("\(r.plan.dataGb.map { "\($0) GB" } ?? "Unlimited") - \(r.plan.network) network - \(r.plan.prepaid ? "prepaid" : "postpaid")")
-                .font(.footnote)
-            if !r.plan.note.isEmpty { Text(r.plan.note).font(.footnote) }
+            if let picks = r.assignments {
+                Text("\(r.plan.carrier) - a plan for each line").bold()
+                ForEach(picks) { a in
+                    Text(String(format: "Line %d: %@ (%@) - $%.2f", a.line, a.plan.name,
+                                a.plan.dataGb.map { "\($0) GB" } ?? "Unlimited", a.price)).font(.footnote)
+                }
+                Text("Check that \(r.plan.carrier) lets you mix plans on one account.").font(.caption2)
+            } else {
+                Text("\(r.plan.carrier) - \(r.plan.name)").bold()
+                Text("\(r.plan.dataGb.map { "\($0) GB" } ?? "Unlimited") - \(r.plan.network) network - \(r.plan.prepaid ? "prepaid" : "postpaid")")
+                    .font(.footnote)
+                if !r.plan.note.isEmpty { Text(r.plan.note).font(.footnote) }
+            }
             if let deal = r.plan.deal {
                 Text((r.liveDeal ? "Live " : "") + (r.otherPhone ? "better phone deal: " : (r.plan.freePhoneOffer ? "phone deal: " : "deal: ")) + deal
                      + (r.plan.dealDate.isEmpty ? "" : " (as of \(r.plan.dealDate))"))
@@ -179,7 +206,7 @@ struct ContentView: View {
                 }
             }
             if r.plan.dealUrl.hasPrefix("https://"), let url = URL(string: r.plan.dealUrl) { Link("See the offer", destination: url) }
-            if lines > 1 && r.plan.pricePerLine[lines] == nil {
+            if lines > 1 && r.assignments == nil && r.plan.pricePerLine[lines] == nil {
                 Text("Estimate: no \(lines)-line price on file, so this uses the nearest known per-line price.").font(.footnote)
             }
             if lines > 1 && !r.plan.linesNote.isEmpty {
@@ -195,7 +222,7 @@ struct ContentView: View {
                 if let url = URL(string: c.url) { Link("\(c.name) coverage map", destination: url) }
             }
             Text(String(format: "$%.2f / month", r.monthly)).font(.headline)
-            if r.plan.termMonths > 1 {
+            if r.plan.termMonths > 1 && r.assignments == nil {
                 Text(String(format: "Pay $%.0f up front for %d months", r.monthly * Double(r.plan.termMonths), r.plan.termMonths))
                     .font(.footnote)
             }
