@@ -47,7 +47,7 @@
           "updated": "2026-10-18"
         },
         "international": {
-          "text": "Unlimited calling and messaging to Mexico and Canada when you are in the US.",
+          "text": "fcc.gov/consumer M0026739722VISPLUS00020255 Visible+ Pro plan facts Premium unlimited data on Verizon's 5G Ultra Wideband with international texting to 200+ countries and international calling to 85+ countries.",
           "updated": "2026-10-18"
         },
         "slowdown": {
@@ -65,6 +65,14 @@
       "extras": {
         "hotspot": {
           "text": "Plans have unlimited hotspot data at speeds up to 5 Mbps; Total ALL ACCESS, 10 Mbps.",
+          "updated": "2026-10-18"
+        },
+        "international": {
+          "text": "Unlimited International Calling TO and FROM Mexico Now included on all plans.",
+          "updated": "2026-10-18"
+        },
+        "perks": {
+          "text": "You must remain on the Eligible Disney+ on us Plan to retain the Disney+ on us offer.",
           "updated": "2026-10-18"
         }
       }
