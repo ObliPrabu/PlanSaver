@@ -2,7 +2,7 @@ name: Deals robot
 
 on:
   schedule:
-    - cron: "*/5 * * * *" # every 5 minutes (GitHub's minimum); runs are best-effort and often late
+    - cron: "*/5 * * * *" # asks for every 5 minutes (GitHub's minimum), but GitHub decides: in practice anywhere from 5 minutes to 1 day apart
   workflow_dispatch:
 
 permissions:

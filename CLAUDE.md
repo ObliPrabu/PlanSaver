@@ -55,12 +55,12 @@ Search flow (identical on both platforms): `MainActivity.kt`/`ContentView.swift`
 4. `freePhoneOnly` keeps only carriers whose deal says free/discounted phone; the picker (`Phones.kt`) shows one model at a
    time after a pick (Android: chip + "Change"; iOS: dropdown).
 
-Deals pipeline: `.github/workflows/deals-robot.yml` (cron `*/5 * * * *` + manual) runs `tools/refresh_deals.py`, which for
+Deals pipeline: `.github/workflows/deals-robot.yml` (cron `*/5 * * * *` + manual; the cron only asks for every 5 minutes - GitHub runs it best-effort, anywhere from 5 minutes to 1 day apart; seen so far: about every 2 hours) runs `tools/refresh_deals.py`, which for
 each carrier in `deals.json` reads that carrier's own page and DuckDuckGo's HTML results (keyless scraping; only text from
 the carrier's own domain is accepted, filtered by price/free keywords), keeps the old entry on any failure, and the
-workflow commits as `plansaver-robot` only when the file changed. It never touches `freePhone`/`phones`. The raw URL
+workflow commits as `plansaver-robot` only when the file changed. It never touches `phones`; it re-derives `freePhone` only when a deal's text changes. The raw URL
 only works while the repo is PUBLIC; if made private, the app falls back to bundled deals and the free Actions minutes
-(2,000/mo) would run out within a week at 5-minute cadence.
+(2,000/mo) would run out quickly if it really ran every 5 minutes.
 
 ## Status and open items (as of 2026-10-17)
 
@@ -68,9 +68,8 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
 - UNCOMMITTED: iPhone Duo in the picker + matching, the "better phones" checkbox, one-model picker, and the bug fixes
   below (fewer-lines filter, https-only deal links, Android `configChanges` so rotation keeps the search). Last compile
   of both platforms succeeded after these edits.
-- UNVERIFIED: no scheduled run of the robot had fired as of ~17:25 EDT (only the manual run 39061448187); GitHub often
-  delays new schedules by hours. If still none after ~3 h, look at whether the schedule is disabled. A session cron job
-  was checking every 15 min (session-only; gone with that session).
+- Robot verified 2026-10-17: scheduled runs do fire (first one about 1h47m after the new workflow was pushed), then roughly
+  every 2 hours - not every 5 minutes. Deals therefore refresh a few times a day, between 5 minutes and 1 day apart.
 - Fixed 2026-10-17 (uncommitted, Android installed on vivo, iOS compiled only): per-plan deal scoping via optional `plans`
   name fragments in deals.json (T-Mobile "Experience", Mint "6-month"; robot never edits `plans`); phone matching is now
   exact (base phone no longer matches Pro deals; "S25 FE"/"Edge" are separate phones); lines picker is 1-6 (5+ uses the
@@ -90,8 +89,7 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   own `updated`), shown on every card as "Found online ... (unverified; may differ by plan)". Carrier-level, not per plan.
 - Known issues not fixed: Mint's site returns 403 to scripts (bot protection - not bypassed), so its deal only updates from
   search snippets; multi-line prices are still mostly 1-line x lines (needs research per plan); prices are unverified;
-  extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; the 5-minute
-  schedule of `deals-robot.yml` had not fired yet when last checked; layout at the larger text sizes and Android
+  extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; layout at the larger text sizes and Android
   process-death restore have not been checked on a device; the repo is public so NOTES.md is exposed (owner's decision).
 - Data caveats: Mint plan sizes disagree between sources (5GB vs 6GB; 6GB used); the Mint anniversary promo end date is
   unclear; T-Mobile deals URL was corrected to `t-mobile.com/offers`; Cricket has no deal; carrier "View plan" links are
