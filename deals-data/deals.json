@@ -36,6 +36,10 @@
         "activation": {
           "text": "The $35.00 activation fee and the taxes for the device are separate charges. Our free devices are credited monthly, so as long as you qualified for the promotion, you'll see a credit to offset the charge.",
           "updated": "2026-10-18"
+        },
+        "international": {
+          "text": "International Travel Keep connected in over 140 countries with International Data while traveling outside the US. View the list of \u2026",
+          "updated": "2026-10-18"
         }
       },
       "activationFee": 35.0
