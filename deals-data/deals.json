@@ -34,11 +34,11 @@
       "url": "https://www.verizon.com/deals",
       "extras": {
         "activation": {
-          "text": "Plus no upgrade or activation fees whenever you get a new device!",
+          "text": "The $35.00 activation fee and the taxes for the device are separate charges. Our free devices are credited monthly, so as long as you qualified for the promotion, you'll see a credit to offset the charge.",
           "updated": "2026-10-18"
         }
       },
-      "activationFee": 0.0
+      "activationFee": 35.0
     },
     {
       "carrier": "AT&T",
