@@ -19,7 +19,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -29,19 +28,8 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { MaterialTheme(typography = scaledTypography(1.25f)) { Surface(Modifier.fillMaxSize()) { PlanSaverApp(RemotePlanRepository(BuildConfig.DEALS_URL)) } } }
+        setContent { PlanSaverTheme { Surface(Modifier.fillMaxSize()) { PlanSaverApp(RemotePlanRepository(BuildConfig.DEALS_URL)) } } }
     }
-}
-
-/** Every text style [f] times bigger, so the whole app is easier to read. */
-private fun scaledTypography(f: Float): Typography {
-    fun TextStyle.big() = copy(fontSize = fontSize * f, lineHeight = lineHeight * f)
-    val t = Typography()
-    return t.copy(displayLarge = t.displayLarge.big(), displayMedium = t.displayMedium.big(), displaySmall = t.displaySmall.big(),
-        headlineLarge = t.headlineLarge.big(), headlineMedium = t.headlineMedium.big(), headlineSmall = t.headlineSmall.big(),
-        titleLarge = t.titleLarge.big(), titleMedium = t.titleMedium.big(), titleSmall = t.titleSmall.big(),
-        bodyLarge = t.bodyLarge.big(), bodyMedium = t.bodyMedium.big(), bodySmall = t.bodySmall.big(),
-        labelLarge = t.labelLarge.big(), labelMedium = t.labelMedium.big(), labelSmall = t.labelSmall.big())
 }
 
 private val dataChoices = listOf("1-5 GB" to 5, "10 GB" to 10, "25 GB" to 25, "Unlimited" to null)
