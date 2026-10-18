@@ -14,22 +14,44 @@
         "international": {
           "text": "For all Connect by T-Mobile rate plans, add North America calling and texting for $5/month (Mexico and Canada) or Stateside \u2026",
           "updated": "2026-10-18"
+        },
+        "activation": {
+          "text": "$35 device connection charge due at sale.",
+          "updated": "2026-10-18"
+        },
+        "tradein": {
+          "text": "plan w/AutoPay; plus taxes/fees) & trade-in (e.g., Save $1,000: Pixel 10/ Save $500: Pixel 5) required.",
+          "updated": "2026-10-18"
         }
-      }
+      },
+      "activationFee": 35.0
     },
     {
       "carrier": "Verizon",
       "deal": "Free phones on new lines with select unlimited plans; switchers can get the iPhone 18 Pro free on Unlimited Ultimate with a trade-in, as bill credits over 36 months.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.verizon.com/deals"
+      "url": "https://www.verizon.com/deals",
+      "extras": {
+        "activation": {
+          "text": "Plus no upgrade or activation fees whenever you get a new device!",
+          "updated": "2026-10-18"
+        }
+      },
+      "activationFee": 0.0
     },
     {
       "carrier": "AT&T",
       "deal": "Save up to $800 per line when you switch to AT&T and trade in your old phone or break your contract. Browse free phone offers from Apple, Google, Samsung, Motorola and more.",
       "freePhone": true,
       "phones": [],
-      "url": "https://www.att.com/buy/phones/browse/free"
+      "url": "https://www.att.com/buy/phones/browse/free",
+      "extras": {
+        "tradein": {
+          "text": "Shop all iPhone deals to see trade-in offers that could get you a new iPhone for $0.",
+          "updated": "2026-10-18"
+        }
+      }
     },
     {
       "carrier": "Mint Mobile",
