@@ -39,6 +39,14 @@ struct ContentView: View {
     @State private var familyIdx = 3
     @State private var variant = ""
     @State private var otherPhones = false
+    @State private var quizOpen = false
+    @State private var quizUsage = -1 // -1 = not answered yet
+    @State private var quizWifi = true
+    @State private var quizHotspot = false
+    @State private var phonePrice = ""
+    @State private var tradeIn = false
+    @State private var tradeInValue = ""
+    @State private var totalOpen: Set<UUID> = []
     @State private var loading = false
     @State private var results: [SearchResult]? = nil
     @State private var searchedPhone: String? = nil
@@ -112,7 +120,14 @@ struct ContentView: View {
                         Picker("Data", selection: $dataIdx) {
                             ForEach(0..<dataChoices.count, id: \.self) { Text(dataChoices[$0].label).tag($0) }
                         }.pickerStyle(MenuPickerStyle())
+                        Button(quizOpen ? "Hide the quiz" : "Not sure? Answer 3 quick questions") { quizOpen.toggle() }
+                        if quizOpen { quiz }
                     }
+
+                    Text("Buying a phone? (optional)").font(.headline)
+                    moneyField("Price of the phone you want", text: $phonePrice)
+                    Toggle("I'll trade in my old phone", isOn: $tradeIn)
+                    if tradeIn { moneyField("What your old phone is worth", text: $tradeInValue) }
 
                     Text("Your current phone bill (all lines, per month)").font(.headline)
                     HStack {
@@ -142,6 +157,41 @@ struct ContentView: View {
                 .padding(16)
             }
             Text(versionLabel).font(.caption2).foregroundColor(.secondary).padding(8)
+        }
+    }
+
+    private func moneyField(_ label: String, text: Binding<String>) -> some View {
+        HStack {
+            Text("$")
+            TextField(label, text: text)
+                .keyboardType(.decimalPad)
+                .onChange(of: text.wrappedValue) { v in
+                    let f = String(v.filter { $0.isNumber || $0 == "." }.prefix(7))
+                    if f != v { text.wrappedValue = f }
+                }
+        }
+        .padding(8)
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
+    }
+
+    private func applyQuiz() { if quizUsage >= 0 { dataIdx = quizDataIndex(usage: quizUsage, homeWifi: quizWifi, hotspot: quizHotspot) } }
+
+    private var quiz: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("What do you do most when you're not on Wi-Fi?").font(.headline)
+            Picker("Usage", selection: $quizUsage) {
+                Text("Pick one").tag(-1)
+                Text("Texts and reading").tag(0)
+                Text("Music and social").tag(1)
+                Text("Streaming video").tag(2)
+            }
+            .pickerStyle(MenuPickerStyle())
+            .onChange(of: quizUsage) { _ in applyQuiz() }
+            Toggle("I have Wi-Fi at home", isOn: $quizWifi).onChange(of: quizWifi) { _ in applyQuiz() }
+            Toggle("I share my data as a hotspot", isOn: $quizHotspot).onChange(of: quizHotspot) { _ in applyQuiz() }
+            Text(quizUsage < 0 ? "Pick what you do most and I'll choose the data for you."
+                 : "A rough guess: \(dataChoices[dataIdx].label) per line. You can still change it above.")
+                .font(.footnote)
         }
     }
 
@@ -209,6 +259,20 @@ struct ContentView: View {
                     if list.isEmpty {
                         Text("No plans matched. Try more data or include big carriers.")
                     } else {
+                        let picks = topPicks(list)
+                        if !picks.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Top picks").bold()
+                                ForEach(picks) { p in
+                                    Text(String(format: "%@: %@ - %@ ($%.2f / month)", p.label, p.result.plan.carrier,
+                                                p.result.plan.name, p.result.monthly)).font(.footnote)
+                                }
+                            }
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(10)
+                        }
                         ForEach(sorted(list)) { card($0, lines: searchedLines) }
                     }
                     Text("Prices researched Oct 2026 from third-party roundups, not checked with the carriers, and may have changed - confirm on the carrier's site. PlanSaver may earn a commission if you sign up through a link.")
@@ -276,6 +340,25 @@ struct ContentView: View {
             }
             if showSavings && r.yearlySavings > 0 {
                 Text(String(format: "Save about $%.0f a year", r.yearlySavings)).foregroundColor(.blue)
+            }
+            Button(totalOpen.contains(r.id) ? "Hide my total cost" : "How much will I pay in total?") {
+                if totalOpen.contains(r.id) { totalOpen.remove(r.id) } else { totalOpen.insert(r.id) }
+            }
+            if totalOpen.contains(r.id) {
+                let price = Double(phonePrice) ?? 0
+                let trade = tradeIn ? (Double(tradeInValue) ?? 0) : 0
+                ForEach([12, 24, 36], id: \.self) { m in
+                    let c = totalCost(monthly: r.monthly, months: m, phonePrice: price, tradeIn: trade)
+                    Text(String(format: "%d months: plan $%.0f", m, c.plan) + (price > 0 ? String(format: " + phone $%.0f", c.phone) : "")
+                         + String(format: " = $%.0f", c.total)).font(.footnote)
+                }
+                Text(price > 0 ? "The phone is counted at full price" + (trade > 0 ? " minus your trade-in" : "") + ", paid once."
+                     : "Enter a phone price on the search screen to include a phone.").font(.caption2)
+                if price > 0 && r.plan.freePhoneOffer {
+                    Text("This carrier advertises a phone deal; its bill credits could lower the phone part, but only if you stay 24-36 months, and the amount isn't checked here.")
+                        .font(.caption2)
+                }
+                Text("Not included: taxes, fees, activation, accessories.").font(.caption2)
             }
             if let url = URL(string: r.plan.signupUrl) { Link("View plan", destination: url) }
         }

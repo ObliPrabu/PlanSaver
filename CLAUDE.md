@@ -44,7 +44,7 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 Search flow (identical on both platforms): `MainActivity.kt`/`ContentView.swift` build a `SearchRequest` -> 
 `RemotePlanRepository.search` (Android) / `PlanRepository.search` (iOS) -> results screen.
 1. Filter + sort the bundled plans (`PlanData`): postpaid toggle, data need, and a plan is dropped when `lines` is below
-   the smallest line count it has a price for (AT&T Extra is priced only for 4 lines). `Plan.perLine(n)` falls back to
+   the smallest line count it has a price for (a plan priced only for N+ lines is hidden below N; currently every plan has a 1-line price). `Plan.perLine(n)` falls back to
    the nearest known lower line count, so multi-line prices are estimates for most plans.
 2. On EVERY Search tap, download `DEALS_URL` (raw.githubusercontent.com/ObliPrabu/PlanSaver/main/deals-data/deals.json;
    `buildConfigField` in `app/build.gradle.kts`, `dealsURL` in `ios/.../PlanRepository.swift`). Network failure/private
@@ -65,12 +65,17 @@ workflow commits as `plansaver-robot` only when the file changed. It never touch
 only works while the repo is PUBLIC; if made private, the app falls back to bundled deals and the free Actions minutes
 (2,000/mo) would run out quickly if it really ran every 5 minutes.
 
-## Status and open items (as of 2026-10-17)
+## Status and open items (as of 2026-10-18)
 
-- Installed on the vivo; iOS installed earlier on "Mithran Prabu's iPhone" (before the latest changes).
-- UNCOMMITTED: iPhone Duo in the picker + matching, the "better phones" checkbox, one-model picker, and the bug fixes
-  below (fewer-lines filter, https-only deal links, Android `configChanges` so rotation keeps the search). Last compile
-  of both platforms succeeded after these edits.
+- Everything is committed and pushed (main). The vivo and Mithran Prabu's iPhone do NOT yet have the latest build
+  (customized lines + dark mode + price corrections); install only when asked.
+- Dark/light mode (2026-10-18): Android `Theme.kt` (`ThemeMode` Auto/Light/Dark, Material You colors on Android 12+, fixed
+  blue/teal otherwise, fixed orange `MaterialTheme.dealColor` for deal highlights; also holds `scaledTypography(1.25f)`);
+  iOS `ContentView.swift` has the same floating top-right toggle and `secondarySystemBackground` cards. The theme choice
+  is not saved across restarts on iOS (`@State`); on Android it survives rotation/process death (`rememberSaveable`).
+- Plan data corrections (2026-10-18, from an outside verification): Metro now one plan "Unlimited Premium 5G data" $60; T-Mobile
+  "Essentials Saver" and "Experience More 2.0"; Verizon Unlimited Plus 1 line $80; AT&T "Extra 2.0" now also has a 1-line $70.
+  Plan-name fragments in deals.json `plans` (e.g. "Experience") must keep matching these names.
 - Robot verified 2026-10-17: scheduled runs do fire (first one about 1h47m after the new workflow was pushed), then roughly
   every 2 hours - not every 5 minutes. Deals therefore refresh a few times a day, between 5 minutes and 1 day apart.
 - Fixed 2026-10-17 (uncommitted, Android installed on vivo, iOS compiled only): per-plan deal scoping via optional `plans`
@@ -94,6 +99,12 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   every line gets the cheapest plan covering its own data need, total = sum (`mixedSearch` in PlanRepository.kt/.swift),
   card lists "Line n: plan - price". Whether a carrier allows mixed plans on one account is NOT checked (card says so).
   Choosing a specific plan by name per line is not built.
+- Quiz / top picks / total cost (2026-10-18, UNCOMMITTED, both platforms compile, Android tests pass, not installed): "Not sure?
+  Answer 3 quick questions" fills the data choice (`quizDataIndex`); results start with a "Top picks" box (`topPicks`: cheapest,
+  cheapest unlimited, priciest unlimited - labeled by what they are, perks not checked); the form has an optional phone price +
+  trade-in checkbox/value, typed by the user (no phone prices are stored - none researched); each card has "How much will I
+  pay in total?" showing 12/24/36 months of plan + phone (full price minus trade-in) via `totalCost`. Carrier bill credits
+  are NOT modeled (card says so). Logic in Plan.kt/Plan.swift, tested in `TotalCostTest.kt`.
 - Known issues not fixed: Mint's site returns 403 to scripts (bot protection - not bypassed), so its deal only updates from
   search snippets; multi-line prices are still mostly 1-line x lines (needs research per plan); prices are unverified;
   extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; layout at the larger text sizes and Android

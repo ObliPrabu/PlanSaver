@@ -116,3 +116,39 @@ fun coverageLinks(network: String): List<Pair<String, String>> = buildList {
     if (network.contains("AT&T")) add("AT&T" to "https://www.att.com/maps/wireless-coverage.html")
     if (network.contains("T-Mobile")) add("T-Mobile" to "https://www.t-mobile.com/coverage/coverage-map")
 }
+
+/**
+ * "Not sure how much data?" quiz: index into the data choices (0 = 1-5 GB, 1 = 10, 2 = 25, 3 = unlimited). [usage] is
+ * 0 = texting/reading, 1 = music/social, 2 = video streaming. No home Wi-Fi or sharing a hotspot each push it one step
+ * up. A rough guess, not a measurement.
+ */
+fun quizDataIndex(usage: Int, homeWifi: Boolean, hotspot: Boolean): Int =
+    (usage + (if (homeWifi) 0 else 1) + (if (hotspot) 1 else 0)).coerceIn(0, 3)
+
+/** A short label plus the result it points at, for the "Top picks" box. */
+data class TopPick(val label: String, val result: Result)
+
+/**
+ * Up to three picks from the plans shown: the cheapest, the cheapest unlimited, and the priciest unlimited (postpaid
+ * plans usually carry the most perks, but that is not checked). Same plan twice gets one entry with both labels.
+ * Mixed-plan (customized lines) results are skipped. The result list is what the user searched, so prices are theirs.
+ */
+fun topPicks(list: List<Result>): List<TopPick> {
+    val plain = list.filter { !it.otherPhone && it.assignments == null }
+    val unlimited = plain.filter { it.plan.dataGb == null }
+    val wanted = listOfNotNull(
+        plain.minByOrNull { it.monthly }?.let { "Cheapest" to it },
+        unlimited.minByOrNull { it.monthly }?.let { "Cheapest unlimited" to it },
+        unlimited.maxByOrNull { it.monthly }?.let { "Premium (priciest unlimited)" to it },
+    )
+    return wanted.groupBy { it.second.plan.carrier + it.second.plan.name }.values
+        .map { g -> TopPick(g.joinToString(" + ") { it.first }, g.first().second) }
+}
+
+/** What the user pays over [months]: the plan, plus the phone paid in full minus any trade-in value (never below 0). */
+data class TotalCost(val months: Int, val plan: Double, val phone: Double, val total: Double)
+
+fun totalCost(monthly: Double, months: Int, phonePrice: Double, tradeIn: Double): TotalCost {
+    val phone = if (phonePrice > 0) (phonePrice - tradeIn).coerceAtLeast(0.0) else 0.0
+    return TotalCost(months, monthly * months, phone, monthly * months + phone)
+}

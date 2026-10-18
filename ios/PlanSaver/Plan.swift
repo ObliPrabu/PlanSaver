@@ -137,3 +137,50 @@ func coverageLinks(_ network: String) -> [(name: String, url: String)] {
     if network.contains("T-Mobile") { out.append(("T-Mobile", "https://www.t-mobile.com/coverage/coverage-map")) }
     return out
 }
+
+/// "Not sure how much data?" quiz: index into the data choices (0 = 1-5 GB, 1 = 10, 2 = 25, 3 = unlimited). `usage` is
+/// 0 = texting/reading, 1 = music/social, 2 = video streaming. No home Wi-Fi or sharing a hotspot each push it one step
+/// up. A rough guess, not a measurement.
+func quizDataIndex(usage: Int, homeWifi: Bool, hotspot: Bool) -> Int {
+    min(max(usage + (homeWifi ? 0 : 1) + (hotspot ? 1 : 0), 0), 3)
+}
+
+/// A short label plus the result it points at, for the "Top picks" box.
+struct TopPick: Identifiable {
+    let label: String
+    let result: SearchResult
+    var id: UUID { result.id }
+}
+
+/// Up to three picks from the plans shown: the cheapest, the cheapest unlimited, and the priciest unlimited (postpaid
+/// plans usually carry the most perks, but that is not checked). Same plan twice gets one entry with both labels.
+/// Mixed-plan (customized lines) results are skipped.
+func topPicks(_ list: [SearchResult]) -> [TopPick] {
+    let plain = list.filter { !$0.otherPhone && $0.assignments == nil }
+    let unlimited = plain.filter { $0.plan.dataGb == nil }
+    let wanted: [(String, SearchResult)] = [
+        plain.min(by: { $0.monthly < $1.monthly }).map { ("Cheapest", $0) },
+        unlimited.min(by: { $0.monthly < $1.monthly }).map { ("Cheapest unlimited", $0) },
+        unlimited.max(by: { $0.monthly < $1.monthly }).map { ("Premium (priciest unlimited)", $0) },
+    ].compactMap { $0 }
+    var out: [(key: String, labels: [String], result: SearchResult)] = []
+    for (label, r) in wanted {
+        let key = r.plan.carrier + r.plan.name
+        if let i = out.firstIndex(where: { $0.key == key }) { out[i].labels.append(label) }
+        else { out.append((key, [label], r)) }
+    }
+    return out.map { TopPick(label: $0.labels.joined(separator: " + "), result: $0.result) }
+}
+
+/// What the user pays over `months`: the plan, plus the phone paid in full minus any trade-in value (never below 0).
+struct TotalCost {
+    let months: Int
+    let plan: Double
+    let phone: Double
+    let total: Double
+}
+
+func totalCost(monthly: Double, months: Int, phonePrice: Double, tradeIn: Double) -> TotalCost {
+    let phone = phonePrice > 0 ? max(phonePrice - tradeIn, 0) : 0
+    return TotalCost(months: months, plan: monthly * Double(months), phone: phone, total: monthly * Double(months) + phone)
+}
