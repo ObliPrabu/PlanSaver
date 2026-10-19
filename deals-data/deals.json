@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-18",
+  "updated": "2026-10-19",
   "deals": [
     {
       "carrier": "T-Mobile",
@@ -58,6 +58,14 @@
         "activation": {
           "text": "Activation Fee: $35-Waived.**Return:**Return w/in 90 days. Restocking fee up to $55 may apply. Bill Credits: Credits start w/in 3 \u2026",
           "updated": "2026-10-18"
+        },
+        "hotspot": {
+          "text": "AT&T introduces North America travel package for international visitors that includes unlimited data , 5GB of hotspot access, plus unlimited talk and text coming soon.",
+          "updated": "2026-10-19"
+        },
+        "international": {
+          "text": "For long stays Monthly international plan Get unlimited talk and text, plus 22GB of data in over 210 destinations for a flat $110/month fee.",
+          "updated": "2026-10-19"
         }
       }
     },
@@ -69,7 +77,19 @@
       "url": "https://www.mintmobile.com",
       "plans": [
         "6-month"
-      ]
+      ],
+      "lines": "Introducing The Modern Family Plan ! Premium wireless starting at $15/month per line , and you only need 2 lines to get started. Mix & match data plans so everyone gets what they need with no overages.",
+      "linesUpdated": "2026-10-19",
+      "extras": {
+        "hotspot": {
+          "text": "The unlimited plan from Mint Mobile offers premium wireless on the nation's largest 5G network. Get unlimited talk & text, free mobile hotspot , and more.",
+          "updated": "2026-10-19"
+        },
+        "international": {
+          "text": "Travel and international roaming are a breeze with Minternational Pass from Mint Mobile . Offered in 1, 3, and 10-day passes to fit any travel plans or itinerary.",
+          "updated": "2026-10-19"
+        }
+      }
     },
     {
       "carrier": "Visible",
