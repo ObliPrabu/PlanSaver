@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-19",
+  "updated": "2026-10-21",
   "deals": [
     {
       "carrier": "T-Mobile",
@@ -130,10 +130,15 @@
         "perks": {
           "text": "You must remain on the Eligible Disney+ on us Plan to retain the Disney+ on us offer.",
           "updated": "2026-10-18"
+        },
+        "activation": {
+          "text": "Get unlimited data, talk, and text with 5GB of 5G hotspot from Total Wireless for $40. Covered by the Verizon 5G network. No activation fees !",
+          "updated": "2026-10-21"
         }
       },
       "lines": "Unlimited 5G data, just $25/mo per line With 4 lines on the Total STARTER Plan. Price guaranteed for 5 years, taxes & fees included.",
-      "linesUpdated": "2026-10-19"
+      "linesUpdated": "2026-10-19",
+      "activationFee": 40.0
     }
   ]
 }
