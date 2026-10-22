@@ -75,6 +75,7 @@ class RemotePlanRepository(private val dealsUrl: String) : PlanRepository {
                 ?.let { r.copy(plan = r.plan.copy(linesNote = it.linesNote, linesDate = it.linesUpdated)) } ?: r
             val noted = carrierDeals.firstOrNull { it.extras.isNotEmpty() }
                 ?.let { withLines.copy(plan = withLines.plan.copy(extraNotes = it.extras)) } ?: withLines
+            // Fees are about the carrier, like the multi-line and extras notes, so they ignore the per-plan `plans` scope.
             val withFees = noted.copy(plan = noted.plan.copy(
                 activationFee = carrierDeals.firstNotNullOfOrNull { it.activationFee },
                 tradeInMax = carrierDeals.firstNotNullOfOrNull { it.tradeInMax }))

@@ -21,6 +21,8 @@ iOS (`ios/project.yml` is the source of truth; `ios/PlanSaver.xcodeproj` is gene
 - Signed build for the phone: same with `-allowProvisioningUpdates -derivedDataPath <scratch>` (team `PS8DGXJ8S8`), then
   `xcrun devicectl device install app --device C13C4BB8-65E2-5CA7-BB9F-425747B421EE <PlanSaver.app>`.
 
+- Logic tests (no simulator, compiled for the Mac): `ios/run-logic-tests.sh` (`ios/LogicTests/main.swift` mirrors the Android unit tests).
+
 Deals robot: `python3 tools/refresh_deals.py [path/to/deals.json]` (stdlib only; takes ~1 min because it sleeps between
 requests - test against a COPY of the file, it rewrites in place). Manual workflow run: `gh workflow run deals-robot.yml`.
 
@@ -109,7 +111,9 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   no value typed; a trade-in only exists with a new phone). The robot adds `activation` and `tradein` extras and parses numbers
   into `activationFee` (per line; 0 = none) and `tradeInMax` ("up to $N", a best case) on a carrier's deals.json entry. The
   total card adds activation x lines and subtracts `tradeInMax` as the credit; if the robot found nothing it says so and counts
-  nothing. Robot only trusts the carrier's own domain, so findings may be sparse (not found when tested on 2026-10-18).
+  nothing. Robot only trusts the carrier's own domain. 2026-10-20: kept only T-Mobile's $35 (t-mobile.com: "$35 device connection charge
+  due at sale"); removed Verizon's (reported waived for Loyalty members), AT&T's (ambiguous) and junk trade-in notes - the robot may
+  re-add them from carrier pages; it now rejects sentence fragments (`is_fragment`). Fees are carrier-level, not per plan.
 - Results filters (2026-10-18, UNCOMMITTED): chips under the sort row - Verizon / AT&T / T-Mobile (any of the chosen), Prepaid /
   Postpaid, Has a deal, Unlimited only - applied by `applyFilters` (Plan.kt/.swift, `FilterTest.kt`), with "Showing X of Y plans".
   They stay set between searches. "Most data" looks the same as "Lowest price" when only unlimited plans match (all tie on data).

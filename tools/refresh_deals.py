@@ -179,13 +179,20 @@ ID_TOKEN = re.compile(r"\b(?=[A-Za-z0-9]*\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{
 FOOTNOTE = re.compile(r"^(?:\^|footnote\s*\d+)\s*", re.I)
 
 
+def is_fragment(s):
+    """A piece cut from the middle of a longer sentence (starts lowercase, unbalanced brackets, an 'e.g.' aside) reads as junk."""
+    s = s.strip()
+    return not s or not (s[0].isupper() or s[0].isdigit() or s[0] == "$") or s.count("(") != s.count(")") \
+        or "e.g." in s.lower()
+
+
 def extra_score(kind, s):
     """0 unless the sentence is about [kind] and is not boilerplate; concrete numbers and prices rank higher."""
     pattern, _, also, needs_number = EXTRAS[kind]
     s = FOOTNOTE.sub("", s)
     low = s.lower()
     if is_noise(low) or any(g in low for g in GENERIC) or any(x in low for x in EXTRA_REJECT) or ID_TOKEN.search(s) \
-            or not pattern.search(s):
+            or is_fragment(s) or not pattern.search(s):
         return 0
     if also and not also.search(s):
         return 0
@@ -213,7 +220,7 @@ def activation_amount(text):
     amounts = {money(m) for m in DOLLARS.findall(text)}
     if len(amounts) == 1:
         return amounts.pop()
-    if not amounts and re.search(r"\bno\b|\bfree\b|\bwaive\w*|\bzero\b", text, re.I):
+    if not amounts and re.search(r"\b(no|free|waive\w*|zero)\b[^.]{0,30}\b(activation|connection)\b", text, re.I):
         return 0.0
     return None
 

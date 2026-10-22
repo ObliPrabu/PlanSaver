@@ -12,7 +12,7 @@ data class PhoneFamily(val label: String, val variants: List<String>) {
  */
 object Phones {
     /** Where "iPhone 16" sits in the iPhone list - the picker's starting model. */
-    val defaultIphoneIdx: Int get() = brands.getValue("iPhone").indexOfFirst { it.label == "iPhone 16" }
+    val defaultIphoneIdx: Int get() = brands.getValue("iPhone").indexOfFirst { it.label == "iPhone 16" }.coerceAtLeast(0)
 
     private val iphoneVariants = listOf("", " Plus", " Pro", " Pro Max")
 

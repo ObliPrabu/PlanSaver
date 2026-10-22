@@ -41,3 +41,12 @@ class TotalCostTest {
         assertEquals(2, topPicks(listOf(result("C", "Small", 5, 15.0), result("A", "Cheap", null, 20.0))).size)
     }
 }
+
+class SinglePickTest {
+    @Test fun oneUnlimitedPlanGetsNoPremiumLabel() {
+        val p = Plan("A", "Only", "X", true, null, mapOf(1 to 20.0), "", "")
+        val picks = topPicks(listOf(Result(p, 20.0, 0.0)))
+        assertEquals(1, picks.size)
+        assertEquals("Cheapest + Cheapest unlimited", picks[0].label)
+    }
+}

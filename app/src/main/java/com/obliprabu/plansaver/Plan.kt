@@ -69,7 +69,7 @@ data class Result(val plan: Plan, val monthly: Double, val yearlySavings: Double
     val assignments: List<LineAssignment>? = null)
 
 private val phoneMention = Regex(
-    """(?i)\b(iphone\s?duo|iphone\s?air|iphone\s?\d{1,2}e?(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra\b|\s?plus\b|\s?fe\b|\s?edge\b)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:\s?pro(?:\s?(?:xl|fold))?)?)"""
+    """(?i)\b(iphone\s?duo|iphone\s?air|iphone\s?(?:xs(?:\s?max)?|xr)|iphone\s?\d{1,2}e?(?:\s?(?:pro max|pro|plus|mini))?|galaxy\s?(?:s\d{2}(?:\+|\s?ultra\b|\s?plus\b|\s?fe\b|\s?edge\b)?|z\s?(?:flip|fold)\s?\d*)|pixel\s?\d{1,2}(?:a(?![a-z])|(?:\s?pro(?:\s?(?:xl|fold))?)?))"""
 )
 
 private fun norm(s: String): String {
@@ -143,9 +143,10 @@ fun topPicks(list: List<Result>): List<TopPick> {
     val wanted = listOfNotNull(
         plain.minByOrNull { it.monthly }?.let { "Cheapest" to it },
         unlimited.minByOrNull { it.monthly }?.let { "Cheapest unlimited" to it },
-        unlimited.maxByOrNull { it.monthly }?.let { "Premium (priciest unlimited)" to it },
+        unlimited.maxByOrNull { it.monthly }?.takeIf { it !== unlimited.minByOrNull { u -> u.monthly } }
+            ?.let { "Premium (priciest unlimited)" to it },
     )
-    return wanted.groupBy { it.second.plan.carrier + it.second.plan.name }.values
+    return wanted.groupBy { it.second.plan.carrier + "|" + it.second.plan.name }.values
         .map { g -> TopPick(g.joinToString(" + ") { it.first }, g.first().second) }
 }
 

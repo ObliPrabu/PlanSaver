@@ -82,3 +82,15 @@ class SwitchingCostTests(unittest.TestCase):
         entry = {}
         r.update_extra(entry, "activation", (3, "A one-time activation fee of $35 applies per line.", "u"))
         self.assertEqual(35.0, entry["activationFee"])
+
+
+class FragmentTests(unittest.TestCase):
+    def test_fragments_are_rejected(self):
+        junk = "plan w/AutoPay; plus taxes/fees) & trade-in (e.g., Save $1,000: Pixel 10/ Save $500: Pixel 5) required."
+        self.assertEqual(0, r.extra_score("tradein", junk))
+        self.assertTrue(r.is_fragment("plan w/AutoPay; plus taxes/fees) & trade-in required."))
+        self.assertFalse(r.is_fragment("Get up to $800 off when you trade in your old phone."))
+
+    def test_no_activation_fee_needs_the_words_close_together(self):
+        self.assertEqual(0.0, r.activation_amount("Plus no upgrade or activation fees whenever you get a new device!"))
+        self.assertIsNone(r.activation_amount("There is no waiver of anything. Ask about the connection process."))

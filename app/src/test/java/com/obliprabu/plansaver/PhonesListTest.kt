@@ -24,3 +24,16 @@ class PhonesListTest {
         assertTrue(dealMatchesPhone("Free Galaxy S26 with trade-in", "Galaxy S26"))
     }
 }
+
+class PixelAMatchTest {
+    @Test fun aModelsAreTheirOwnPhone() {
+        assertTrue(dealMatchesPhone("Get a free Pixel 9a when you switch", "Pixel 9a"))
+        org.junit.Assert.assertFalse(dealMatchesPhone("Get a free Pixel 9a when you switch", "Pixel 9"))
+        assertTrue(dealMatchesPhone("Save on Pixel 9 when you switch", "Pixel 9a")) // bare family covers the whole family
+    }
+
+    @Test fun xsAndXrAreRecognisedAsPhones() {
+        org.junit.Assert.assertFalse(dealMatchesPhone("Free iPhone XR with trade-in", "iPhone 16"))
+        assertTrue(dealMatchesPhone("Free iPhone XR with trade-in", "iPhone XR"))
+    }
+}

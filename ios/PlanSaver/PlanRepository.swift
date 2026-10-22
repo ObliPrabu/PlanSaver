@@ -85,6 +85,7 @@ enum PlanRepository {
                     out.plan.linesDate = n.linesUpdated
                 }
                 if let e = carrierDeals.first(where: { !$0.extras.isEmpty }) { out.plan.extraNotes = e.extras }
+                // Fees are about the carrier, like the multi-line and extras notes, so they ignore the per-plan `plans` scope.
                 out.plan.activationFee = carrierDeals.compactMap { $0.activationFee }.first
                 out.plan.tradeInMax = carrierDeals.compactMap { $0.tradeInMax }.first
                 guard let d = carrierDeals.first(where: { $0.coversPlan(r.plan.name) }) else { return out }

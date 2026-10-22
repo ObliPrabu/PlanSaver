@@ -408,7 +408,7 @@ struct ContentView: View {
                          + String(format: " = $%.0f", c.total)).font(.footnote)
                 }
                 if let fee = r.plan.activationFee {
-                    Text(String(format: "Activation fee found online: $%.0f per line, so $%.0f for %d line%@ (unverified).", fee, activation, lines, lines == 1 ? "" : "s"))
+                    Text(String(format: "Activation fee found online: $%.0f per line, so $%.0f for %d line%@ (unverified; some carriers waive it).", fee, activation, lines, lines == 1 ? "" : "s"))
                         .font(.caption2)
                 } else {
                     Text("No activation fee found for \(r.plan.carrier) yet, so none is counted - ask the carrier.").font(.caption2)

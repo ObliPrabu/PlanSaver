@@ -79,7 +79,7 @@ struct SearchResult: Identifiable {
 }
 
 private let phoneMention = try! NSRegularExpression(
-    pattern: "\\b(iphone\\s?duo|iphone\\s?air|iphone\\s?\\d{1,2}e?(?:\\s?(?:pro max|pro|plus|mini))?|galaxy\\s?(?:s\\d{2}(?:\\+|\\s?ultra\\b|\\s?plus\\b|\\s?fe\\b|\\s?edge\\b)?|z\\s?(?:flip|fold)\\s?\\d*)|pixel\\s?\\d{1,2}(?:\\s?pro(?:\\s?(?:xl|fold))?)?)",
+    pattern: "\\b(iphone\\s?duo|iphone\\s?air|iphone\\s?(?:xs(?:\\s?max)?|xr)|iphone\\s?\\d{1,2}e?(?:\\s?(?:pro max|pro|plus|mini))?|galaxy\\s?(?:s\\d{2}(?:\\+|\\s?ultra\\b|\\s?plus\\b|\\s?fe\\b|\\s?edge\\b)?|z\\s?(?:flip|fold)\\s?\\d*)|pixel\\s?\\d{1,2}(?:a(?![a-z])|(?:\\s?pro(?:\\s?(?:xl|fold))?)?))",
     options: [.caseInsensitive])
 
 private func norm(_ s: String) -> String {
@@ -165,11 +165,13 @@ func topPicks(_ list: [SearchResult]) -> [TopPick] {
     let wanted: [(String, SearchResult)] = [
         plain.min(by: { $0.monthly < $1.monthly }).map { ("Cheapest", $0) },
         unlimited.min(by: { $0.monthly < $1.monthly }).map { ("Cheapest unlimited", $0) },
-        unlimited.max(by: { $0.monthly < $1.monthly }).map { ("Premium (priciest unlimited)", $0) },
+        unlimited.max(by: { $0.monthly < $1.monthly }).flatMap { top in
+            top.id == unlimited.min(by: { $0.monthly < $1.monthly })?.id ? nil : ("Premium (priciest unlimited)", top)
+        },
     ].compactMap { $0 }
     var out: [(key: String, labels: [String], result: SearchResult)] = []
     for (label, r) in wanted {
-        let key = r.plan.carrier + r.plan.name
+        let key = r.plan.carrier + "|" + r.plan.name
         if let i = out.firstIndex(where: { $0.key == key }) { out[i].labels.append(label) }
         else { out.append((key, [label], r)) }
     }

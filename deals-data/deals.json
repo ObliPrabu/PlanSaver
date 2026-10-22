@@ -18,10 +18,6 @@
         "activation": {
           "text": "$35 device connection charge due at sale.",
           "updated": "2026-10-18"
-        },
-        "tradein": {
-          "text": "plan w/AutoPay; plus taxes/fees) & trade-in (e.g., Save $1,000: Pixel 10/ Save $500: Pixel 5) required.",
-          "updated": "2026-10-18"
         }
       },
       "activationFee": 35.0
@@ -33,16 +29,11 @@
       "phones": [],
       "url": "https://www.verizon.com/deals",
       "extras": {
-        "activation": {
-          "text": "The $35.00 activation fee and the taxes for the device are separate charges. Our free devices are credited monthly, so as long as you qualified for the promotion, you'll see a credit to offset the charge.",
-          "updated": "2026-10-18"
-        },
         "international": {
           "text": "International Travel Keep connected in over 140 countries with International Data while traveling outside the US. View the list of \u2026",
           "updated": "2026-10-18"
         }
-      },
-      "activationFee": 35.0
+      }
     },
     {
       "carrier": "AT&T",
@@ -51,14 +42,6 @@
       "phones": [],
       "url": "https://www.att.com/buy/phones/browse/free",
       "extras": {
-        "tradein": {
-          "text": "Shop all iPhone deals to see trade-in offers that could get you a new iPhone for $0.",
-          "updated": "2026-10-18"
-        },
-        "activation": {
-          "text": "Activation Fee: $35-Waived.**Return:**Return w/in 90 days. Restocking fee up to $55 may apply. Bill Credits: Credits start w/in 3 \u2026",
-          "updated": "2026-10-18"
-        },
         "hotspot": {
           "text": "AT&T introduces North America travel package for international visitors that includes unlimited data , 5GB of hotspot access, plus unlimited talk and text coming soon.",
           "updated": "2026-10-19"

@@ -419,7 +419,7 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, tradeIn: Boo
                         String.format(Locale.US, " = $%.0f", c.total), style = MaterialTheme.typography.bodySmall)
                 }
                 Text(r.plan.activationFee?.let {
-                    String.format(Locale.US, "Activation fee found online: $%.0f per line, so $%.0f for %d line%s (unverified).", it, activation, lines, if (lines == 1) "" else "s")
+                    String.format(Locale.US, "Activation fee found online: $%.0f per line, so $%.0f for %d line%s (unverified; some carriers waive it).", it, activation, lines, if (lines == 1) "" else "s")
                 } ?: "No activation fee found for ${r.plan.carrier} yet, so none is counted - ask the carrier.", style = MaterialTheme.typography.labelSmall)
                 Text("The phone itself is not counted here.", style = MaterialTheme.typography.labelSmall)
                 if (tradeIn) Text(r.plan.tradeInMax?.let {
