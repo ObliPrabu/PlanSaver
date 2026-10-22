@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-21",
+  "updated": "2026-10-22",
   "deals": [
     {
       "carrier": "T-Mobile",
@@ -18,9 +18,14 @@
         "activation": {
           "text": "$35 device connection charge due at sale.",
           "updated": "2026-10-18"
+        },
+        "tradein": {
+          "text": "Save up to $1200 when you add a line or trade in an eligible device on an Experience More or Experience Beyond plan.",
+          "updated": "2026-10-22"
         }
       },
-      "activationFee": 35.0
+      "activationFee": 35.0,
+      "tradeInMax": 1200.0
     },
     {
       "carrier": "Verizon",
@@ -32,8 +37,13 @@
         "international": {
           "text": "International Travel Keep connected in over 140 countries with International Data while traveling outside the US. View the list of \u2026",
           "updated": "2026-10-18"
+        },
+        "activation": {
+          "text": "Plus no upgrade or activation fees whenever you get a new device!",
+          "updated": "2026-10-22"
         }
-      }
+      },
+      "activationFee": 0.0
     },
     {
       "carrier": "AT&T",
@@ -49,6 +59,14 @@
         "international": {
           "text": "For long stays Monthly international plan Get unlimited talk and text, plus 22GB of data in over 210 destinations for a flat $110/month fee.",
           "updated": "2026-10-19"
+        },
+        "activation": {
+          "text": "Activation Fee: $35-Waived.**Return:**Return w/in 90 days. Restocking fee up to $55 may apply. Bill Credits: Credits start w/in 3 \u2026",
+          "updated": "2026-10-22"
+        },
+        "tradein": {
+          "text": "Shop all iPhone deals to see trade-in offers that could get you a new iPhone for $0.",
+          "updated": "2026-10-22"
         }
       }
     },
