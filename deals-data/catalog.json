@@ -25,7 +25,18 @@
       "name": "iPhone 17 Pro",
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-17-pro/",
-      "checked": "2026-10-23"
+      "checked": "2026-10-23",
+      "display": 6.27,
+      "sources": {
+        "display": "https://support.apple.com/en-us/125090",
+        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
+      },
+      "batteryMah": 3998,
+      "chip": "A19 Pro",
+      "storage": "256GB",
+      "updated": "2026-10-23"
     },
     {
       "id": "iphone-air",
@@ -38,7 +49,7 @@
         "display": "https://www.apple.com/iphone-air/",
         "storage": "https://www.apple.com/iphone-air/"
       },
-      "display": 6.5,
+      "display": 6.27,
       "storage": "256GB, 512GB, 1TB",
       "updated": "2026-10-23",
       "checked": "2026-10-23"
