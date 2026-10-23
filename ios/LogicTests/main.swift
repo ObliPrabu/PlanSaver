@@ -78,5 +78,35 @@ let normal = PlanRepository.bundledSearch(SearchRequest(lines: 1, dataNeedGb: ni
 check(normal.first?.assignments == nil && !normal.isEmpty, "normal search has no assignments")
 check(PlanData.plans.count == 45, "45 plans bundled")
 
+// Catalog (phones, cars, insurers)
+let catalogJSON = """
+{"phones":[
+  {"id":"a","name":"Phone A","brand":"X","url":"https://x.com","price":799.0,"display":6.3,"batteryMah":4500,"chip":"A19","storage":"256GB, 512GB","updated":"2026-10-20","sources":{"price":"https://www.apple.com/a"}},
+  {"id":"b","name":"Phone B","brand":"Y","url":"https://y.com","price":999.99,"batteryMah":5000}
+],
+"cars":[
+  {"id":"c1","name":"Gas Car","make":"G","url":"https://g.com","mpgCombined":35,"mpgCity":32,"mpgHighway":40,"mpgUnit":"MPG","annualFuelCost":1650,"price":25000.0},
+  {"id":"c2","name":"EV","make":"E","url":"https://e.com","mpgCombined":130,"mpgUnit":"MPGe","annualFuelCost":800,"rangeMiles":300}
+],
+"insurers":[
+  {"id":"i1","name":"Cheap","url":"https://c.com","fullMonthly":100.0,"minMonthly":40.0,"sources":{"fullMonthly":"https://www.nerdwallet.com/p"}},
+  {"id":"i2","name":"None","url":"https://n.com"},
+  {"id":"i3","name":"Pricey","url":"https://p.com","fullMonthly":170.0}
+]}
+"""
+let cat = Catalog.parse(catalogJSON.data(using: .utf8)!)!
+check(cat.phones[0].price == 799 && cat.phones[1].chip == nil && cat.phones[1].display == nil, "catalog parses numbers and leaves missing ones nil")
+check(cat.phones[0].sources["price"] == "https://www.apple.com/a" && cat.insurers[1].fullMonthly == nil, "catalog sources and missing insurer figure")
+let pRows = Dictionary(uniqueKeysWithValues: comparePhones(cat.phones[0], cat.phones[1]).map { ($0.label, $0) })
+check(pRows["Starting price"]?.better == 0 && pRows["Battery"]?.better == 1 && pRows["Chip"]?.right == "not found yet" && pRows["Display"]?.better == nil, "phone comparison marks the better side")
+let cRows = Dictionary(uniqueKeysWithValues: compareCars(cat.cars[0], cat.cars[1]).map { ($0.label, $0) })
+check(cRows["Fuel economy (combined)"]?.better == nil && cRows["Fuel economy (combined)"]?.right == "130 MPGe", "MPG is not compared with MPGe")
+check(cRows["Fuel cost per year (EPA estimate)"]?.better == 1 && cRows["Starting price"]?.right == "not found yet", "car comparison fuel cost and missing price")
+check(sortInsurers(cat.insurers, full: true).map { $0.name } == ["Cheap", "Pricey", "None"], "insurers cheapest first, missing last")
+check(sortInsurers(cat.insurers, full: false).first?.name == "Cheap", "minimum coverage sort")
+check(sourceDomain("https://www.nerdwallet.com/insurance/auto") == "nerdwallet.com" && sourceDomain(nil) == nil, "source domain")
+let realCatalog = Catalog.parse(try! Data(contentsOf: URL(fileURLWithPath: "../deals-data/catalog.json")))!
+check(realCatalog.phones.count >= 10 && realCatalog.cars.count >= 10 && realCatalog.insurers.count >= 5, "the catalog file in the repo parses and has names")
+
 print("\(count - failures) of \(count) checks passed" + (failures == 0 ? "" : ", \(failures) FAILED"))
 exit(failures == 0 ? 0 : 1)

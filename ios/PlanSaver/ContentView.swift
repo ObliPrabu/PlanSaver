@@ -7,7 +7,7 @@ private let dataChoices: [(label: String, gb: Int?)] = [("1-5 GB", 5), ("10 GB",
 /// Android build's manual override (see Theme.kt's ThemeMode) and the same
 /// top-right placement BuddyVerse uses, rather than relying only on the
 /// system appearance setting.
-private enum ThemeMode: String, CaseIterable, Identifiable {
+enum ThemeMode: String, CaseIterable, Identifiable {
     case system, light, dark
     var id: String { rawValue }
     var colorScheme: ColorScheme? {
@@ -27,7 +27,6 @@ private enum ThemeMode: String, CaseIterable, Identifiable {
 }
 
 struct ContentView: View {
-    @State private var themeMode: ThemeMode = .system
     @State private var lines = 1
     @State private var dataIdx = 3
     @State private var customLines = false
@@ -65,34 +64,12 @@ struct ContentView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Group {
-                if let results = results {
-                    resultsScreen(results)
-                } else {
-                    formScreen
-                }
-            }
-            // Theme toggle, top right - matches the Android build's floating
-            // pill (itself matching BuddyVerse's top-right dark mode toggle),
-            // so it's reachable from both the form and results screens
-            // instead of scrolling away with the form content.
-            Button(action: {
-                themeMode = switch themeMode {
-                case .system: .light
-                case .light: .dark
-                case .dark: .system
-                }
-            }) {
-                Text(themeMode.toggleLabel)
-                    .font(.footnote.bold())
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .background(Color(UIColor.secondarySystemBackground))
-                    .clipShape(Capsule())
-            }
-            .padding(12)
+        // The theme toggle floats over every tab, so it lives in RootView.
+        if let results = results {
+            resultsScreen(results)
+        } else {
+            formScreen
         }
-        .preferredColorScheme(themeMode.colorScheme)
     }
 
     // MARK: Search form

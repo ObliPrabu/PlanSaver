@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
             var themeMode by rememberSaveable { mutableStateOf(ThemeMode.SYSTEM) }
             PlanSaverTheme(themeMode) {
                 Surface(Modifier.fillMaxSize()) {
-                    PlanSaverApp(RemotePlanRepository(BuildConfig.DEALS_URL), themeMode) { themeMode = it }
+                    AppShell(RemotePlanRepository(BuildConfig.DEALS_URL), CatalogRepository(BuildConfig.CATALOG_URL, applicationContext), themeMode) { themeMode = it }
                 }
             }
         }
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
 private val dataChoices = listOf("1-5 GB" to 5, "10 GB" to 10, "25 GB" to 25, "Unlimited" to null)
 
 @Composable
-fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: (ThemeMode) -> Unit) {
+fun PlanSaverApp(repo: PlanRepository) {
     var lines by rememberSaveable { mutableIntStateOf(1) }
     var dataIdx by rememberSaveable { mutableIntStateOf(3) }
     var customLines by rememberSaveable { mutableStateOf(false) }
@@ -104,7 +104,7 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
     BackHandler(enabled = resultsOpen) { results = null; resultsOpen = false }
 
     Box(Modifier.fillMaxSize()) {
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
         if (!resultsOpen) {
             Text("PlanSaver", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 16.dp, end = 72.dp))
@@ -337,28 +337,6 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
             }
         }
     }
-
-    // Dark mode toggle, top right - same corner/pill style as the BuddyVerse
-    // app's toggle, floating over the content instead of inline so it stays
-    // put while the form scrolls or the results screen is open. Cycles
-    // Auto -> Light -> Dark -> Auto (see Theme.kt's ThemeMode doc comment for
-    // why a manual override exists at all).
-    val (themeEmoji, themeLabel) = when (themeMode) {
-        ThemeMode.SYSTEM -> "🌓" to "Auto"
-        ThemeMode.LIGHT -> "☀️" to "Light"
-        ThemeMode.DARK -> "🌙" to "Dark"
-    }
-    AssistChip(
-        onClick = {
-            onThemeModeChange(when (themeMode) {
-                ThemeMode.SYSTEM -> ThemeMode.LIGHT
-                ThemeMode.LIGHT -> ThemeMode.DARK
-                ThemeMode.DARK -> ThemeMode.SYSTEM
-            })
-        },
-        label = { Text("$themeEmoji $themeLabel") },
-        modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(12.dp),
-    )
     }
 }
 

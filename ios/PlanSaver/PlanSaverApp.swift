@@ -10,6 +10,6 @@ struct PlanSaverApp: App {
     }
 
     var body: some Scene {
-        WindowGroup { ContentView().environment(\.sizeCategory, textSize) }
+        WindowGroup { RootView().environment(\.sizeCategory, textSize) }
     }
 }

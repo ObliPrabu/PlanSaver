@@ -3,7 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 PlanSaver compares US cell-phone plans (and phone deals) for a user's lines/data/budget. Android (Kotlin + Compose) in
-`app/`, iOS (SwiftUI, xcodegen) in `ios/`, plus a GitHub-Action "robot" that refreshes `deals-data/deals.json`.
+`app/`, iOS (SwiftUI, xcodegen) in `ios/`, plus GitHub-Action "robots" that refresh `deals-data/deals.json` (phone-plan deals) and
+`deals-data/catalog.json` (phones, cars, car insurers for the Insurance / Phones / Cars tabs).
 Package / bundle ID: `com.obliprabu.plansaver` (both platforms; not yet published anywhere - still changeable).
 Remote: `ObliPrabu/PlanSaver` on GitHub, currently PUBLIC (see "Deals pipeline" for why that matters). `NOTES.md` has the
 research sources and affiliate payout numbers.
@@ -22,6 +23,9 @@ iOS (`ios/project.yml` is the source of truth; `ios/PlanSaver.xcodeproj` is gene
   `xcrun devicectl device install app --device C13C4BB8-65E2-5CA7-BB9F-425747B421EE <PlanSaver.app>`.
 
 - Logic tests (no simulator, compiled for the Mac): `ios/run-logic-tests.sh` (`ios/LogicTests/main.swift` mirrors the Android unit tests).
+
+Catalog robot: `python3 tools/refresh_catalog.py [path/to/catalog.json]` (stdlib only; `CATALOG_LIMIT` entries per run, default 12, the ones checked
+longest ago; test against a COPY). Manual run: `gh workflow run catalog-robot.yml`.
 
 Deals robot: `python3 tools/refresh_deals.py [path/to/deals.json]` (stdlib only; takes ~1 min because it sleeps between
 requests - test against a COPY of the file, it rewrites in place). Manual workflow run: `gh workflow run deals-robot.yml`.
@@ -42,6 +46,17 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 - Do not invent facts: plan prices/deals come from third-party roundups, unverified against carrier sites - say so.
 
 ## Architecture
+
+Tabs (Android `AppShell` in CompareScreens.kt, iOS `RootView` in CompareViews.swift): Plans (the search flow below), Insurance, Phones,
+Cars. The dark-mode toggle floats over all tabs. `deals-data/catalog.json` is bundled in both apps (Android assets via
+`sourceSets`, iOS resource in project.yml) as an offline fallback and downloaded fresh when a tab opens (`CATALOG_URL` /
+`catalogURL`). It holds NAMES only; `tools/refresh_catalog.py` fills every number and the page it came from (`sources`) and the date
+(`updated`) - nothing is hand-researched, and the app shows "not found yet" for anything the robot has not found. Cars: fuel
+economy from the free official fueleconomy.gov API (one EPA trim per model, `epaModel`), price from the maker's page when it shows
+one. Phones: price only from a page that belongs to one phone; specs only from sentences naming that phone (maker pages,
+gsmarena/phonearena snippets). Insurers: only "average/median" sentences naming the current year, read from the pages listed in
+`insurancePages` (a single imagined-driver quote is rejected so figures stay comparable). Logic mirrored in Catalog.kt/Catalog.swift
+(compare rows, insurer sort), tested in `CatalogTest.kt`, `ios/LogicTests/main.swift` and `tools/test_refresh_catalog.py`.
 
 Search flow (identical on both platforms): `MainActivity.kt`/`ContentView.swift` build a `SearchRequest` -> 
 `RemotePlanRepository.search` (Android) / `PlanRepository.search` (iOS) -> results screen.
@@ -121,6 +136,10 @@ only works while the repo is PUBLIC; if made private, the app falls back to bund
   Verizon Unlimited Welcome $55 and Ultimate $85 (Droid Life, May 2026), AT&T Premium 2.0 $90, T-Mobile Experience Beyond $100. Sources
   disagree: Droid Life lists Verizon Unlimited Plus at $70 but the plan already in the app says $80 (left as is - check on verizon.com).
   Helium Mobile, Red Pocket and Ultra Mobile were skipped: only weak or marketing sources.
+- Phones/Cars/Insurance tabs (2026-10-23, UNCOMMITTED): built and compiled on both platforms; the catalog starts EMPTY of numbers and fills as
+  `.github/workflows/catalog-robot.yml` runs (separate from the deals robot; asks for every 30 min, GitHub runs it less often). Local
+  test runs found EPA fuel economy for all tested cars, Samsung Galaxy S26 price, and several insurer averages; search engines
+  often block (DuckDuckGo 202) and many maker sites return 403, so prices will fill slowly. Not yet checked on a device.
 - Known issues not fixed: Mint's site returns 403 to scripts (bot protection - not bypassed), so its deal only updates from
   search snippets; multi-line prices are still mostly 1-line x lines (needs research per plan); prices are unverified;
   extra plan data (hotspot, roaming, perks) is not in the app because it would have to be researched; layout at the larger text sizes and Android

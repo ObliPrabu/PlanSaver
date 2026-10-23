@@ -16,7 +16,12 @@ android {
         versionName = "0.2.3"
         // Hosted deals.json (refreshed by .github/workflows/deals-robot.yml). Needs the repo PUBLIC; if it is private the app quietly falls back to bundled deals.
         buildConfigField("String", "DEALS_URL", "\"https://raw.githubusercontent.com/ObliPrabu/PlanSaver/main/deals-data/deals.json\"")
+        // Hosted catalog.json (phones, cars, insurers; refreshed by .github/workflows/catalog-robot.yml); the app also bundles a copy.
+        buildConfigField("String", "CATALOG_URL", "\"https://raw.githubusercontent.com/ObliPrabu/PlanSaver/main/deals-data/catalog.json\"")
     }
+
+    // One catalog.json for the robot, the repo and the app: bundle the deals-data folder as assets (offline fallback).
+    sourceSets { getByName("main") { assets.srcDir("../deals-data") } }
 
     buildFeatures {
         compose = true
@@ -43,4 +48,5 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.material3)
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20231013") // Android's org.json is a stub in plain JVM unit tests
 }

@@ -1,0 +1,231 @@
+{
+  "updated": "",
+  "note": "Names only. tools/refresh_catalog.py fills every number (with its source and date); nothing here is hand-researched.",
+  "phones": [
+    {
+      "id": "iphone-17",
+      "name": "iPhone 17",
+      "brand": "Apple",
+      "url": "https://www.apple.com/iphone-17/"
+    },
+    {
+      "id": "iphone-17-pro",
+      "name": "iPhone 17 Pro",
+      "brand": "Apple",
+      "url": "https://www.apple.com/iphone-17-pro/"
+    },
+    {
+      "id": "iphone-air",
+      "name": "iPhone Air",
+      "brand": "Apple",
+      "url": "https://www.apple.com/iphone-air/"
+    },
+    {
+      "id": "iphone-16e",
+      "name": "iPhone 16e",
+      "brand": "Apple",
+      "url": "https://www.apple.com/iphone-16e/"
+    },
+    {
+      "id": "galaxy-s26",
+      "name": "Galaxy S26",
+      "brand": "Samsung",
+      "url": "https://www.samsung.com/us/smartphones/galaxy-s26/"
+    },
+    {
+      "id": "galaxy-s26-plus",
+      "name": "Galaxy S26+",
+      "brand": "Samsung",
+      "url": "https://www.samsung.com/us/smartphones/galaxy-s26-plus/"
+    },
+    {
+      "id": "galaxy-s26-ultra",
+      "name": "Galaxy S26 Ultra",
+      "brand": "Samsung",
+      "url": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/"
+    },
+    {
+      "id": "pixel-10",
+      "name": "Pixel 10",
+      "brand": "Google",
+      "url": "https://store.google.com/product/pixel_10"
+    },
+    {
+      "id": "pixel-10-pro",
+      "name": "Pixel 10 Pro",
+      "brand": "Google",
+      "url": "https://store.google.com/product/pixel_10_pro"
+    },
+    {
+      "id": "pixel-10-pro-xl",
+      "name": "Pixel 10 Pro XL",
+      "brand": "Google",
+      "url": "https://store.google.com/product/pixel_10_pro_xl"
+    },
+    {
+      "id": "pixel-10a",
+      "name": "Pixel 10a",
+      "brand": "Google",
+      "url": "https://store.google.com/product/pixel_10a"
+    }
+  ],
+  "cars": [
+    {
+      "id": "toyota-corolla",
+      "name": "Toyota Corolla",
+      "make": "Toyota",
+      "epaModel": "Corolla",
+      "url": "https://www.toyota.com/corolla/"
+    },
+    {
+      "id": "toyota-camry",
+      "name": "Toyota Camry",
+      "make": "Toyota",
+      "epaModel": "Camry HEV FF LE",
+      "url": "https://www.toyota.com/camry/"
+    },
+    {
+      "id": "toyota-rav4",
+      "name": "Toyota RAV4",
+      "make": "Toyota",
+      "epaModel": "RAV4",
+      "url": "https://www.toyota.com/rav4/"
+    },
+    {
+      "id": "honda-civic",
+      "name": "Honda Civic",
+      "make": "Honda",
+      "epaModel": "Civic 4Dr",
+      "url": "https://automobiles.honda.com/civic-sedan"
+    },
+    {
+      "id": "honda-accord",
+      "name": "Honda Accord",
+      "make": "Honda",
+      "epaModel": "Accord",
+      "url": "https://automobiles.honda.com/accord"
+    },
+    {
+      "id": "honda-crv",
+      "name": "Honda CR-V",
+      "make": "Honda",
+      "epaModel": "CR-V FWD",
+      "url": "https://automobiles.honda.com/cr-v"
+    },
+    {
+      "id": "tesla-model-3",
+      "name": "Tesla Model 3",
+      "make": "Tesla",
+      "epaModel": "Model 3 Standard RWD",
+      "url": "https://www.tesla.com/model3"
+    },
+    {
+      "id": "tesla-model-y",
+      "name": "Tesla Model Y",
+      "make": "Tesla",
+      "epaModel": "Model Y Standard RWD (19in Wheels)",
+      "url": "https://www.tesla.com/modely"
+    },
+    {
+      "id": "ford-f150",
+      "name": "Ford F-150",
+      "make": "Ford",
+      "epaModel": "F150 Pickup 2WD",
+      "url": "https://www.ford.com/trucks/f150/"
+    },
+    {
+      "id": "ford-maverick",
+      "name": "Ford Maverick",
+      "make": "Ford",
+      "epaModel": "Maverick FWD",
+      "url": "https://www.ford.com/trucks/maverick/"
+    },
+    {
+      "id": "hyundai-elantra",
+      "name": "Hyundai Elantra",
+      "make": "Hyundai",
+      "epaModel": "Elantra",
+      "url": "https://www.hyundaiusa.com/us/en/vehicles/elantra"
+    },
+    {
+      "id": "hyundai-ioniq-5",
+      "name": "Hyundai Ioniq 5",
+      "make": "Hyundai",
+      "epaModel": "Ioniq 5 RWD",
+      "url": "https://www.hyundaiusa.com/us/en/vehicles/ioniq-5"
+    },
+    {
+      "id": "subaru-outback",
+      "name": "Subaru Outback",
+      "make": "Subaru",
+      "epaModel": "Outback AWD",
+      "url": "https://www.subaru.com/vehicles/outback/index.html"
+    },
+    {
+      "id": "chevrolet-equinox",
+      "name": "Chevrolet Equinox",
+      "make": "Chevrolet",
+      "epaModel": "Equinox FWD",
+      "url": "https://www.chevrolet.com/suvs/equinox"
+    },
+    {
+      "id": "kia-sportage",
+      "name": "Kia Sportage",
+      "make": "Kia",
+      "epaModel": "Sportage FWD",
+      "url": "https://www.kia.com/us/en/sportage"
+    }
+  ],
+  "insurers": [
+    {
+      "id": "state-farm",
+      "name": "State Farm",
+      "url": "https://www.statefarm.com/insurance/auto"
+    },
+    {
+      "id": "geico",
+      "name": "GEICO",
+      "url": "https://www.geico.com/auto-insurance/"
+    },
+    {
+      "id": "progressive",
+      "name": "Progressive",
+      "url": "https://www.progressive.com/auto/"
+    },
+    {
+      "id": "allstate",
+      "name": "Allstate",
+      "url": "https://www.allstate.com/auto-insurance"
+    },
+    {
+      "id": "nationwide",
+      "name": "Nationwide",
+      "url": "https://www.nationwide.com/personal/insurance/auto/"
+    },
+    {
+      "id": "farmers",
+      "name": "Farmers",
+      "url": "https://www.farmers.com/auto/"
+    },
+    {
+      "id": "liberty-mutual",
+      "name": "Liberty Mutual",
+      "url": "https://www.libertymutual.com/auto-insurance"
+    },
+    {
+      "id": "travelers",
+      "name": "Travelers",
+      "url": "https://www.travelers.com/car-insurance"
+    },
+    {
+      "id": "american-family",
+      "name": "American Family",
+      "url": "https://www.amfam.com/insurance/car"
+    }
+  ],
+  "insurancePages": [
+    "https://www.nerdwallet.com/insurance/auto/cheapest-car-insurance",
+    "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026",
+    "https://www.autoinsurance.org/what-is-the-auto-insurance-average-for-monthly-costs"
+  ]
+}

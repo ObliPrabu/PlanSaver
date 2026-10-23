@@ -12,6 +12,7 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: PlanSaver
+      - path: ../deals-data/catalog.json # bundled copy: offline fallback for the Insurance/Phones/Cars tabs
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.obliprabu.plansaver
