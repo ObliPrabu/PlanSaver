@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// Content never gets wider than this, so text and cards stay readable on a big screen (an iPad).
+let contentMaxWidth: CGFloat = 720
+
 /// Four tabs around the app; the dark-mode toggle floats over all of them (same pill as Android's ThemeChip).
 struct RootView: View {
     @State private var themeMode: ThemeMode = .system
@@ -42,7 +45,10 @@ private struct Frame<Content: View>: View {
                 Text(title).font(.largeTitle).bold().padding(.trailing, 80)
                 Text(subtitle).font(.subheadline)
                 content
-            }.padding(16)
+            }
+            .padding(16)
+            .frame(maxWidth: contentMaxWidth) // readable width on an iPad; iPhones are narrower, so nothing changes
+            .frame(maxWidth: .infinity)
         }
     }
 }

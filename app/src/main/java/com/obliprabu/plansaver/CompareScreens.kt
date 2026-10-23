@@ -21,15 +21,21 @@ import java.util.Locale
 
 private val tabs = listOf("Plans" to "📶", "Insurance" to "🛡️", "Phones" to "📱", "Cars" to "🚗")
 
-/** Bottom tab bar around the four sections; each tab keeps its own form state while you visit another one. */
+/** Screens at least this wide (tablet, unfolded foldable) get a side navigation rail instead of the bottom tab bar. */
+private val WIDE_SCREEN = 600.dp
+
+/** Content never gets wider than this, so lines of text and cards stay readable on a big screen. Phones are narrower, so it changes nothing there. */
+val ContentMaxWidth = 720.dp
+
+/** Tab navigation around the four sections (bottom bar on phones, side rail on wide screens); each tab keeps its own form state while you visit another one. */
 @Composable
 fun AppShell(repo: PlanRepository, catalogRepo: CatalogRepository, themeMode: ThemeMode, onThemeModeChange: (ThemeMode) -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val holder = rememberSaveableStateHolder()
     var catalogKey by remember { mutableIntStateOf(0) } // bumped by the Insurance search button to download the catalog again
     val catalog by produceState<Catalog?>(null, catalogKey) { value = null; value = catalogRepo.load() }
-    Column(Modifier.fillMaxSize()) {
-        Box(Modifier.weight(1f)) {
+    val content: @Composable () -> Unit = {
+        Box(Modifier.fillMaxSize()) {
             holder.SaveableStateProvider(tab) {
                 when (tab) {
                     0 -> PlanSaverApp(repo)
@@ -40,9 +46,27 @@ fun AppShell(repo: PlanRepository, catalogRepo: CatalogRepository, themeMode: Th
             }
             ThemeChip(themeMode, onThemeModeChange, Modifier.align(Alignment.TopEnd))
         }
-        NavigationBar {
-            tabs.forEachIndexed { i, (label, emoji) ->
-                NavigationBarItem(selected = tab == i, onClick = { tab = i }, icon = { Text(emoji) }, label = { Text(label) })
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (maxWidth >= WIDE_SCREEN) {
+            Row(Modifier.fillMaxSize()) {
+                NavigationRail {
+                    Spacer(Modifier.weight(1f))
+                    tabs.forEachIndexed { i, (label, emoji) ->
+                        NavigationRailItem(selected = tab == i, onClick = { tab = i }, icon = { Text(emoji) }, label = { Text(label) })
+                    }
+                    Spacer(Modifier.weight(1f))
+                }
+                Box(Modifier.weight(1f).fillMaxHeight()) { content() }
+            }
+        } else {
+            Column(Modifier.fillMaxSize()) {
+                Box(Modifier.weight(1f)) { content() }
+                NavigationBar {
+                    tabs.forEachIndexed { i, (label, emoji) ->
+                        NavigationBarItem(selected = tab == i, onClick = { tab = i }, icon = { Text(emoji) }, label = { Text(label) })
+                    }
+                }
             }
         }
     }
@@ -71,11 +95,13 @@ fun ThemeChip(themeMode: ThemeMode, onChange: (ThemeMode) -> Unit, modifier: Mod
 
 @Composable
 private fun ScreenFrame(title: String, subtitle: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(Modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 16.dp, end = 72.dp))
-        Text(subtitle, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), content = content)
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Column(Modifier.widthIn(max = ContentMaxWidth).fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
+            Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 16.dp, end = 72.dp))
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), content = content)
+        }
     }
 }
 

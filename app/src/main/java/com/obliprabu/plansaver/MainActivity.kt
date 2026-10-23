@@ -103,8 +103,9 @@ fun PlanSaverApp(repo: PlanRepository) {
     // Two screens: the search form, and the results. Back from results returns to the form.
     BackHandler(enabled = resultsOpen) { results = null; resultsOpen = false }
 
-    Box(Modifier.fillMaxSize()) {
-    Column(Modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+    // Wider than ContentMaxWidth (a tablet or unfolded foldable): keep the content a readable width, centered. Phones are narrower, so nothing changes.
+    Column(Modifier.widthIn(max = ContentMaxWidth).fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
         if (!resultsOpen) {
             Text("PlanSaver", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 16.dp, end = 72.dp))

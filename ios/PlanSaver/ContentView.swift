@@ -132,6 +132,8 @@ struct ContentView: View {
                     if loading { ProgressView() }
                 }
                 .padding(16)
+                .frame(maxWidth: contentMaxWidth) // readable width on an iPad; iPhones are narrower, so nothing changes
+                .frame(maxWidth: .infinity)
             }
             Text(versionLabel).font(.caption2).foregroundColor(.secondary).padding(8)
         }
@@ -300,7 +302,10 @@ struct ContentView: View {
                     }
                     Text("Prices researched Oct 2026 from third-party roundups, not checked with the carriers, and may have changed - confirm on the carrier's site. PlanSaver may earn a commission if you sign up through a link.")
                         .font(.footnote).padding(.vertical, 16)
-                }.padding(.horizontal, 16)
+                }
+                .padding(.horizontal, 16)
+                .frame(maxWidth: contentMaxWidth)
+                .frame(maxWidth: .infinity)
             }
         }
     }
