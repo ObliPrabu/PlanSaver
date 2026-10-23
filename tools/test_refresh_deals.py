@@ -94,3 +94,9 @@ class FragmentTests(unittest.TestCase):
     def test_no_activation_fee_needs_the_words_close_together(self):
         self.assertEqual(0.0, r.activation_amount("Plus no upgrade or activation fees whenever you get a new device!"))
         self.assertIsNone(r.activation_amount("There is no waiver of anything. Ask about the connection process."))
+
+
+class IgnoreTests(unittest.TestCase):
+    def test_ignored_kinds_are_skipped_in_main(self):
+        src = open(r.__file__).read()
+        self.assertIn('entry.get("ignore", [])', src)

@@ -275,10 +275,13 @@ struct ContentView: View {
                         Text("Phone: \(phone). Carriers below advertise phone deals, but whether \(phone) is covered varies by carrier and changes weekly - confirm on their site.")
                             .font(.footnote)
                     }
-                    Picker("Sort", selection: $sortByData) {
-                        Text("Lowest price").tag(false)
-                        Text("Most data").tag(true)
-                    }.pickerStyle(SegmentedPickerStyle())
+                    // With every plan on the same data (e.g. only unlimited plans), "Most data" would look identical to "Lowest price".
+                    if Set(list.map { $0.plan.dataGb }).count > 1 {
+                        Picker("Sort", selection: $sortByData) {
+                            Text("Lowest price").tag(false)
+                            Text("Most data").tag(true)
+                        }.pickerStyle(SegmentedPickerStyle())
+                    }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             Text("Filter:").font(.footnote)

@@ -374,6 +374,8 @@ def main():
         else:
             print("  no multi-line price found")
         for kind in EXTRAS:
+            if kind in entry.get("ignore", []):
+                continue  # owner removed this note as unreliable; do not bring it back
             extra = best_extra(kind, found)
             if extra:
                 changed |= update_extra(entry, kind, extra)

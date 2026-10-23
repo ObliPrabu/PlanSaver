@@ -288,8 +288,9 @@ fun PlanSaverApp(repo: PlanRepository, themeMode: ThemeMode, onThemeModeChange: 
                 }
                 if (lineCount > 4) Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.",
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 8.dp)) {
+                // With every plan on the same data (e.g. only unlimited plans), "Most data" would look identical to "Lowest price".
+                if (list.map { it.plan.dataGb }.distinct().size > 1) Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
                     Text("Sort:")
                     FilterChip(selected = !sortByData, onClick = { sortByData = false }, label = { Text("Lowest price") })
                     FilterChip(selected = sortByData, onClick = { sortByData = true }, label = { Text("Most data") })

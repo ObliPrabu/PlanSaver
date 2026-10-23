@@ -18,14 +18,9 @@
         "activation": {
           "text": "$35 device connection charge due at sale.",
           "updated": "2026-10-18"
-        },
-        "tradein": {
-          "text": "Save up to $1200 when you add a line or trade in an eligible device on an Experience More or Experience Beyond plan.",
-          "updated": "2026-10-22"
         }
       },
-      "activationFee": 35.0,
-      "tradeInMax": 1200.0
+      "activationFee": 35.0
     },
     {
       "carrier": "Verizon",
@@ -38,16 +33,14 @@
           "text": "International Travel Keep connected in over 140 countries with International Data while traveling outside the US. View the list of \u2026",
           "updated": "2026-10-18"
         },
-        "activation": {
-          "text": "The $35.00 activation fee and the taxes for the device are separate charges. Our free devices are credited monthly, so as long as you qualified for the promotion, you'll see a credit to offset the charge.",
-          "updated": "2026-10-23"
-        },
         "hotspot": {
           "text": "Get Unlimited Plus 5G or an Unlimited data plan for your hotspot or jetpack. Ditch Wi-Fi and get connected with a low monthly plan for connected devices from Verizon .",
           "updated": "2026-10-23"
         }
       },
-      "activationFee": 35.0
+      "ignore": [
+        "activation"
+      ]
     },
     {
       "carrier": "AT&T",
@@ -63,16 +56,12 @@
         "international": {
           "text": "For long stays Monthly international plan Get unlimited talk and text, plus 22GB of data in over 210 destinations for a flat $110/month fee.",
           "updated": "2026-10-19"
-        },
-        "activation": {
-          "text": "Activation Fee: $35-Waived.**Return:**Return w/in 90 days. Restocking fee up to $55 may apply. Bill Credits: Credits start w/in 3 \u2026",
-          "updated": "2026-10-22"
-        },
-        "tradein": {
-          "text": "Shop all iPhone deals to see trade-in offers that could get you a new iPhone for $0.",
-          "updated": "2026-10-22"
         }
-      }
+      },
+      "ignore": [
+        "activation",
+        "tradein"
+      ]
     },
     {
       "carrier": "Mint Mobile",
@@ -115,7 +104,10 @@
           "text": "After 2 GB/day of data, speeds reduced to 3G.",
           "updated": "2026-10-18"
         }
-      }
+      },
+      "plans": [
+        "Visible+"
+      ]
     },
     {
       "carrier": "Total Wireless",
