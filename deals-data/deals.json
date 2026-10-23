@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-22",
+  "updated": "2026-10-23",
   "deals": [
     {
       "carrier": "T-Mobile",
@@ -41,6 +41,10 @@
         "activation": {
           "text": "Plus no upgrade or activation fees whenever you get a new device!",
           "updated": "2026-10-22"
+        },
+        "hotspot": {
+          "text": "Get Unlimited Plus 5G or an Unlimited data plan for your hotspot or jetpack. Ditch Wi-Fi and get connected with a low monthly plan for connected devices from Verizon .",
+          "updated": "2026-10-23"
         }
       },
       "activationFee": 0.0
