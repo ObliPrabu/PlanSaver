@@ -7,9 +7,18 @@
       "name": "iPhone 17",
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-17/",
-      "sources": {},
+      "sources": {
+        "display": "https://www.apple.com/iphone-17/",
+        "batteryMah": "https://www.gsmarena.com/apple_iphone_17-14050.php",
+        "chip": "https://www.gsmarena.com/apple_iphone_17-14050.php",
+        "storage": "https://www.gsmarena.com/apple_iphone_17-14050.php"
+      },
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-23",
+      "display": 6.9,
+      "batteryMah": 3692,
+      "chip": "A19",
+      "storage": "512GB"
     },
     {
       "id": "iphone-17-pro",
@@ -474,61 +483,139 @@
       "name": "Chevrolet Equinox",
       "make": "Chevrolet",
       "epaModel": "Equinox FWD",
-      "url": "https://www.chevrolet.com/suvs/equinox"
+      "url": "https://www.chevrolet.com/suvs/equinox",
+      "mpgCombined": 27,
+      "sources": {
+        "mpgCombined": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49442",
+        "mpgCity": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49442",
+        "mpgHighway": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49442",
+        "mpgUnit": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49442",
+        "fuelType": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49442",
+        "bodyType": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49442",
+        "annualFuelCost": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49442",
+        "modelYear": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49442",
+        "price": "https://www.chevrolet.com/suvs/equinox"
+      },
+      "mpgCity": 26,
+      "mpgHighway": 29,
+      "mpgUnit": "MPG",
+      "fuelType": "Regular",
+      "bodyType": "Small Sport Utility Vehicle 2WD",
+      "annualFuelCost": 2400,
+      "modelYear": 2026,
+      "price": 32400.0,
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "kia-sportage",
       "name": "Kia Sportage",
       "make": "Kia",
       "epaModel": "Sportage FWD",
-      "url": "https://www.kia.com/us/en/sportage"
+      "url": "https://www.kia.com/us/en/sportage",
+      "mpgCombined": 28,
+      "sources": {
+        "mpgCombined": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49455",
+        "mpgCity": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49455",
+        "mpgHighway": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49455",
+        "mpgUnit": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49455",
+        "fuelType": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49455",
+        "bodyType": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49455",
+        "annualFuelCost": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49455",
+        "modelYear": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49455"
+      },
+      "mpgCity": 25,
+      "mpgHighway": 33,
+      "mpgUnit": "MPG",
+      "fuelType": "Regular",
+      "bodyType": "Small Sport Utility Vehicle 2WD",
+      "annualFuelCost": 2300,
+      "modelYear": 2026,
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     }
   ],
   "insurers": [
     {
       "id": "state-farm",
       "name": "State Farm",
-      "url": "https://www.statefarm.com/insurance/auto"
+      "url": "https://www.statefarm.com/insurance/auto",
+      "fullMonthly": 103.0,
+      "sources": {
+        "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
+      },
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "geico",
       "name": "GEICO",
-      "url": "https://www.geico.com/auto-insurance/"
+      "url": "https://www.geico.com/auto-insurance/",
+      "minMonthly": 41.0,
+      "sources": {
+        "minMonthly": "https://www.nerdwallet.com/insurance/auto/cheapest-car-insurance",
+        "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
+      },
+      "fullMonthly": 143.0,
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "progressive",
       "name": "Progressive",
-      "url": "https://www.progressive.com/auto/"
+      "url": "https://www.progressive.com/auto/",
+      "fullMonthly": 136.0,
+      "sources": {
+        "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
+      },
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "allstate",
       "name": "Allstate",
-      "url": "https://www.allstate.com/auto-insurance"
+      "url": "https://www.allstate.com/auto-insurance",
+      "fullMonthly": 159.0,
+      "sources": {
+        "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
+      },
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "nationwide",
       "name": "Nationwide",
-      "url": "https://www.nationwide.com/personal/insurance/auto/"
+      "url": "https://www.nationwide.com/personal/insurance/auto/",
+      "checked": "2026-10-23"
     },
     {
       "id": "farmers",
       "name": "Farmers",
-      "url": "https://www.farmers.com/auto/"
+      "url": "https://www.farmers.com/auto/",
+      "checked": "2026-10-23"
     },
     {
       "id": "liberty-mutual",
       "name": "Liberty Mutual",
-      "url": "https://www.libertymutual.com/auto-insurance"
+      "url": "https://www.libertymutual.com/auto-insurance",
+      "checked": "2026-10-23"
     },
     {
       "id": "travelers",
       "name": "Travelers",
-      "url": "https://www.travelers.com/car-insurance"
+      "url": "https://www.travelers.com/car-insurance",
+      "fullMonthly": 138.0,
+      "sources": {
+        "fullMonthly": "https://www.nerdwallet.com/insurance/auto/cheapest-car-insurance"
+      },
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "american-family",
       "name": "American Family",
-      "url": "https://www.amfam.com/insurance/car"
+      "url": "https://www.amfam.com/insurance/car",
+      "checked": "2026-10-23"
     }
   ],
   "insurancePages": [
