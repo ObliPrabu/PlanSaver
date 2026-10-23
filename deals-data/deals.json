@@ -18,9 +18,14 @@
         "activation": {
           "text": "$35 device connection charge due at sale.",
           "updated": "2026-10-18"
+        },
+        "tradein": {
+          "text": "Save up to $1200 when you add a line or trade in an eligible device on an Experience More or Experience Beyond plan.",
+          "updated": "2026-10-23"
         }
       },
-      "activationFee": 35.0
+      "activationFee": 35.0,
+      "tradeInMax": 1200.0
     },
     {
       "carrier": "Verizon",
