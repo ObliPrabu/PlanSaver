@@ -217,12 +217,15 @@ def money(s):
 
 def activation_amount(text):
     """The activation fee in dollars when the sentence names exactly one amount, 0 for 'no/free/waived' with no amount, else None."""
-    amounts = {money(m) for m in DOLLARS.findall(text)}
-    if len(amounts) == 1:
-        return amounts.pop()
-    if not amounts and re.search(r"\b(no|free|waive\w*|zero)\b[^.]{0,30}\b(activation|connection)\b", text, re.I):
-        return 0.0
-    return None
+    if re.search(r"\b(no|free|waive\w*|zero)\b[^.]{0,30}\b(activation|connection)\b", text, re.I):
+        return 0.0  # checked first: "$40 plan. No activation fees!" is a free activation, not a $40 one
+    # Only dollar amounts right next to the words count: up to 15 characters before ("$35 activation fee") or 40 after.
+    amounts = set()
+    for m in re.finditer(r"\b(?:activation|connection)\b", text, re.I):
+        before = re.split(r"[.!?]", text[max(0, m.start() - 15):m.start()])[-1]  # stay inside this sentence
+        after = re.split(r"[.!?]", text[m.end():m.end() + 40])[0]
+        amounts |= {money(x) for x in DOLLARS.findall(before + " " + after)}
+    return amounts.pop() if len(amounts) == 1 else None
 
 
 def trade_in_max(text):

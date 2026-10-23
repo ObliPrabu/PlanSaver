@@ -100,3 +100,11 @@ class IgnoreTests(unittest.TestCase):
     def test_ignored_kinds_are_skipped_in_main(self):
         src = open(r.__file__).read()
         self.assertIn('entry.get("ignore", [])', src)
+
+
+class ActivationNearTests(unittest.TestCase):
+    def test_plan_price_is_not_the_fee(self):
+        text = "Get unlimited data for $40. Covered by the Verizon 5G network. No activation fees !"
+        self.assertEqual(0.0, r.activation_amount(text))
+        self.assertIsNone(r.activation_amount("Unlimited data for $40 a month. Taxes apply."))
+        self.assertEqual(35.0, r.activation_amount("Unlimited for $40. A $35 activation fee applies."))
