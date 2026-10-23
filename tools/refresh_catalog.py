@@ -63,16 +63,14 @@ CHIP = re.compile(r"\b(A\d{2}(?: Pro| Bionic)?|Snapdragon 8 (?:Elite|Gen \d)(?: 
 STORAGE = re.compile(r"\b(\d{1,4})\s?(GB|TB)\b")
 
 
-def mentions(sentence, name, all_names):
-    """True when the sentence names this phone, not only a longer phone whose name starts with it (a sentence about the
-    'iPhone 17 Pro' is not a sentence about the 'iPhone 17')."""
-    low = sentence.lower()
-    longer = [n.lower() for n in all_names if n != name and n.lower().startswith(name.lower())]
-    for m in re.finditer(re.escape(name.lower()), low):
-        tail = low[m.start():]
-        if not any(tail.startswith(n) for n in longer):
-            return True
-    return False
+# A model name followed by one of these is a different phone (iPhone 17 -> iPhone 17 Pro, Pixel 10 -> Pixel 10a), even when
+# that other phone is not in the catalog.
+VARIANT_AFTER = r"(?!\s?(?:(?:pro|max|plus|ultra|air|xl|fold|mini|edge|fe)\b|[ea]\b|\+))"
+
+
+def mentions(sentence, name, all_names=()):
+    """True when the sentence names exactly this phone - not a longer variant of it ("iPhone 17 Pro Max" is not "iPhone 17")."""
+    return bool(re.search(r"(?<![a-z0-9])" + re.escape(name.lower()) + VARIANT_AFTER, sentence.lower()))
 
 
 def specs_from_sentences(sentences):
@@ -118,14 +116,16 @@ def refresh_phone(entry, all_names, shared_page=False):
             if price:
                 found["price"], sources["price"] = price, entry["url"]
         for s in rd.sentences(page):
-            if mentions(s, entry["name"], all_names):  # specs only from sentences that name this phone
+            # specs only from sentences that name this phone and no other catalog phone (comparisons mix numbers up)
+            if mentions(s, entry["name"], all_names) and not any(mentions(s, n) for n in all_names if n != entry["name"]):
                 sentences.append((s, entry["url"]))
     except Exception as e:
         print(f"  page failed: {e}")
     time.sleep(PAUSE)
     for url, snippet in rd.search(f"{entry['name']} specs display battery chip storage"):
         host_ok = rd.same_site(url, entry["url"]) or any(rd.domain(url).endswith(d) for d in SPEC_SITES)
-        if host_ok and url.startswith("https://") and mentions(snippet, entry["name"], all_names):
+        if host_ok and url.startswith("https://") and mentions(snippet, entry["name"], all_names) \
+                and not any(mentions(snippet, n) for n in all_names if n != entry["name"]):
             sentences.append((rd.tidy(snippet), url))
     for field, value in specs_from_sentences([s for s, _ in sentences]).items():
         found[field] = value

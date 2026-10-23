@@ -90,3 +90,14 @@ class InsurerPageTests(unittest.TestCase):
         found, sources = c.refresh_insurer({"name": "GEICO"}, ["u"])
         self.assertEqual({"fullMonthly": 143.0}, found)
         self.assertEqual({"fullMonthly": "u"}, sources)
+
+
+class VariantTests(unittest.TestCase):
+    def test_variants_outside_the_catalog_are_still_other_phones(self):
+        self.assertFalse(c.mentions("The iPhone 17 Pro Max has a 6.9-inch display.", "iPhone 17"))
+        self.assertFalse(c.mentions("The iPhone 17 Pro Max has a 6.9-inch display.", "iPhone 17 Pro"))
+        self.assertFalse(c.mentions("The Pixel 10a has a 6.3-inch display.", "Pixel 10"))
+        self.assertFalse(c.mentions("The Galaxy S26+ has a 6.7-inch display.", "Galaxy S26"))
+        self.assertTrue(c.mentions("The iPhone 17 has a 6.3-inch display.", "iPhone 17"))
+        self.assertTrue(c.mentions("The Galaxy S26+ has a 6.7-inch display.", "Galaxy S26+"))
+        self.assertTrue(c.mentions("Pixel 10 Pro XL: 6.8-inch.", "Pixel 10 Pro XL"))

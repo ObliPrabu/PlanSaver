@@ -7,10 +7,7 @@
       "name": "iPhone 17",
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-17/",
-      "display": 6.9,
-      "sources": {
-        "display": "https://www.apple.com/iphone-17/"
-      },
+      "sources": {},
       "updated": "2026-10-23",
       "checked": "2026-10-23"
     },
@@ -53,11 +50,9 @@
       "sources": {
         "price": "https://www.samsung.com/us/smartphones/galaxy-s26/",
         "display": "https://www.samsung.com/us/smartphones/galaxy-s26/",
-        "batteryMah": "https://www.samsung.com/us/smartphones/galaxy-s26/",
         "storage": "https://www.samsung.com/us/smartphones/galaxy-s26/"
       },
       "display": 6.3,
-      "batteryMah": 4175,
       "storage": "256GB, 512GB",
       "updated": "2026-10-23",
       "checked": "2026-10-23"
@@ -78,11 +73,9 @@
       "sources": {
         "price": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
         "display": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
-        "batteryMah": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
         "storage": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/"
       },
       "display": 6.9,
-      "batteryMah": 4175,
       "storage": "256GB, 512GB, 1TB",
       "updated": "2026-10-23",
       "checked": "2026-10-23"
