@@ -1,72 +1,119 @@
 {
-  "updated": "",
+  "updated": "2026-10-23",
   "note": "Names only. tools/refresh_catalog.py fills every number (with its source and date); nothing here is hand-researched.",
   "phones": [
     {
       "id": "iphone-17",
       "name": "iPhone 17",
       "brand": "Apple",
-      "url": "https://www.apple.com/iphone-17/"
+      "url": "https://www.apple.com/iphone-17/",
+      "display": 6.9,
+      "sources": {
+        "display": "https://www.apple.com/iphone-17/"
+      },
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "iphone-17-pro",
       "name": "iPhone 17 Pro",
       "brand": "Apple",
-      "url": "https://www.apple.com/iphone-17-pro/"
+      "url": "https://www.apple.com/iphone-17-pro/",
+      "checked": "2026-10-23"
     },
     {
       "id": "iphone-air",
       "name": "iPhone Air",
       "brand": "Apple",
-      "url": "https://www.apple.com/iphone-air/"
+      "url": "https://www.apple.com/iphone-air/",
+      "chip": "A19 Pro",
+      "sources": {
+        "chip": "https://www.apple.com/iphone-air/",
+        "display": "https://www.apple.com/iphone-air/",
+        "storage": "https://www.apple.com/iphone-air/"
+      },
+      "display": 6.5,
+      "storage": "256GB, 512GB, 1TB",
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "iphone-16e",
       "name": "iPhone 16e",
       "brand": "Apple",
-      "url": "https://www.apple.com/iphone-16e/"
+      "url": "https://www.apple.com/iphone-16e/",
+      "checked": "2026-10-23"
     },
     {
       "id": "galaxy-s26",
       "name": "Galaxy S26",
       "brand": "Samsung",
-      "url": "https://www.samsung.com/us/smartphones/galaxy-s26/"
+      "url": "https://www.samsung.com/us/smartphones/galaxy-s26/",
+      "price": 899.99,
+      "sources": {
+        "price": "https://www.samsung.com/us/smartphones/galaxy-s26/",
+        "display": "https://www.samsung.com/us/smartphones/galaxy-s26/",
+        "batteryMah": "https://www.samsung.com/us/smartphones/galaxy-s26/",
+        "storage": "https://www.samsung.com/us/smartphones/galaxy-s26/"
+      },
+      "display": 6.3,
+      "batteryMah": 4175,
+      "storage": "256GB, 512GB",
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "galaxy-s26-plus",
       "name": "Galaxy S26+",
       "brand": "Samsung",
-      "url": "https://www.samsung.com/us/smartphones/galaxy-s26-plus/"
+      "url": "https://www.samsung.com/us/smartphones/galaxy-s26-plus/",
+      "checked": "2026-10-23"
     },
     {
       "id": "galaxy-s26-ultra",
       "name": "Galaxy S26 Ultra",
       "brand": "Samsung",
-      "url": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/"
+      "url": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
+      "price": 1299.99,
+      "sources": {
+        "price": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
+        "display": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
+        "batteryMah": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
+        "storage": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/"
+      },
+      "display": 6.9,
+      "batteryMah": 4175,
+      "storage": "256GB, 512GB, 1TB",
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "pixel-10",
       "name": "Pixel 10",
       "brand": "Google",
-      "url": "https://store.google.com/product/pixel_10"
+      "url": "https://store.google.com/product/pixel_10",
+      "checked": "2026-10-23"
     },
     {
       "id": "pixel-10-pro",
       "name": "Pixel 10 Pro",
       "brand": "Google",
-      "url": "https://store.google.com/product/pixel_10_pro"
+      "url": "https://store.google.com/product/pixel_10_pro",
+      "checked": "2026-10-23"
     },
     {
       "id": "pixel-10-pro-xl",
       "name": "Pixel 10 Pro XL",
       "brand": "Google",
-      "url": "https://store.google.com/product/pixel_10_pro_xl"
+      "url": "https://store.google.com/product/pixel_10_pro_xl",
+      "checked": "2026-10-23"
     },
     {
       "id": "pixel-10a",
       "name": "Pixel 10a",
       "brand": "Google",
-      "url": "https://store.google.com/product/pixel_10a"
+      "url": "https://store.google.com/product/pixel_10a",
+      "checked": "2026-10-23"
     }
   ],
   "cars": [
@@ -75,7 +122,27 @@
       "name": "Toyota Corolla",
       "make": "Toyota",
       "epaModel": "Corolla",
-      "url": "https://www.toyota.com/corolla/"
+      "url": "https://www.toyota.com/corolla/",
+      "mpgCombined": 34,
+      "sources": {
+        "mpgCombined": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49809",
+        "mpgCity": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49809",
+        "mpgHighway": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49809",
+        "mpgUnit": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49809",
+        "fuelType": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49809",
+        "bodyType": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49809",
+        "annualFuelCost": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49809",
+        "modelYear": "https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect&id=49809"
+      },
+      "mpgCity": 31,
+      "mpgHighway": 38,
+      "mpgUnit": "MPG",
+      "fuelType": "Regular",
+      "bodyType": "Compact Cars",
+      "annualFuelCost": 1900,
+      "modelYear": 2026,
+      "updated": "2026-10-23",
+      "checked": "2026-10-23"
     },
     {
       "id": "toyota-camry",
