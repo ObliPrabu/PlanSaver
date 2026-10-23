@@ -26,13 +26,14 @@ private val tabs = listOf("Plans" to "📶", "Insurance" to "🛡️", "Phones" 
 fun AppShell(repo: PlanRepository, catalogRepo: CatalogRepository, themeMode: ThemeMode, onThemeModeChange: (ThemeMode) -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val holder = rememberSaveableStateHolder()
-    val catalog by produceState<Catalog?>(null) { value = catalogRepo.load() }
+    var catalogKey by remember { mutableIntStateOf(0) } // bumped by the Insurance search button to download the catalog again
+    val catalog by produceState<Catalog?>(null, catalogKey) { value = null; value = catalogRepo.load() }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f)) {
             holder.SaveableStateProvider(tab) {
                 when (tab) {
                     0 -> PlanSaverApp(repo)
-                    1 -> InsuranceScreen(catalog)
+                    1 -> InsuranceScreen(catalog) { catalogKey++ }
                     2 -> PhonesScreen(catalog)
                     else -> CarsScreen(catalog)
                 }
@@ -91,10 +92,14 @@ private fun open(ctx: android.content.Context, url: String) {
 // ------------------------------------------------------------------ insurance
 
 @Composable
-fun InsuranceScreen(catalog: Catalog?) {
+fun InsuranceScreen(catalog: Catalog?, onSearch: () -> Unit) {
     val ctx = LocalContext.current
     var full by rememberSaveable { mutableStateOf(true) }
     var current by rememberSaveable { mutableStateOf("") }
+    // Results show what was searched, so changing the form does nothing until Search is tapped again.
+    var searched by rememberSaveable { mutableStateOf(false) }
+    var searchedFull by rememberSaveable { mutableStateOf(true) }
+    var searchedCurrent by rememberSaveable { mutableStateOf("") }
     ScreenFrame("Car insurance", "Average monthly costs for full coverage or the state minimum.") {
         Text("Coverage", fontWeight = FontWeight.SemiBold)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -113,15 +118,23 @@ fun InsuranceScreen(catalog: Catalog?) {
         Text("These are averages found by the robot on insurance-review sites, not quotes. Your own rate depends on your age, " +
             "driving record, car and state, so get a real quote before deciding.", style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(bottom = 8.dp))
+        Button(modifier = Modifier.fillMaxWidth(), enabled = !(searched && catalog == null), onClick = {
+            searchedFull = full; searchedCurrent = current; searched = true; onSearch()
+        }) { Text(if (searched && catalog == null) "Searching..." else "Search insurance") }
+        if (!searched) return@ScreenFrame
+        Spacer(Modifier.height(12.dp))
         Loading(catalog, catalog?.insurers?.isEmpty() == true, "insurers")
-        val now = current.toDoubleOrNull()
-        sortInsurers(catalog?.insurers.orEmpty(), full).forEach { ins ->
-            val monthly = ins.monthly(full)
-            val field = if (full) "fullMonthly" else "minMonthly"
+        val now = searchedCurrent.toDoubleOrNull()
+        val coverage = if (searchedFull) "full coverage" else "minimum coverage"
+        if (catalog != null && catalog.insurers.isNotEmpty()) Text("Average monthly cost, $coverage:", fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 8.dp))
+        sortInsurers(catalog?.insurers.orEmpty(), searchedFull).forEach { ins ->
+            val monthly = ins.monthly(searchedFull)
+            val field = if (searchedFull) "fullMonthly" else "minMonthly"
             Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                 Column(Modifier.padding(12.dp)) {
                     Text(ins.name, fontWeight = FontWeight.Bold)
-                    if (monthly == null) Text("No ${if (full) "full-coverage" else "minimum-coverage"} average found yet.",
+                    if (monthly == null) Text("No ${if (searchedFull) "full-coverage" else "minimum-coverage"} average found yet.",
                         style = MaterialTheme.typography.bodySmall)
                     else {
                         Text(String.format(Locale.US, "$%.0f / month (about $%.0f a year)", monthly, monthly * 12),

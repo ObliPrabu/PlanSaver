@@ -9,7 +9,7 @@ struct RootView: View {
         ZStack(alignment: .topTrailing) {
             TabView {
                 ContentView().tabItem { Label("Plans", systemImage: "antenna.radiowaves.left.and.right") }
-                InsuranceView(catalog: catalog).tabItem { Label("Insurance", systemImage: "shield") }
+                InsuranceView(catalog: catalog, onSearch: { catalog = nil; CatalogRepository.load { catalog = $0 } }).tabItem { Label("Insurance", systemImage: "shield") }
                 PhonesView(catalog: catalog).tabItem { Label("Phones", systemImage: "iphone") }
                 CarsView(catalog: catalog).tabItem { Label("Cars", systemImage: "car") }
             }
@@ -59,8 +59,13 @@ private struct StatusLine: View {
 
 struct InsuranceView: View {
     let catalog: Catalog?
+    let onSearch: () -> Void
     @State private var full = true
     @State private var current = ""
+    // Results show what was searched, so changing the form does nothing until Search is tapped again.
+    @State private var searched = false
+    @State private var searchedFull = true
+    @State private var searchedCurrent = ""
 
     var body: some View {
         Frame("Car insurance", "Average monthly costs for full coverage or the state minimum.") {
@@ -81,16 +86,26 @@ struct InsuranceView: View {
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
             Text("These are averages found by the robot on insurance-review sites, not quotes. Your own rate depends on your age, driving record, car and state, so get a real quote before deciding.")
                 .font(.footnote)
-            StatusLine(catalog: catalog, empty: catalog?.insurers.isEmpty == true, what: "insurers")
-            ForEach(sortInsurers(catalog?.insurers ?? [], full: full)) { ins in card(ins) }
-            Text("Figures come from different studies and dates, so a few dollars of difference between insurers means little.")
-                .font(.footnote).padding(.vertical, 8)
+            Button(action: { searchedFull = full; searchedCurrent = current; searched = true; onSearch() }) {
+                Text(searched && catalog == nil ? "Searching..." : "Search insurance")
+                    .frame(maxWidth: .infinity).padding().background(searched && catalog == nil ? Color.gray : Color.blue)
+                    .foregroundColor(.white).cornerRadius(10)
+            }.disabled(searched && catalog == nil)
+            if searched {
+                StatusLine(catalog: catalog, empty: catalog?.insurers.isEmpty == true, what: "insurers")
+                if let ins = catalog?.insurers, !ins.isEmpty {
+                    Text("Average monthly cost, \(searchedFull ? "full coverage" : "minimum coverage"):").font(.headline)
+                }
+                ForEach(sortInsurers(catalog?.insurers ?? [], full: searchedFull)) { ins in card(ins) }
+                Text("Figures come from different studies and dates, so a few dollars of difference between insurers means little.")
+                    .font(.footnote).padding(.vertical, 8)
+            }
         }
     }
 
     private func card(_ ins: CatalogInsurer) -> some View {
-        let monthly = ins.monthly(full: full)
-        let field = full ? "fullMonthly" : "minMonthly"
+        let monthly = ins.monthly(full: searchedFull)
+        let field = searchedFull ? "fullMonthly" : "minMonthly"
         return VStack(alignment: .leading, spacing: 4) {
             Text(ins.name).bold()
             if let m = monthly {
@@ -98,11 +113,11 @@ struct InsuranceView: View {
                 if let src = sourceDomain(ins.sources[field]) {
                     Text("Source: \(src)" + (ins.updated.isEmpty ? "" : " (as of \(ins.updated))")).font(.caption2)
                 }
-                if let now = Double(current), m < now {
+                if let now = Double(searchedCurrent), m < now {
                     Text(String(format: "About $%.0f a year less than you pay now", (now - m) * 12)).foregroundColor(.blue)
                 }
             } else {
-                Text("No \(full ? "full-coverage" : "minimum-coverage") average found yet.").font(.footnote)
+                Text("No \(searchedFull ? "full-coverage" : "minimum-coverage") average found yet.").font(.footnote)
             }
             if ins.url.hasPrefix("https://"), let url = URL(string: ins.url) { Link("Get a real quote", destination: url) }
         }
