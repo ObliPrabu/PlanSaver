@@ -39,15 +39,15 @@
           "updated": "2026-10-18"
         },
         "activation": {
-          "text": "Plus no upgrade or activation fees whenever you get a new device!",
-          "updated": "2026-10-22"
+          "text": "The $35.00 activation fee and the taxes for the device are separate charges. Our free devices are credited monthly, so as long as you qualified for the promotion, you'll see a credit to offset the charge.",
+          "updated": "2026-10-23"
         },
         "hotspot": {
           "text": "Get Unlimited Plus 5G or an Unlimited data plan for your hotspot or jetpack. Ditch Wi-Fi and get connected with a low monthly plan for connected devices from Verizon .",
           "updated": "2026-10-23"
         }
       },
-      "activationFee": 0.0
+      "activationFee": 35.0
     },
     {
       "carrier": "AT&T",
