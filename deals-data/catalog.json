@@ -592,7 +592,7 @@
       "modelYear": 2026,
       "price": 32400.0,
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "kia-sportage",
@@ -619,7 +619,7 @@
       "annualFuelCost": 2300,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     }
   ],
   "insurers": [
@@ -632,7 +632,7 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "geico",
@@ -645,7 +645,7 @@
       },
       "fullMonthly": 143.0,
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "progressive",
@@ -656,7 +656,7 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "allstate",
@@ -667,25 +667,25 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "nationwide",
       "name": "Nationwide",
       "url": "https://www.nationwide.com/personal/insurance/auto/",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "farmers",
       "name": "Farmers",
       "url": "https://www.farmers.com/auto/",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "liberty-mutual",
       "name": "Liberty Mutual",
       "url": "https://www.libertymutual.com/auto-insurance",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "travelers",
@@ -696,13 +696,13 @@
         "fullMonthly": "https://www.nerdwallet.com/insurance/auto/cheapest-car-insurance"
       },
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "american-family",
       "name": "American Family",
       "url": "https://www.amfam.com/insurance/car",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     }
   ],
   "insurancePages": [
