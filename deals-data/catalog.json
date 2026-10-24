@@ -26,14 +26,14 @@
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-17-pro/",
       "checked": "2026-10-24",
-      "display": 6.3,
+      "display": 6.27,
       "sources": {
-        "display": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
-        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
-        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "display": "https://support.apple.com/en-us/125090",
+        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "chip": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 3998,
+      "batteryMah": 4252,
       "chip": "A19 Pro",
       "storage": "256GB",
       "updated": "2026-10-24"
@@ -84,7 +84,7 @@
         "price": "https://www.samsung.com/us/smartphones/galaxy-s26/",
         "display": "https://www.samsung.com/us/smartphones/galaxy-s26/",
         "storage": "https://www.samsung.com/us/smartphones/galaxy-s26/",
-        "batteryMah": "https://www.gsmarena.com/samsung_galaxy_s26_5g-14456.php",
+        "batteryMah": "https://www.phonearena.com/phones/Samsung-Galaxy-S26_id12804",
         "chip": "https://www.gsmarena.com/samsung_galaxy_s26_5g-14456.php"
       },
       "display": 6.3,
