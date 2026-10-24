@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-23",
+  "updated": "2026-10-24",
   "note": "Names only. tools/refresh_catalog.py fills every number (with its source and date); nothing here is hand-researched.",
   "phones": [
     {
@@ -11,32 +11,32 @@
         "display": "https://www.apple.com/iphone-17/",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_17-14050.php",
         "chip": "https://www.gsmarena.com/apple_iphone_17-14050.php",
-        "storage": "https://www.apple.com/iphone-17/"
+        "storage": "https://www.gsmarena.com/apple_iphone_17-14050.php"
       },
-      "updated": "2026-10-23",
-      "checked": "2026-10-23",
+      "updated": "2026-10-24",
+      "checked": "2026-10-24",
       "display": 6.9,
       "batteryMah": 3692,
       "chip": "A19",
-      "storage": "256GB, 512GB"
+      "storage": "512GB"
     },
     {
       "id": "iphone-17-pro",
       "name": "iPhone 17 Pro",
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-17-pro/",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "display": 6.27,
       "sources": {
         "display": "https://support.apple.com/en-us/125090",
-        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
-        "chip": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 4252,
+      "batteryMah": 3998,
       "chip": "A19 Pro",
       "storage": "256GB",
-      "updated": "2026-10-23"
+      "updated": "2026-10-24"
     },
     {
       "id": "iphone-air",
@@ -53,7 +53,7 @@
       "display": 6.27,
       "storage": "256GB, 512GB, 1TB",
       "updated": "2026-10-23",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "batteryMah": 3149
     },
     {
@@ -61,18 +61,18 @@
       "name": "iPhone 16e",
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-16e/",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "display": 6.06,
       "sources": {
         "display": "https://www.apple.com/tm/iphone-16e/specs/",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "chip": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
-        "storage": "https://www.gsmarena.com/apple_iphone_16e-13395.php"
+        "storage": "https://www.apple.com/iphone-16e/"
       },
       "batteryMah": 4005,
       "chip": "A18",
-      "storage": "512GB",
-      "updated": "2026-10-23"
+      "storage": "128GB, 512GB",
+      "updated": "2026-10-24"
     },
     {
       "id": "galaxy-s26",
@@ -90,7 +90,7 @@
       "display": 6.3,
       "storage": "256GB, 512GB",
       "updated": "2026-10-23",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "batteryMah": 4300,
       "chip": "Snapdragon 8 Elite Gen 5"
     },
@@ -99,7 +99,7 @@
       "name": "Galaxy S26+",
       "brand": "Samsung",
       "url": "https://www.samsung.com/us/smartphones/galaxy-s26-plus/",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "display": 6.7,
       "sources": {
         "display": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
@@ -128,7 +128,7 @@
       "display": 6.9,
       "storage": "256GB, 512GB, 1TB",
       "updated": "2026-10-23",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "batteryMah": 5000,
       "chip": "Snapdragon 8 Elite Gen 5"
     },
@@ -137,25 +137,25 @@
       "name": "Pixel 10",
       "brand": "Google",
       "url": "https://store.google.com/product/pixel_10",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "batteryMah": 4970,
       "sources": {
         "batteryMah": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "chip": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10_id12651",
-        "storage": "https://www.gsmarena.com/google_pixel_10_5g-13979.php"
+        "storage": "https://store.google.com/product/pixel_10"
       },
       "chip": "Tensor G5",
       "display": 6.3,
-      "storage": "256GB",
-      "updated": "2026-10-23"
+      "storage": "128GB, 256GB",
+      "updated": "2026-10-24"
     },
     {
       "id": "pixel-10-pro",
       "name": "Pixel 10 Pro",
       "brand": "Google",
       "url": "https://store.google.com/product/pixel_10_pro",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "batteryMah": 4870,
       "sources": {
         "batteryMah": "https://www.gsmarena.com/google_pixel_10_pro_5g-13987.php",
@@ -173,7 +173,7 @@
       "name": "Pixel 10 Pro XL",
       "brand": "Google",
       "url": "https://store.google.com/product/pixel_10_pro_xl",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "batteryMah": 5200,
       "sources": {
         "batteryMah": "https://www.gsmarena.com/google_pixel_10_pro_xl_5g-13988.php",
@@ -191,7 +191,7 @@
       "name": "Pixel 10a",
       "brand": "Google",
       "url": "https://store.google.com/product/pixel_10a",
-      "checked": "2026-10-23",
+      "checked": "2026-10-24",
       "batteryMah": 5100,
       "sources": {
         "batteryMah": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
@@ -231,7 +231,7 @@
       "annualFuelCost": 1900,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-23"
+      "checked": "2026-10-24"
     },
     {
       "id": "toyota-camry",
