@@ -176,15 +176,15 @@
       "checked": "2026-10-24",
       "batteryMah": 5200,
       "sources": {
-        "batteryMah": "https://www.gsmarena.com/google_pixel_10_pro_xl_5g-13988.php",
-        "chip": "https://www.gsmarena.com/google_pixel_10_pro_xl_5g-13988.php",
+        "batteryMah": "https://www.phonearena.com/phones/Google-Pixel-10-Pro-XL_id12719",
+        "chip": "https://www.phonearena.com/phones/Google-Pixel-10-Pro-XL_id12719",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10-Pro-XL_id12719",
         "storage": "https://www.phonearena.com/phones/Google-Pixel-10-Pro-XL_id12719"
       },
       "chip": "Tensor G5",
       "display": 6.8,
       "storage": "256GB",
-      "updated": "2026-10-23"
+      "updated": "2026-10-24"
     },
     {
       "id": "pixel-10a",
