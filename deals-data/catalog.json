@@ -11,14 +11,14 @@
         "display": "https://www.apple.com/iphone-17/",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_17-14050.php",
         "chip": "https://www.gsmarena.com/apple_iphone_17-14050.php",
-        "storage": "https://www.gsmarena.com/apple_iphone_17-14050.php"
+        "storage": "https://www.apple.com/iphone-17/"
       },
-      "updated": "2026-10-24",
+      "updated": "2026-10-25",
       "checked": "2026-10-25",
       "display": 6.9,
       "batteryMah": 3692,
       "chip": "A19",
-      "storage": "512GB"
+      "storage": "256GB, 512GB"
     },
     {
       "id": "iphone-17-pro",
@@ -62,9 +62,9 @@
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-16e/",
       "checked": "2026-10-25",
-      "display": 6.1,
+      "display": 6.06,
       "sources": {
-        "display": "https://www.phonearena.com/phones/Apple-iPhone-16e_id12201",
+        "display": "https://www.apple.com/tm/iphone-16e/specs/",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "chip": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "storage": "https://www.gsmarena.com/apple_iphone_16e-13395.php"
@@ -158,8 +158,8 @@
       "checked": "2026-10-25",
       "batteryMah": 4870,
       "sources": {
-        "batteryMah": "https://www.gsmarena.com/google_pixel_10_pro_5g-13987.php",
-        "chip": "https://www.gsmarena.com/google_pixel_10_pro_5g-13987.php",
+        "batteryMah": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
+        "chip": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
         "storage": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652"
       },
