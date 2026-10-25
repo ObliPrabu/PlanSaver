@@ -158,8 +158,8 @@
       "checked": "2026-10-25",
       "batteryMah": 4870,
       "sources": {
-        "batteryMah": "https://www.gsmarena.com/google_pixel_10_pro_5g-13987.php",
-        "chip": "https://www.gsmarena.com/google_pixel_10_pro_5g-13987.php",
+        "batteryMah": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
+        "chip": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
         "storage": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652"
       },
@@ -197,12 +197,12 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "chip": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10a_id12828",
-        "storage": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
+        "storage": "https://store.google.com/product/pixel_10a",
         "price": "https://store.google.com/product/pixel_10a"
       },
       "chip": "Tensor G4",
       "display": 6.3,
-      "storage": "256GB",
+      "storage": "128GB, 256GB",
       "updated": "2026-10-25",
       "price": 599.0
     }
