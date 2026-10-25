@@ -26,11 +26,11 @@
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-17-pro/",
       "checked": "2026-10-25",
-      "display": 6.27,
+      "display": 6.3,
       "sources": {
-        "display": "https://support.apple.com/en-us/125090",
+        "display": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
         "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
-        "chip": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
       "batteryMah": 4252,
@@ -621,7 +621,7 @@
       "annualFuelCost": 2300,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     }
   ],
   "insurers": [
@@ -634,7 +634,7 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "geico",
@@ -647,7 +647,7 @@
       },
       "fullMonthly": 143.0,
       "updated": "2026-10-23",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "progressive",
@@ -658,7 +658,7 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "allstate",
@@ -669,25 +669,25 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "nationwide",
       "name": "Nationwide",
       "url": "https://www.nationwide.com/personal/insurance/auto/",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "farmers",
       "name": "Farmers",
       "url": "https://www.farmers.com/auto/",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "liberty-mutual",
       "name": "Liberty Mutual",
       "url": "https://www.libertymutual.com/auto-insurance",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "travelers",
@@ -698,13 +698,13 @@
         "fullMonthly": "https://www.nerdwallet.com/insurance/auto/cheapest-car-insurance"
       },
       "updated": "2026-10-23",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "american-family",
       "name": "American Family",
       "url": "https://www.amfam.com/insurance/car",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     }
   ],
   "insurancePages": [
