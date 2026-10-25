@@ -26,14 +26,14 @@
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-17-pro/",
       "checked": "2026-10-25",
-      "display": 6.3,
+      "display": 6.27,
       "sources": {
-        "display": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
-        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "display": "https://support.apple.com/en-us/125090",
+        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
         "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 4252,
+      "batteryMah": 3998,
       "chip": "A19 Pro",
       "storage": "256GB",
       "updated": "2026-10-25"
@@ -158,8 +158,8 @@
       "checked": "2026-10-25",
       "batteryMah": 4870,
       "sources": {
-        "batteryMah": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
-        "chip": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
+        "batteryMah": "https://www.gsmarena.com/google_pixel_10_pro_5g-13987.php",
+        "chip": "https://www.gsmarena.com/google_pixel_10_pro_5g-13987.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652",
         "storage": "https://www.phonearena.com/phones/Google-Pixel-10-Pro_id12652"
       },
