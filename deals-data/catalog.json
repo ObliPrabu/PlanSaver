@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-24",
+  "updated": "2026-10-25",
   "note": "Names only. tools/refresh_catalog.py fills every number (with its source and date); nothing here is hand-researched.",
   "phones": [
     {
@@ -233,7 +233,7 @@
       "annualFuelCost": 1900,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-24"
+      "checked": "2026-10-25"
     },
     {
       "id": "toyota-camry",
