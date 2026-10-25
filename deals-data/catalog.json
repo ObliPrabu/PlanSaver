@@ -11,14 +11,14 @@
         "display": "https://www.apple.com/iphone-17/",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_17-14050.php",
         "chip": "https://www.gsmarena.com/apple_iphone_17-14050.php",
-        "storage": "https://www.gsmarena.com/apple_iphone_17-14050.php"
+        "storage": "https://www.apple.com/iphone-17/"
       },
       "updated": "2026-10-25",
       "checked": "2026-10-25",
       "display": 6.9,
       "batteryMah": 3692,
       "chip": "A19",
-      "storage": "512GB"
+      "storage": "256GB, 512GB"
     },
     {
       "id": "iphone-17-pro",
@@ -29,11 +29,11 @@
       "display": 6.27,
       "sources": {
         "display": "https://support.apple.com/en-us/125090",
-        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
-        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "chip": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 3998,
+      "batteryMah": 4252,
       "chip": "A19 Pro",
       "storage": "256GB",
       "updated": "2026-10-25"
@@ -143,11 +143,11 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "chip": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10_id12651",
-        "storage": "https://www.gsmarena.com/google_pixel_10_5g-13979.php"
+        "storage": "https://store.google.com/product/pixel_10"
       },
       "chip": "Tensor G5",
       "display": 6.3,
-      "storage": "256GB",
+      "storage": "128GB, 256GB",
       "updated": "2026-10-25"
     },
     {
@@ -197,12 +197,12 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "chip": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10a_id12828",
-        "storage": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
+        "storage": "https://store.google.com/product/pixel_10a",
         "price": "https://store.google.com/product/pixel_10a"
       },
       "chip": "Tensor G4",
       "display": 6.3,
-      "storage": "256GB",
+      "storage": "128GB, 256GB",
       "updated": "2026-10-25",
       "price": 599.0
     }
