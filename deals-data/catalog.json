@@ -62,9 +62,9 @@
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-16e/",
       "checked": "2026-10-25",
-      "display": 6.1,
+      "display": 6.06,
       "sources": {
-        "display": "https://www.phonearena.com/phones/Apple-iPhone-16e_id12201",
+        "display": "https://support.apple.com/en-us/122208",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "chip": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "storage": "https://www.gsmarena.com/apple_iphone_16e-13395.php"
