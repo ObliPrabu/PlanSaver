@@ -64,7 +64,7 @@
       "checked": "2026-10-26",
       "display": 6.06,
       "sources": {
-        "display": "https://support.apple.com/en-us/122208",
+        "display": "https://www.apple.com/tm/iphone-16e/specs/",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "chip": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "storage": "https://www.gsmarena.com/apple_iphone_16e-13395.php"
@@ -72,7 +72,7 @@
       "batteryMah": 4005,
       "chip": "A18",
       "storage": "512GB",
-      "updated": "2026-10-25"
+      "updated": "2026-10-26"
     },
     {
       "id": "galaxy-s26",
