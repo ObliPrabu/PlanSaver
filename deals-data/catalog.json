@@ -84,7 +84,7 @@
         "price": "https://www.samsung.com/us/smartphones/galaxy-s26/",
         "display": "https://www.samsung.com/us/smartphones/galaxy-s26/",
         "storage": "https://www.samsung.com/us/smartphones/galaxy-s26/",
-        "batteryMah": "https://www.phonearena.com/phones/Samsung-Galaxy-S26_id12804",
+        "batteryMah": "https://www.gsmarena.com/samsung_galaxy_s26_5g-14456.php",
         "chip": "https://www.gsmarena.com/samsung_galaxy_s26_5g-14456.php"
       },
       "display": 6.3,
@@ -122,7 +122,7 @@
         "price": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
         "display": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
         "storage": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
-        "batteryMah": "https://www.phonearena.com/phones/Samsung-Galaxy-S26-Ultra_id12802",
+        "batteryMah": "https://www.gsmarena.com/samsung_galaxy_s26_ultra_5g-14320.php",
         "chip": "https://www.gsmarena.com/samsung_galaxy_s26_ultra_5g-14320.php"
       },
       "display": 6.9,
@@ -197,12 +197,12 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "chip": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10a_id12828",
-        "storage": "https://store.google.com/product/pixel_10a",
+        "storage": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "price": "https://store.google.com/product/pixel_10a"
       },
       "chip": "Tensor G4",
       "display": 6.3,
-      "storage": "128GB, 256GB",
+      "storage": "256GB",
       "updated": "2026-10-26",
       "price": 599.0
     }
