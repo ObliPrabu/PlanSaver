@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-25",
+  "updated": "2026-10-26",
   "note": "Names only. tools/refresh_catalog.py fills every number (with its source and date); nothing here is hand-researched.",
   "phones": [
     {
@@ -11,14 +11,14 @@
         "display": "https://www.apple.com/iphone-17/",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_17-14050.php",
         "chip": "https://www.gsmarena.com/apple_iphone_17-14050.php",
-        "storage": "https://www.gsmarena.com/apple_iphone_17-14050.php"
+        "storage": "https://www.apple.com/iphone-17/"
       },
       "updated": "2026-10-25",
       "checked": "2026-10-25",
       "display": 6.9,
       "batteryMah": 3692,
       "chip": "A19",
-      "storage": "512GB"
+      "storage": "256GB, 512GB"
     },
     {
       "id": "iphone-17-pro",
@@ -29,11 +29,11 @@
       "display": 6.27,
       "sources": {
         "display": "https://support.apple.com/en-us/125090",
-        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
-        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "chip": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 3998,
+      "batteryMah": 4252,
       "chip": "A19 Pro",
       "storage": "256GB",
       "updated": "2026-10-25"
@@ -143,11 +143,11 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "chip": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10_id12651",
-        "storage": "https://www.gsmarena.com/google_pixel_10_5g-13979.php"
+        "storage": "https://store.google.com/product/pixel_10"
       },
       "chip": "Tensor G5",
       "display": 6.3,
-      "storage": "256GB",
+      "storage": "128GB, 256GB",
       "updated": "2026-10-25"
     },
     {
@@ -191,19 +191,19 @@
       "name": "Pixel 10a",
       "brand": "Google",
       "url": "https://store.google.com/product/pixel_10a",
-      "checked": "2026-10-25",
+      "checked": "2026-10-26",
       "batteryMah": 5100,
       "sources": {
         "batteryMah": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "chip": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10a_id12828",
-        "storage": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
+        "storage": "https://store.google.com/product/pixel_10a",
         "price": "https://store.google.com/product/pixel_10a"
       },
       "chip": "Tensor G4",
       "display": 6.3,
-      "storage": "256GB",
-      "updated": "2026-10-25",
+      "storage": "128GB, 256GB",
+      "updated": "2026-10-26",
       "price": 599.0
     }
   ],
@@ -233,7 +233,7 @@
       "annualFuelCost": 1900,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "toyota-camry",
