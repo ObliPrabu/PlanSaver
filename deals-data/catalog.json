@@ -11,14 +11,14 @@
         "display": "https://www.apple.com/iphone-17/",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_17-14050.php",
         "chip": "https://www.gsmarena.com/apple_iphone_17-14050.php",
-        "storage": "https://www.gsmarena.com/apple_iphone_17-14050.php"
+        "storage": "https://www.apple.com/iphone-17/"
       },
       "updated": "2026-10-26",
       "checked": "2026-10-26",
       "display": 6.9,
       "batteryMah": 3692,
       "chip": "A19",
-      "storage": "512GB"
+      "storage": "256GB, 512GB"
     },
     {
       "id": "iphone-17-pro",
@@ -29,11 +29,11 @@
       "display": 6.27,
       "sources": {
         "display": "https://support.apple.com/en-us/125090",
-        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
-        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "chip": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 3998,
+      "batteryMah": 4252,
       "chip": "A19 Pro",
       "storage": "256GB",
       "updated": "2026-10-26"
@@ -103,14 +103,14 @@
       "display": 6.7,
       "sources": {
         "display": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
-        "batteryMah": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
-        "chip": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
-        "storage": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803"
+        "batteryMah": "https://www.gsmarena.com/samsung_galaxy_s26+_5g-14457.php",
+        "chip": "https://www.gsmarena.com/samsung_galaxy_s26+_5g-14457.php",
+        "storage": "https://www.samsung.com/us/smartphones/galaxy-s26-plus/"
       },
       "batteryMah": 4900,
       "chip": "Snapdragon 8 Elite Gen 5",
-      "storage": "256GB",
-      "updated": "2026-10-25"
+      "storage": "256GB, 512GB",
+      "updated": "2026-10-26"
     },
     {
       "id": "galaxy-s26-ultra",
@@ -197,12 +197,12 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "chip": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10a_id12828",
-        "storage": "https://www.gsmarena.com/google_pixel_10a_5g-14474.php",
+        "storage": "https://store.google.com/product/pixel_10a",
         "price": "https://store.google.com/product/pixel_10a"
       },
       "chip": "Tensor G4",
       "display": 6.3,
-      "storage": "256GB",
+      "storage": "128GB, 256GB",
       "updated": "2026-10-26",
       "price": 599.0
     }
