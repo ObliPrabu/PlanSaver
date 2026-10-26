@@ -314,7 +314,7 @@
       "annualFuelCost": 1900,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "honda-accord",
@@ -341,7 +341,7 @@
       "annualFuelCost": 2000,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "honda-crv",
@@ -368,7 +368,7 @@
       "annualFuelCost": 2150,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "tesla-model-3",
@@ -397,7 +397,7 @@
       "rangeMiles": 321,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "tesla-model-y",
@@ -426,7 +426,7 @@
       "rangeMiles": 303,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "ford-f150",
@@ -453,7 +453,7 @@
       "annualFuelCost": 3050,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "ford-maverick",
@@ -480,7 +480,7 @@
       "annualFuelCost": 2450,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "hyundai-elantra",
@@ -507,7 +507,7 @@
       "annualFuelCost": 2050,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "hyundai-ioniq-5",
@@ -536,7 +536,7 @@
       "rangeMiles": 318,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "subaru-outback",
@@ -565,7 +565,7 @@
       "modelYear": 2026,
       "price": 32995.0,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "chevrolet-equinox",
@@ -594,7 +594,7 @@
       "modelYear": 2026,
       "price": 32400.0,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     },
     {
       "id": "kia-sportage",
@@ -621,7 +621,7 @@
       "annualFuelCost": 2300,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-10-25"
+      "checked": "2026-10-26"
     }
   ],
   "insurers": [
