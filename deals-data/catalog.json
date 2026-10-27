@@ -26,14 +26,14 @@
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-17-pro/",
       "checked": "2026-10-27",
-      "display": 6.27,
+      "display": 6.3,
       "sources": {
-        "display": "https://support.apple.com/en-us/125090",
-        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "display": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
         "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 3998,
+      "batteryMah": 4252,
       "chip": "A19 Pro",
       "storage": "256GB",
       "updated": "2026-10-27"
@@ -67,11 +67,11 @@
         "display": "https://support.apple.com/en-us/122208",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "chip": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
-        "storage": "https://www.apple.com/iphone-16e/"
+        "storage": "https://www.gsmarena.com/apple_iphone_16e-13395.php"
       },
       "batteryMah": 4005,
       "chip": "A18",
-      "storage": "128GB, 512GB",
+      "storage": "512GB",
       "updated": "2026-10-27"
     },
     {
