@@ -103,13 +103,13 @@
       "display": 6.7,
       "sources": {
         "display": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
-        "batteryMah": "https://www.gsmarena.com/samsung_galaxy_s26+_5g-14457.php",
-        "chip": "https://www.gsmarena.com/samsung_galaxy_s26+_5g-14457.php",
-        "storage": "https://www.samsung.com/us/smartphones/galaxy-s26-plus/"
+        "batteryMah": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
+        "chip": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
+        "storage": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803"
       },
       "batteryMah": 4900,
       "chip": "Snapdragon 8 Elite Gen 5",
-      "storage": "256GB, 512GB",
+      "storage": "256GB",
       "updated": "2026-10-27"
     },
     {
