@@ -29,11 +29,11 @@
       "display": 6.27,
       "sources": {
         "display": "https://support.apple.com/en-us/125090",
-        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
-        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "chip": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 3998,
+      "batteryMah": 4252,
       "chip": "A19 Pro",
       "storage": "256GB",
       "updated": "2026-10-27"
@@ -143,11 +143,11 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "chip": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10_id12651",
-        "storage": "https://www.gsmarena.com/google_pixel_10_5g-13979.php"
+        "storage": "https://store.google.com/product/pixel_10"
       },
       "chip": "Tensor G5",
       "display": 6.3,
-      "storage": "256GB",
+      "storage": "128GB, 256GB",
       "updated": "2026-10-27"
     },
     {
