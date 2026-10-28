@@ -62,9 +62,9 @@
       "brand": "Apple",
       "url": "https://www.apple.com/iphone-16e/",
       "checked": "2026-10-28",
-      "display": 6.1,
+      "display": 6.06,
       "sources": {
-        "display": "https://www.phonearena.com/phones/Apple-iPhone-16e_id12201",
+        "display": "https://support.apple.com/en-us/122208",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "chip": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "storage": "https://www.gsmarena.com/apple_iphone_16e-13395.php"
@@ -72,7 +72,7 @@
       "batteryMah": 4005,
       "chip": "A18",
       "storage": "512GB",
-      "updated": "2026-10-27"
+      "updated": "2026-10-28"
     },
     {
       "id": "galaxy-s26",
@@ -143,12 +143,12 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "chip": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10_id12651",
-        "storage": "https://store.google.com/product/pixel_10"
+        "storage": "https://www.gsmarena.com/google_pixel_10_5g-13979.php"
       },
       "chip": "Tensor G5",
       "display": 6.3,
-      "storage": "128GB, 256GB",
-      "updated": "2026-10-27"
+      "storage": "256GB",
+      "updated": "2026-10-28"
     },
     {
       "id": "pixel-10-pro",
