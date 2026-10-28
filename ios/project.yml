@@ -2,14 +2,14 @@ name: PlanSaver
 options:
   bundleIdPrefix: com.obliprabu
   deploymentTarget:
-    iOS: "14.0"
+    iOS: "15.0"
   createIntermediateGroups: true
 
 targets:
   PlanSaver:
     type: application
     platform: iOS
-    deploymentTarget: "14.0"
+    deploymentTarget: "15.0"
     sources:
       - path: PlanSaver
       - path: ../deals-data/catalog.json # bundled copy: offline fallback for the Insurance/Phones/Cars tabs
@@ -31,5 +31,10 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
-        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
-        UIRequiresFullScreen: true
+        # Allowed in every orientation and not full-screen-only, so the app can use the whole
+        # inner screen of a foldable (the iPhone Duo) instead of sitting in a portrait strip.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight

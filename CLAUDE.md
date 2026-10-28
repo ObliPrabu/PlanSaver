@@ -32,7 +32,7 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 
 ## Working rules (from the owner)
 
-- NEVER use simulators/emulators. iOS is only compiled for the generic device; Android is installed on the real vivo.
+- Simulators/emulators are fine to use (the old no-simulator rule came from an earlier computer that was short on disk space; this one has room). iOS can also be compiled for the generic device, and Android is normally installed on the real vivo.
 - NEVER install/download the app on Arjun Prabu's iPhone (`A9E704CA-91F2-5E2D-A171-093F439E4808`), under any
   circumstances, even if asked generically to install "on my devices" - the only iPhone target is Mithran Prabu's
   (`C13C4BB8-65E2-5CA7-BB9F-425747B421EE`).
