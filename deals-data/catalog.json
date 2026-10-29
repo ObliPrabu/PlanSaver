@@ -29,11 +29,11 @@
       "display": 6.27,
       "sources": {
         "display": "https://support.apple.com/en-us/125090",
-        "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
-        "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
+        "batteryMah": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
+        "chip": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
       },
-      "batteryMah": 3998,
+      "batteryMah": 4252,
       "chip": "A19 Pro",
       "storage": "256GB",
       "updated": "2026-10-29"
@@ -67,11 +67,11 @@
         "display": "https://support.apple.com/en-us/122208",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "chip": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
-        "storage": "https://www.gsmarena.com/apple_iphone_16e-13395.php"
+        "storage": "https://www.apple.com/iphone-16e/"
       },
       "batteryMah": 4005,
       "chip": "A18",
-      "storage": "512GB",
+      "storage": "128GB, 512GB",
       "updated": "2026-10-29"
     },
     {
@@ -122,12 +122,12 @@
         "price": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
         "display": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
         "storage": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
-        "batteryMah": "https://www.gsmarena.com/samsung_galaxy_s26_ultra_5g-14320.php",
-        "chip": "https://www.gsmarena.com/samsung_galaxy_s26_ultra_5g-14320.php"
+        "batteryMah": "https://www.phonearena.com/phones/Samsung-Galaxy-S26-Ultra_id12802",
+        "chip": "https://www.phonearena.com/phones/Samsung-Galaxy-S26-Ultra_id12802"
       },
       "display": 6.9,
       "storage": "256GB, 512GB, 1TB",
-      "updated": "2026-10-26",
+      "updated": "2026-10-29",
       "checked": "2026-10-29",
       "batteryMah": 5000,
       "chip": "Snapdragon 8 Elite Gen 5"
