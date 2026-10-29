@@ -28,7 +28,7 @@
       "checked": "2026-10-29",
       "display": 6.27,
       "sources": {
-        "display": "https://www.apple.com/gw/iphone-17-pro/specs/",
+        "display": "https://support.apple.com/en-us/125090",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
         "chip": "https://www.gsmarena.com/apple_iphone_17_pro-14049.php",
         "storage": "https://www.phonearena.com/phones/Apple-iPhone-17-Pro_id12495"
@@ -123,7 +123,7 @@
         "display": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
         "storage": "https://www.samsung.com/us/smartphones/galaxy-s26-ultra/",
         "batteryMah": "https://www.phonearena.com/phones/Samsung-Galaxy-S26-Ultra_id12802",
-        "chip": "https://www.phonearena.com/phones/Samsung-Galaxy-S26-Ultra_id12802"
+        "chip": "https://www.gsmarena.com/samsung_galaxy_s26_ultra_5g-14320.php"
       },
       "display": 6.9,
       "storage": "256GB, 512GB, 1TB",
