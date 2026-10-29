@@ -64,7 +64,7 @@
       "checked": "2026-10-29",
       "display": 6.06,
       "sources": {
-        "display": "https://www.apple.com/tm/iphone-16e/specs/",
+        "display": "https://support.apple.com/en-us/122208",
         "batteryMah": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "chip": "https://www.gsmarena.com/apple_iphone_16e-13395.php",
         "storage": "https://www.gsmarena.com/apple_iphone_16e-13395.php"
@@ -103,13 +103,13 @@
       "display": 6.7,
       "sources": {
         "display": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
-        "batteryMah": "https://www.gsmarena.com/samsung_galaxy_s26+_5g-14457.php",
-        "chip": "https://www.gsmarena.com/samsung_galaxy_s26+_5g-14457.php",
-        "storage": "https://www.gsmarena.com/samsung_galaxy_s26+_5g-14457.php"
+        "batteryMah": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
+        "chip": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803",
+        "storage": "https://www.phonearena.com/phones/Samsung-Galaxy-S26+_id12803"
       },
       "batteryMah": 4900,
       "chip": "Snapdragon 8 Elite Gen 5",
-      "storage": "512GB",
+      "storage": "256GB",
       "updated": "2026-10-29"
     },
     {
@@ -143,11 +143,11 @@
         "batteryMah": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "chip": "https://www.gsmarena.com/google_pixel_10_5g-13979.php",
         "display": "https://www.phonearena.com/phones/Google-Pixel-10_id12651",
-        "storage": "https://store.google.com/product/pixel_10"
+        "storage": "https://www.gsmarena.com/google_pixel_10_5g-13979.php"
       },
       "chip": "Tensor G5",
       "display": 6.3,
-      "storage": "128GB, 256GB",
+      "storage": "256GB",
       "updated": "2026-10-29"
     },
     {
