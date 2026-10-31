@@ -24,6 +24,10 @@ targets:
         DEVELOPMENT_TEAM: "PS8DGXJ8S8"
         CODE_SIGN_STYLE: Automatic
         INFOPLIST_FILE: PlanSaver/Info.plist
+        # Mac Catalyst build for the downloadable Mac app (.dmg).
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SUPPORTS_MACCATALYST: YES
+        DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: NO
     info:
       path: PlanSaver/Info.plist
       properties:
