@@ -3,5 +3,5 @@
 set -e
 cd "$(dirname "$0")"
 out="${TMPDIR:-/tmp}/plansaver-logic-tests"
-swiftc -o "$out" PlanSaver/Plan.swift PlanSaver/PlanData.swift PlanSaver/PlanRepository.swift PlanSaver/Phones.swift PlanSaver/Catalog.swift LogicTests/main.swift
+swiftc -o "$out" PlanSaver/Plan.swift PlanSaver/PlanData.swift PlanSaver/PlanRepository.swift PlanSaver/Phones.swift PlanSaver/Catalog.swift PlanSaver/CarPlan.swift PlanSaver/AiSuggest.swift LogicTests/main.swift
 "$out"

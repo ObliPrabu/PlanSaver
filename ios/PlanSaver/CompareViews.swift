@@ -134,7 +134,7 @@ struct InsuranceView: View {
     }
 }
 
-private struct CompareTable: View {
+struct CompareTable: View {
     let leftName: String
     let rightName: String
     let rows: [CompareRow]
@@ -192,12 +192,18 @@ struct CarsView: View {
     let catalog: Catalog?
     @State private var a = 0
     @State private var b = 1
+    @State private var mode = 0 // 0 = catalog cars, 1 = "My own questions" (CarPlanView.swift)
 
     var body: some View {
         let cars = catalog?.cars ?? []
-        Frame("Compare cars", "Pick two cars to see them side by side.") {
-            StatusLine(catalog: catalog, empty: cars.isEmpty, what: "cars")
-            if cars.count >= 2 {
+        Frame("Compare cars", mode == 0 ? "Pick two cars to see them side by side." : "Answer the questions for two vehicles to compare them.") {
+            Picker("Cars", selection: $mode) {
+                Text("Catalog cars").tag(0)
+                Text("My own questions").tag(1)
+            }.pickerStyle(SegmentedPickerStyle())
+            if mode == 1 { CarPlanForm() }
+            if mode == 0 { StatusLine(catalog: catalog, empty: cars.isEmpty, what: "cars") }
+            if mode == 0 && cars.count >= 2 {
                 let left = cars[min(a, cars.count - 1)], right = cars[min(b, cars.count - 1)]
                 Picker("Car A", selection: $a) { ForEach(0..<cars.count, id: \.self) { Text(cars[$0].name).tag($0) } }
                     .pickerStyle(MenuPickerStyle())

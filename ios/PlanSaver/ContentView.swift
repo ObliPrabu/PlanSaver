@@ -53,6 +53,9 @@ struct ContentView: View {
     @State private var sortByData = false
     @State private var filters = ResultFilters()
     @State private var searchedLines = 1
+    @State private var aiText: String? = nil   // the AI suggestion for the current results (AiSuggest.swift)
+    @State private var aiLoading = false
+    @State private var aiRun = 0               // a newer search makes an older, slower AI reply be ignored
 
     private var families: [PhoneFamily] { Phones.brands[brand] ?? [] }
     private var family: PhoneFamily { families[min(familyIdx, families.count - 1)] }
@@ -235,6 +238,17 @@ struct ContentView: View {
             searchedLines = lines
             results = found
             loading = false
+            // The AI suggestion arrives after the normal results are already on screen; if it fails, nothing is shown.
+            aiText = nil
+            aiRun += 1
+            let myRun = aiRun
+            let tradeInName: String? = (freePhone && tradeIn) ? oldFamily.name(oldVariant) : nil
+            if let body = buildAiRequest(request, tradeInPhone: tradeInName, results: found) {
+                aiLoading = true
+                fetchAiSuggestion(body) { text in
+                    if myRun == aiRun { aiText = text; aiLoading = false }
+                }
+            } else { aiLoading = false }
         }
     }
 
@@ -279,6 +293,19 @@ struct ContentView: View {
                     if lines > 4 {
                         Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.")
                             .font(.footnote)
+                    }
+                    if aiLoading { Text("Asking AI for a suggestion...").font(.footnote) }
+                    if let suggestion = aiText {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("AI suggestion").bold()
+                            Text(suggestion)
+                            Text("Written by Google's Gemini from the cheapest plans found below. Your search (lines, data, current bill and phone) is sent to it. Prices are unverified, so confirm on the carrier's site.")
+                                .font(.caption2)
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(10)
                     }
                     if list.isEmpty {
                         Text(all.isEmpty ? "No plans matched. Try more data or include big carriers."

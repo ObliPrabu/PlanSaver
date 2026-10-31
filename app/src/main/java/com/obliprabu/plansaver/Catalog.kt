@@ -89,7 +89,7 @@ data class CompareRow(val label: String, val left: String, val right: String, va
 
 const val NOT_FOUND = "not found yet"
 
-private fun <T : Comparable<T>> winner(a: T?, b: T?, lowerIsBetter: Boolean): Int? {
+fun <T : Comparable<T>> winner(a: T?, b: T?, lowerIsBetter: Boolean): Int? {
     if (a == null || b == null || a == b) return null
     return if ((a < b) == lowerIsBetter) 0 else 1
 }

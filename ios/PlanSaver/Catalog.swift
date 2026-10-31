@@ -114,7 +114,7 @@ struct CompareRow {
 
 let notFound = "not found yet"
 
-private func winner<T: Comparable>(_ a: T?, _ b: T?, lowerIsBetter: Bool) -> Int? {
+func winner<T: Comparable>(_ a: T?, _ b: T?, lowerIsBetter: Bool) -> Int? {
     guard let a = a, let b = b, a != b else { return nil }
     return ((a < b) == lowerIsBetter) ? 0 : 1
 }

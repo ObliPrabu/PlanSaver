@@ -108,5 +108,50 @@ check(sourceDomain("https://www.nerdwallet.com/insurance/auto") == "nerdwallet.c
 let realCatalog = Catalog.parse(try! Data(contentsOf: URL(fileURLWithPath: "../deals-data/catalog.json")))!
 check(realCatalog.phones.count >= 10 && realCatalog.cars.count >= 10 && realCatalog.insurers.count >= 5, "the catalog file in the repo parses and has names")
 
+// ---- My cars questionnaire (mirrors CarPlanTest.kt)
+let ca = CarPlanEntry(vehicle: "2022 Honda Civic", price: "$24,000", payHow: 1, mpg: "35", liability: "50", full: "100", insFreq: 0,
+                      oilCost: "60", oilMonths: "6", tires: "600", tireYears: "4", fuelYear: "1,500", keepYears: "8")
+let cb = CarPlanEntry(vehicle: "2020 Ford F-150", price: "30000", mpg: "20", full: "600", insFreq: 1, fuelYear: "2500", keepYears: "8")
+check(parseAmount("$24,000") == 24000 && parseAmount(" 12.5 ") == 12.5 && parseAmount("") == nil && parseAmount("abc") == nil && parseAmount("-5") == nil, "car plan parses amounts")
+check(ca.fullPerYear == 1200 && ca.liabilityPerYear == 600 && cb.fullPerYear == 1200 && insuranceYearly("500", 2) == 500, "insurance scaled by payment frequency")
+check(ca.oilPerYear == 120 && CarPlanEntry(oilCost: "60", oilMonths: "0").oilPerYear == nil && CarPlanEntry(oilCost: "60").oilPerYear == nil, "oil changes per year")
+var ct = ca
+check(ct.tiresOverKeep == 1200, "tires: 8 years / 4 = 2 sets")
+ct.tireYears = ""
+check(ct.tiresOverKeep == 600, "tires: one set without a lifespan")
+ct.tireYears = "3"
+check(ct.tiresOverKeep == 1800 && CarPlanEntry().tiresOverKeep == nil, "tires: rounds sets up")
+check(ca.runningPerYear == 2970 && ca.totalOverKeep == 47760 && ca.costPerYearOfOwning == 5970, "running, total and per-year cost")
+check(CarPlanEntry(price: "1000").totalOverKeep == nil && CarPlanEntry().runningPerYear == nil, "totals need what they depend on")
+let myRows = Dictionary(uniqueKeysWithValues: compareMyCars(ca, cb).map { ($0.label, $0) })
+check(myRows["Cost of the vehicle"]?.better == 0 && myRows["Miles per gallon"]?.better == 0 && myRows["Full coverage per year"]?.better == nil, "my cars: better side and ties")
+check(myRows["Oil changes per year"]?.right == "not entered" && myRows["Oil changes per year"]?.better == nil && myRows["Paying with"]?.left == "Loan" && myRows["Paying with"]?.right == "Cash", "my cars: blanks and payment")
+
+// ---- AI search request (mirrors AiSuggestTest.kt)
+func aiResult(_ carrier: String, _ monthly: Double, gb: Int? = nil, deal: String? = nil, other: Bool = false) -> SearchResult {
+    var r = SearchResult(plan: plan(carrier, "Plan \(carrier)", gb: gb, price: monthly, deal: deal), monthly: monthly, yearlySavings: 0)
+    r.otherPhone = other
+    return r
+}
+let aiJSON = (try! JSONSerialization.jsonObject(with: buildAiRequest(
+    SearchRequest(lines: 2, dataNeedGb: 15, currentMonthly: 80, includePostpaid: true, freePhoneOnly: true, phone: "iPhone 16", includeOtherPhones: true, lineDataNeeds: [5, nil]),
+    tradeInPhone: "iPhone 13", results: [aiResult("B", 40), aiResult("A", 25, gb: 15, deal: "3 months free"), aiResult("Z", 10, other: true)])!)) as! [String: Any]
+let aiPlans = aiJSON["plans"] as! [[String: Any]]
+let aiNeeds = aiJSON["lineDataNeeds"] as! [Any]
+check(aiJSON["includePostpaid"] as? Bool == true && aiJSON["freePhoneOnly"] as? Bool == true && aiJSON["includeOtherPhones"] as? Bool == true
+      && aiJSON["tradeInPhone"] as? String == "iPhone 13" && aiNeeds.count == 2 && aiNeeds[0] as? Int == 5 && aiNeeds[1] is NSNull, "AI request: every setting of the search is passed along")
+check(aiPlans.count == 2 && aiPlans[0]["carrier"] as? String == "A" && aiPlans[0]["deal"] as? String == "3 months free", "AI request: cheapest first, other-phone deals skipped")
+check(aiPlans[1]["dataGb"] is NSNull && aiJSON["lines"] as? Int == 2 && aiJSON["dataNeedGb"] as? Int == 15 && aiJSON["currentMonthly"] as? Double == 80 && aiJSON["phone"] as? String == "iPhone 16", "AI request: search fields and unlimited data")
+let aiMany = (try! JSONSerialization.jsonObject(with: buildAiRequest(
+    SearchRequest(lines: 1, dataNeedGb: nil, currentMonthly: 0, includePostpaid: false), tradeInPhone: nil, results: (1...30).map { aiResult("C\($0)", Double($0)) })!)) as! [String: Any]
+check((aiMany["plans"] as! [Any]).count == aiMaxPlans && aiMany["dataNeedGb"] is NSNull && aiMany["currentMonthly"] == nil && aiMany["phone"] == nil && aiMany["lineDataNeeds"] == nil && aiMany["tradeInPhone"] == nil
+      && aiMany["includePostpaid"] as? Bool == false, "AI request: capped, unentered fields left out")
+let aiReq = SearchRequest(lines: 1, dataNeedGb: 5, currentMonthly: 0, includePostpaid: true)
+check(buildAiRequest(aiReq, tradeInPhone: nil, results: []) == nil
+      && buildAiRequest(aiReq, tradeInPhone: nil, results: [aiResult("X", 5, other: true)]) == nil, "AI request: nothing to ask means no request")
+check(parseAiText("{\"text\":\"  Look at A first. \"}".data(using: .utf8)!) == "Look at A first."
+      && parseAiText("{\"error\":\"AI unavailable.\",\"status\":503}".data(using: .utf8)!) == nil
+      && parseAiText("{\"text\":\"   \"}".data(using: .utf8)!) == nil && parseAiText("not json".data(using: .utf8)!) == nil, "AI reply parsing")
+
 print("\(count - failures) of \(count) checks passed" + (failures == 0 ? "" : ", \(failures) FAILED"))
 exit(failures == 0 ? 0 : 1)

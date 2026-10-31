@@ -197,7 +197,7 @@ private fun <T> Picker(label: String, items: List<T>, selected: Int, name: (T) -
 }
 
 @Composable
-private fun CompareTable(leftName: String, rightName: String, rows: List<CompareRow>) {
+internal fun CompareTable(leftName: String, rightName: String, rows: List<CompareRow>) {
     Card(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Column(Modifier.padding(12.dp)) {
             Row { Spacer(Modifier.weight(1f)); Text(leftName, Modifier.weight(1f), fontWeight = FontWeight.Bold)
@@ -246,7 +246,13 @@ fun CarsScreen(catalog: Catalog?) {
     val cars = catalog?.cars.orEmpty()
     var a by rememberSaveable { mutableIntStateOf(0) }
     var b by rememberSaveable { mutableIntStateOf(1) }
-    ScreenFrame("Compare cars", "Pick two cars to see them side by side.") {
+    var mode by rememberSaveable { mutableIntStateOf(0) } // 0 = catalog cars, 1 = "My own questions" (CarPlanScreen.kt)
+    ScreenFrame("Compare cars", if (mode == 0) "Pick two cars to see them side by side." else "Answer the questions for two vehicles to compare them.") {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 8.dp)) {
+            FilterChip(selected = mode == 0, onClick = { mode = 0 }, label = { Text("Catalog cars") })
+            FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text("My own questions") })
+        }
+        if (mode == 1) { MyCarsForm(); return@ScreenFrame }
         Loading(catalog, cars.isEmpty(), "cars")
         if (cars.size >= 2) {
             val left = cars[a.coerceIn(cars.indices)]

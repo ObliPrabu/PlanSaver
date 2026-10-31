@@ -74,6 +74,9 @@ fun PlanSaverApp(repo: PlanRepository) {
     var filterDeal by rememberSaveable { mutableStateOf(false) }
     var filterUnlimited by rememberSaveable { mutableStateOf(false) }
     var searchedPhone by rememberSaveable { mutableStateOf<String?>(null) }
+    var aiText by remember { mutableStateOf<String?>(null) }   // the AI suggestion for the current results (AiSuggest.kt)
+    var aiLoading by remember { mutableStateOf(false) }
+    var aiRun by remember { mutableIntStateOf(0) }            // a newer search makes an older, slower AI reply be ignored
     // Results are not saveable, so remember only that the results screen was open and search again after process death.
     var resultsOpen by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -82,11 +85,13 @@ fun PlanSaverApp(repo: PlanRepository) {
         loading = true
         val fams = Phones.brands.getValue(brand)
         val phone = if (freePhone) fams[familyIdx.coerceIn(fams.indices)].name(variant) else null
+        val req = SearchRequest(lines, dataChoices[dataIdx].second,
+            current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone, otherPhones,
+            lineDataNeeds = if (customLines && lines > 1) (0 until lines).map { dataChoices[lineNeeds[it]].second } else null)
+        val tradeInPhone = if (freePhone && tradeIn) Phones.brands.getValue(oldBrand).let { it[oldFamilyIdx.coerceIn(it.indices)].name(oldVariant) } else null
         scope.launch {
             val found = try {
-                repo.search(SearchRequest(lines, dataChoices[dataIdx].second,
-                    current.toDoubleOrNull() ?: 0.0, postpaid, freePhone, phone, otherPhones,
-                    lineDataNeeds = if (customLines && lines > 1) (0 until lines).map { dataChoices[lineNeeds[it]].second } else null))
+                repo.search(req)
             } catch (e: Exception) {
                 emptyList()
             }
@@ -94,6 +99,17 @@ fun PlanSaverApp(repo: PlanRepository) {
             results = found
             resultsOpen = true
             loading = false
+            // The AI suggestion arrives after the normal results are already on screen; if it fails, nothing is shown.
+            aiText = null
+            val myRun = ++aiRun
+            val aiBody = buildAiRequest(req, tradeInPhone, found)
+            if (aiBody != null) {
+                aiLoading = true
+                scope.launch {
+                    val text = fetchAiSuggestion(aiBody)
+                    if (myRun == aiRun) { aiText = text; aiLoading = false }
+                }
+            } else aiLoading = false
         }
     }
 
@@ -311,6 +327,17 @@ fun PlanSaverApp(repo: PlanRepository) {
                 }
                 if (all.isNotEmpty()) Text("Showing ${list.size} of ${all.size} plans", style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(vertical = 8.dp))
+                if (aiLoading) Text("Asking AI for a suggestion...", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+                aiText?.let { suggestion ->
+                    Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                        Column(Modifier.padding(12.dp)) {
+                            Text("AI suggestion", fontWeight = FontWeight.Bold)
+                            Text(suggestion, style = MaterialTheme.typography.bodyMedium)
+                            Text("Written by Google's Gemini from the cheapest plans found below. Your search (lines, data, current bill and phone) is sent to it. Prices are unverified, so confirm on the carrier's site.",
+                                style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
+                        }
+                    }
+                }
                 if (results == null) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 12.dp))
                 else if (all.isNotEmpty() && list.isEmpty()) Text("No plans match these filters. Turn one off to see more.")
                 else if (list.isEmpty()) Text("No plans matched. Try more data or include big carriers.")
