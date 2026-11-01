@@ -97,11 +97,20 @@ private fun foldableFamily(n: String) = if (n.startsWith("galaxyz")) n.trimEnd {
 
 private val brandAndGen = Regex("^(iphone|galaxys|galaxyz(?:flip|fold)|pixel)(\\d*)")
 
-/** (brand, generation) of a normalized phone name; generation 0 when the name has no number. */
+/**
+ * (brand, generation) of a normalized phone name, on a x10 scale so the in-between models fit: iPhone XS/XR = 105 (after
+ * the 8 = 80, before the 11 = 110), Air = 175 (after the 17 = 170, before the 18), Duo = 990 (newest). An "e" model
+ * (16e) is half a step below its number (155 < 160), so it is never "better" than the same-number phone. Other brands: number x10;
+ * generation 0 when the name has no number.
+ */
 private fun brandGen(n: String): Pair<String, Int>? {
-    if (n.startsWith("iphoneduo")) return "iphone" to 99 // newest iPhone, newer than any numbered one
+    if (n.startsWith("iphoneduo")) return "iphone" to 990
+    if (n.startsWith("iphoneair")) return "iphone" to 175
+    if (n.startsWith("iphonexs") || n.startsWith("iphonexr")) return "iphone" to 105
     val m = brandAndGen.find(n) ?: return null
-    return m.groupValues[1] to (m.groupValues[2].toIntOrNull() ?: 0)
+    val gen = (m.groupValues[2].toIntOrNull() ?: 0) * 10
+    val isE = m.groupValues[1] == "iphone" && gen > 0 && n.removePrefix(m.value).startsWith("e")
+    return m.groupValues[1] to (if (isE) gen - 5 else gen)
 }
 
 /** True when the deal names a phone of the same brand as [phone] and a generation at least as new (a "better" phone). */

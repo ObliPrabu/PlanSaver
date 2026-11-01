@@ -77,14 +77,14 @@ struct InsuranceView: View {
         Frame("Car insurance", "Average monthly costs for full coverage or the state minimum.") {
             Picker("Coverage", selection: $full) {
                 Text("Full coverage").tag(true)
-                Text("Minimum").tag(false)
+                Text("Minimum (liability)").tag(false)
             }.pickerStyle(SegmentedPickerStyle())
             HStack {
                 Text("$")
                 TextField("What you pay now (per month, optional)", text: $current)
                     .keyboardType(.decimalPad)
                     .onChange(of: current) { v in
-                        let f = String(v.filter { $0.isNumber || $0 == "." }.prefix(7))
+                        let f = cleanNumberInput(v, maxLen: 7)
                         if f != v { current = f }
                     }
             }
@@ -192,6 +192,9 @@ struct CarsView: View {
     let catalog: Catalog?
     @State private var a = 0
     @State private var b = 1
+    // Both vehicles' answers live here, not in the form, so they survive flipping to Catalog cars and back.
+    @State private var planA = CarPlanEntry()
+    @State private var planB = CarPlanEntry()
     @State private var mode = 0 // 0 = catalog cars, 1 = "My own questions" (CarPlanView.swift)
 
     var body: some View {
@@ -201,7 +204,7 @@ struct CarsView: View {
                 Text("Catalog cars").tag(0)
                 Text("My own questions").tag(1)
             }.pickerStyle(SegmentedPickerStyle())
-            if mode == 1 { CarPlanForm() }
+            if mode == 1 { CarPlanForm(a: $planA, b: $planB) }
             if mode == 0 { StatusLine(catalog: catalog, empty: cars.isEmpty, what: "cars") }
             if mode == 0 && cars.count >= 2 {
                 let left = cars[min(a, cars.count - 1)], right = cars[min(b, cars.count - 1)]

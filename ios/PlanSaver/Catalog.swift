@@ -50,8 +50,13 @@ struct Catalog {
     var cars: [CatalogCar] = []
     var insurers: [CatalogInsurer] = []
 
-    private static func num(_ o: [String: Any], _ k: String) -> Double? { (o[k] as? NSNumber)?.doubleValue }
-    private static func int(_ o: [String: Any], _ k: String) -> Int? { (o[k] as? NSNumber)?.intValue }
+    /// Only a real JSON number counts: null, strings ("12") and true/false are treated as missing.
+    private static func real(_ o: [String: Any], _ k: String) -> NSNumber? {
+        guard let n = o[k] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { return nil }
+        return n
+    }
+    private static func num(_ o: [String: Any], _ k: String) -> Double? { real(o, k)?.doubleValue }
+    private static func int(_ o: [String: Any], _ k: String) -> Int? { real(o, k)?.intValue }
     private static func str(_ o: [String: Any], _ k: String) -> String? {
         guard let s = o[k] as? String, !s.isEmpty else { return nil }
         return s
@@ -122,7 +127,9 @@ func winner<T: Comparable>(_ a: T?, _ b: T?, lowerIsBetter: Bool) -> Int? {
 private func money(_ v: Double?) -> String {
     guard let v = v else { return notFound }
     let f = NumberFormatter()
+    f.locale = Locale(identifier: "en_US")
     f.numberStyle = .decimal
+    f.roundingMode = .halfUp
     f.maximumFractionDigits = 0
     return "$" + (f.string(from: NSNumber(value: v)) ?? String(Int(v)))
 }

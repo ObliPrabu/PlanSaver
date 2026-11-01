@@ -1,6 +1,8 @@
 package com.obliprabu.plansaver
 
 import java.util.Locale
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.math.ceil
 
 /**
@@ -62,7 +64,7 @@ fun CarPlanEntry.tiresOverKeep(): Double? {
     val cost = parseAmount(tires) ?: return null
     val setYears = parseAmount(tireYears)
     val keep = keepYearsOrNull()
-    val sets = if (setYears != null && setYears > 0 && keep != null) maxOf(1.0, ceil(keep / setYears)) else 1.0
+    val sets = if (setYears != null && setYears > 0 && keep != null) maxOf(1.0, ceil(keep / setYears - 1e-9)) else 1.0
     return cost * sets
 }
 
@@ -83,7 +85,33 @@ fun CarPlanEntry.totalOverKeep(): Double? {
 
 fun CarPlanEntry.costPerYearOfOwning(): Double? = totalOverKeep()?.let { total -> keepYearsOrNull()?.let { total / it } }
 
-private fun amount(v: Double?): String = v?.let { String.format(Locale.US, "$%,.0f", it) } ?: NOT_ENTERED
+/** Whole dollars, grouped with commas, rounded half up, always US formatting (24.5 -> 25), whatever the device language. */
+private fun amount(v: Double?): String = v?.let {
+    String.format(Locale.US, "$%,d", BigDecimal(it.toString()).setScale(0, RoundingMode.HALF_UP).toLong())
+} ?: NOT_ENTERED
+
+/** MPG and years: whole numbers stay whole ("25"), a value with a fractional part shows one decimal, half up ("24.5"). */
+fun plainNumber(v: Double): String =
+    if (v % 1.0 == 0.0) String.format(Locale.US, "%d", v.toLong())
+    else BigDecimal(v.toString()).setScale(1, RoundingMode.HALF_UP).toPlainString()
+
+/**
+ * Cleans what was typed into a number field: ',' becomes '.', only ASCII digits 0-9 and at most one '.' are kept, and the
+ * result is cut to [maxLen] characters.
+ */
+fun cleanNumberInput(text: String, maxLen: Int): String {
+    val sb = StringBuilder()
+    var dot = false
+    for (c in text.replace(',', '.')) {
+        if (c in '0'..'9') sb.append(c)
+        else if (c == '.' && !dot) { dot = true; sb.append(c) }
+    }
+    return sb.toString().take(maxLen)
+}
+
+/** Which cost parts a car has entered: insurance, oil, fuel, tires. Aggregate rows only compare cars with the same parts. */
+private fun CarPlanEntry.components(): List<Boolean> =
+    listOf(fullPerYear() != null, oilPerYear() != null, parseAmount(fuelYear) != null, tiresOverKeep() != null)
 
 private fun text(s: String): String = s.trim().ifEmpty { NOT_ENTERED }
 
@@ -93,22 +121,27 @@ fun compareMyCars(a: CarPlanEntry, b: CarPlanEntry): List<CompareRow> {
     val bMpg = parseAmount(b.mpg)
     val aKeep = a.keepYearsOrNull()
     val bKeep = b.keepYearsOrNull()
+    val samePartsEntered = a.components() == b.components()
+    fun agg(label: String, av: Double?, bv: Double?): CompareRow {
+        fun show(v: Double?) = amount(v).let { if (!samePartsEntered && v != null) "$it (partial)" else it }
+        return CompareRow(label, show(av), show(bv), if (samePartsEntered) winner(av, bv, lowerIsBetter = true) else null)
+    }
     return listOf(
         CompareRow("Vehicle", text(a.vehicle), text(b.vehicle), null),
         CompareRow("Cost of the vehicle", amount(parseAmount(a.price)), amount(parseAmount(b.price)), winner(parseAmount(a.price), parseAmount(b.price), lowerIsBetter = true)),
         CompareRow("Paying with", PAY_OPTIONS[a.payHow.coerceIn(0, 2)], PAY_OPTIONS[b.payHow.coerceIn(0, 2)], null),
-        CompareRow("Miles per gallon", aMpg?.let { String.format(Locale.US, "%.0f MPG", it) } ?: NOT_ENTERED,
-            bMpg?.let { String.format(Locale.US, "%.0f MPG", it) } ?: NOT_ENTERED, winner(aMpg, bMpg, lowerIsBetter = false)),
+        CompareRow("Miles per gallon", aMpg?.let { plainNumber(it) + " MPG" } ?: NOT_ENTERED,
+            bMpg?.let { plainNumber(it) + " MPG" } ?: NOT_ENTERED, winner(aMpg, bMpg, lowerIsBetter = false)),
         CompareRow("Liability insurance per year", amount(a.liabilityPerYear()), amount(b.liabilityPerYear()), winner(a.liabilityPerYear(), b.liabilityPerYear(), lowerIsBetter = true)),
         CompareRow("Full coverage per year", amount(a.fullPerYear()), amount(b.fullPerYear()), winner(a.fullPerYear(), b.fullPerYear(), lowerIsBetter = true)),
         CompareRow("Oil changes per year", amount(a.oilPerYear()), amount(b.oilPerYear()), winner(a.oilPerYear(), b.oilPerYear(), lowerIsBetter = true)),
         CompareRow("A set of four tires", amount(parseAmount(a.tires)), amount(parseAmount(b.tires)), winner(parseAmount(a.tires), parseAmount(b.tires), lowerIsBetter = true)),
         CompareRow("Fuel per year", amount(parseAmount(a.fuelYear)), amount(parseAmount(b.fuelYear)), winner(parseAmount(a.fuelYear), parseAmount(b.fuelYear), lowerIsBetter = true)),
-        CompareRow("Years you plan to keep it", aKeep?.let { String.format(Locale.US, "%.0f", it) } ?: NOT_ENTERED,
-            bKeep?.let { String.format(Locale.US, "%.0f", it) } ?: NOT_ENTERED, null),
-        CompareRow("Yearly running cost (full coverage)", amount(a.runningPerYear()), amount(b.runningPerYear()), winner(a.runningPerYear(), b.runningPerYear(), lowerIsBetter = true)),
-        CompareRow("Total cost over the years you keep it", amount(a.totalOverKeep()), amount(b.totalOverKeep()), winner(a.totalOverKeep(), b.totalOverKeep(), lowerIsBetter = true)),
-        CompareRow("Cost per year of owning it", amount(a.costPerYearOfOwning()), amount(b.costPerYearOfOwning()), winner(a.costPerYearOfOwning(), b.costPerYearOfOwning(), lowerIsBetter = true)),
+        CompareRow("Years you plan to keep it", aKeep?.let { plainNumber(it) } ?: NOT_ENTERED,
+            bKeep?.let { plainNumber(it) } ?: NOT_ENTERED, null),
+        agg("Yearly running cost (full coverage)", a.runningPerYear(), b.runningPerYear()),
+        agg("Total cost over the years you keep it (full coverage)", a.totalOverKeep(), b.totalOverKeep()),
+        agg("Cost per year of owning it (full coverage)", a.costPerYearOfOwning(), b.costPerYearOfOwning()),
         CompareRow("Why you picked it", text(a.why), text(b.why), null),
         CompareRow("Safety features", text(a.safety), text(b.safety), null),
     )

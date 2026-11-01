@@ -3,7 +3,7 @@ import Foundation
 /// One carrier plan. Prices are USD/month per line, as researched in Oct 2026.
 struct Plan {
     let carrier: String
-    let name: String
+    var name: String
     let network: String
     let prepaid: Bool
     /// nil = unlimited high-speed data.
@@ -115,12 +115,20 @@ private func foldableFamily(_ n: String) -> String {
 
 private let brandAndGen = try! NSRegularExpression(pattern: "^(iphone|galaxys|galaxyz(?:flip|fold)|pixel)(\\d*)")
 
-/// (brand, generation) of a normalized phone name; generation 0 when the name has no number.
-private func brandGen(_ n: String) -> (String, Int)? {
-    if n.hasPrefix("iphoneduo") { return ("iphone", 99) } // newest iPhone, newer than any numbered one
+/// (brand, generation) of a normalized phone name, on a x10 scale so the in-between models fit: iPhone XS/XR = 105 (after
+/// the 8 = 80, before the 11 = 110), Air = 175 (after the 17 = 170, before the 18), Duo = 990 (newest). An "e" model
+/// (16e) is half a step below its number (155 < 160), so it is never "better" than the same-number phone. Other brands: number x10;
+/// generation 0 when the name has no number.
+func brandGen(_ n: String) -> (String, Int)? {
+    if n.hasPrefix("iphoneduo") { return ("iphone", 990) }
+    if n.hasPrefix("iphoneair") { return ("iphone", 175) }
+    if n.hasPrefix("iphonexs") || n.hasPrefix("iphonexr") { return ("iphone", 105) }
     let ns = n as NSString
     guard let m = brandAndGen.firstMatch(in: n, range: NSRange(location: 0, length: ns.length)) else { return nil }
-    return (ns.substring(with: m.range(at: 1)), Int(ns.substring(with: m.range(at: 2))) ?? 0)
+    let brand = ns.substring(with: m.range(at: 1))
+    let gen = (Int(ns.substring(with: m.range(at: 2))) ?? 0) * 10
+    let isE = brand == "iphone" && gen > 0 && ns.substring(from: m.range.location + m.range.length).hasPrefix("e")
+    return (brand, isE ? gen - 5 : gen)
 }
 
 /// True when the deal names a phone of the same brand as `phone` and a generation at least as new (a "better" phone).

@@ -62,4 +62,17 @@ class CatalogTest {
         val real = Catalog.parse(File("../deals-data/catalog.json").readText())
         assertTrue(real.phones.size >= 10 && real.cars.size >= 10 && real.insurers.size >= 5)
     }
+
+    @Test fun parsingSkipsBadEntriesAndNullsAndNumericStrings() {
+        val c = Catalog.parse("""{"phones":[
+          {"name":"no id"},
+          {"id":"ok","name":"Good","brand":null,"price":"799","display":6.1,"chip":null,"sources":{"price":null,"x":"https://a.com/p"}}],
+          "cars":[5,{"id":"c","name":"Car","mpgUnit":null,"mpgCombined":30}],"insurers":[{"id":"i","name":"Ins","fullMonthly":100}]}""")
+        assertEquals(1, c.phones.size)
+        val p = c.phones[0]
+        assertEquals("", p.brand); assertNull(p.chip); assertNull(p.price); assertEquals(6.1, p.display!!, 0.001)
+        assertEquals(mapOf("x" to "https://a.com/p"), p.sources)
+        assertEquals(1, c.cars.size); assertEquals("MPG", c.cars[0].mpgUnit); assertEquals(30, c.cars[0].mpgCombined)
+        assertEquals(100.0, c.insurers[0].fullMonthly!!, 0.001)
+    }
 }

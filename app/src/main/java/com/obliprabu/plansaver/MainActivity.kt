@@ -1,11 +1,14 @@
 package com.obliprabu.plansaver
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,8 +33,19 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             var themeMode by rememberSaveable { mutableStateOf(ThemeMode.SYSTEM) }
+            // The in-app Light/Dark choice can differ from the system's, so the status/navigation bar icons must follow the
+            // effective mode (light icons on a dark surface and vice versa), not whatever the system is set to.
+            val systemDark = isSystemInDarkTheme()
+            val dark = when (themeMode) { ThemeMode.SYSTEM -> systemDark; ThemeMode.LIGHT -> false; ThemeMode.DARK -> true }
+            DisposableEffect(dark) {
+                val style = if (dark) SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+                    else SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
+                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+                onDispose { }
+            }
             PlanSaverTheme(themeMode) {
                 Surface(Modifier.fillMaxSize()) {
                     AppShell(RemotePlanRepository(BuildConfig.DEALS_URL), CatalogRepository(BuildConfig.CATALOG_URL, applicationContext), themeMode) { themeMode = it }
@@ -39,6 +53,29 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+/** Space kept free at the end of the title row for the floating Auto/Light/Dark chip (generous so large text does not run under it). */
+private val ThemeChipReserve = 100.dp
+
+/** The finished search the Plans tab shows. Kept outside the composable so it survives switching tabs (the tab leaves the composition) without searching or asking the AI again. */
+private object PlansCache {
+    var key: String? = null
+    var results: List<Result>? = null
+    var searchedPhone: String? = null
+    var aiText: String? = null
+    fun clear() { key = null; results = null; searchedPhone = null; aiText = null }
+}
+
+/** A typed number: ',' counts as '.', only the digits 0-9, and at most one '.'. */
+fun sanitizeNumberInput(v: String, maxLen: Int = 7): String {
+    var dot = false
+    val sb = StringBuilder()
+    for (ch in v.replace(',', '.')) {
+        if (ch in '0'..'9') sb.append(ch)
+        else if (ch == '.' && !dot) { dot = true; sb.append(ch) }
+    }
+    return sb.toString().take(maxLen)
 }
 
 private val dataChoices = listOf("1-5 GB" to 5, "10 GB" to 10, "25 GB" to 25, "Unlimited" to null)
@@ -66,23 +103,31 @@ fun PlanSaverApp(repo: PlanRepository) {
     var oldBrand by rememberSaveable { mutableStateOf("iPhone") }
     var oldFamilyIdx by rememberSaveable { mutableIntStateOf(Phones.defaultIphoneIdx) }
     var oldVariant by rememberSaveable { mutableStateOf("") }
+    var aiEnabled by rememberSaveable { mutableStateOf(true) } // the "Ask AI" checkbox: off means nothing is sent to Gemini
+    // Identifies this exact search, so a cached result is only reused when the form is unchanged.
+    fun searchKey(): String = listOf(lines, dataIdx, customLines, lineNeedsCsv, current, postpaid, freePhone, brand, familyIdx, variant,
+        otherPhones, tradeIn, oldBrand, oldFamilyIdx, oldVariant).joinToString("|")
+    val cached = PlansCache.takeIf { it.key == searchKey() }
     var loading by remember { mutableStateOf(false) }
-    var results by remember { mutableStateOf<List<Result>?>(null) }
+    var results by remember { mutableStateOf(cached?.results) }
     var sortByData by rememberSaveable { mutableStateOf(false) }
     var filterNetworksCsv by rememberSaveable { mutableStateOf("") }
     var filterType by rememberSaveable { mutableIntStateOf(0) } // 0 any, 1 prepaid, 2 postpaid
     var filterDeal by rememberSaveable { mutableStateOf(false) }
     var filterUnlimited by rememberSaveable { mutableStateOf(false) }
-    var searchedPhone by rememberSaveable { mutableStateOf<String?>(null) }
-    var aiText by remember { mutableStateOf<String?>(null) }   // the AI suggestion for the current results (AiSuggest.kt)
+    var searchedPhone by rememberSaveable { mutableStateOf(cached?.searchedPhone) }
+    var aiText by remember { mutableStateOf(cached?.aiText) }   // the AI suggestion for the current results (AiSuggest.kt)
     var aiLoading by remember { mutableStateOf(false) }
     var aiRun by remember { mutableIntStateOf(0) }            // a newer search makes an older, slower AI reply be ignored
     // Results are not saveable, so remember only that the results screen was open and search again after process death.
     var resultsOpen by rememberSaveable { mutableStateOf(false) }
+    var searchRun by remember { mutableIntStateOf(0) }        // Back during a search makes the late answer be ignored
     val scope = rememberCoroutineScope()
 
-    fun runSearch() {
+    fun runSearch(askAi: Boolean = aiEnabled) {
         loading = true
+        val myRun0 = ++searchRun
+        val key = searchKey()
         val fams = Phones.brands.getValue(brand)
         val phone = if (freePhone) fams[familyIdx.coerceIn(fams.indices)].name(variant) else null
         val req = SearchRequest(lines, dataChoices[dataIdx].second,
@@ -95,36 +140,45 @@ fun PlanSaverApp(repo: PlanRepository) {
             } catch (e: Exception) {
                 emptyList()
             }
+            if (myRun0 != searchRun) return@launch // the user pressed Back while this was running
             searchedPhone = phone
             results = found
             resultsOpen = true
             loading = false
+            PlansCache.key = key; PlansCache.results = found; PlansCache.searchedPhone = phone; PlansCache.aiText = null
             // The AI suggestion arrives after the normal results are already on screen; if it fails, nothing is shown.
             aiText = null
             val myRun = ++aiRun
-            val aiBody = buildAiRequest(req, tradeInPhone, found)
+            val aiBody = if (askAi) buildAiRequest(req, tradeInPhone, found) else null
             if (aiBody != null) {
                 aiLoading = true
                 scope.launch {
                     val text = fetchAiSuggestion(aiBody)
-                    if (myRun == aiRun) { aiText = text; aiLoading = false }
+                    if (myRun == aiRun) { aiText = text; aiLoading = false; PlansCache.aiText = text }
                 }
             } else aiLoading = false
         }
     }
 
     // After the process was killed with the results screen open: rebuild the results from the saved form.
-    LaunchedEffect(Unit) { if (resultsOpen && results == null) runSearch() }
+    // Coming back to the tab reuses the cached results instead (above); this path asks no AI, so the answer cannot change under the user.
+    LaunchedEffect(Unit) { if (resultsOpen && results == null) runSearch(askAi = false) }
+
+    fun leaveResults() {
+        searchRun++; aiRun++; loading = false; aiLoading = false
+        results = null; aiText = null; resultsOpen = false
+        PlansCache.clear()
+    }
 
     // Two screens: the search form, and the results. Back from results returns to the form.
-    BackHandler(enabled = resultsOpen) { results = null; resultsOpen = false }
+    BackHandler(enabled = resultsOpen) { leaveResults() }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
     // Wider than ContentMaxWidth (a tablet or unfolded foldable): keep the content a readable width, centered. Phones are narrower, so nothing changes.
     Column(Modifier.widthIn(max = ContentMaxWidth).fillMaxSize().statusBarsPadding().padding(horizontal = 16.dp)) {
         if (!resultsOpen) {
             Text("PlanSaver", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 16.dp, end = 72.dp))
+                modifier = Modifier.padding(top = 16.dp, end = ThemeChipReserve))
             Text("Find the cheapest US phone plan for what you actually use.",
                 style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
 
@@ -183,7 +237,7 @@ fun PlanSaverApp(repo: PlanRepository) {
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     value = current,
-                    onValueChange = { v -> current = v.filter { it.isDigit() || it == '.' }.take(7) },
+                    onValueChange = { v -> current = sanitizeNumberInput(v) },
                     label = { Text("Your current phone bill (all lines, per month)") },
                     prefix = { Text("$") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -282,6 +336,12 @@ fun PlanSaverApp(repo: PlanRepository) {
                     modifier = Modifier.fillMaxWidth(),
                     onClick = { runSearch() },
                 ) { Text(if (loading) "Searching..." else "Search plans") }
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.toggleable(value = aiEnabled, role = Role.Checkbox, onValueChange = { aiEnabled = it }).padding(top = 8.dp)) {
+                    Checkbox(checked = aiEnabled, onCheckedChange = null)
+                    Text("Ask AI for a suggestion after searching")
+                }
+                Text("Searching with AI sends your choices (lines, data, bill, phone, trade-in and plan options) to Google's Gemini through PlanSaver's own server. Turn it off to keep them on this device.",
+                    style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start = 8.dp, top = 2.dp))
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 12.dp))
             }
             // Same idea as BuddyVerse's Welcome screen: small, faded, centered, read live from versionName.
@@ -294,7 +354,7 @@ fun PlanSaverApp(repo: PlanRepository) {
             val list = applyFilters(all, ResultFilters(filterNetworks, filterType, filterDeal, filterUnlimited))
             val lineCount = lines
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-                TextButton(onClick = { results = null; resultsOpen = false }) { Text("< Back") }
+                TextButton(onClick = { leaveResults() }) { Text("< Back") }
                 Text("Results", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
@@ -303,7 +363,7 @@ fun PlanSaverApp(repo: PlanRepository) {
                         "varies by carrier and changes weekly - confirm on their site.",
                         style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
                 }
-                if (lineCount > 4) Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.",
+                if (lineCount > 4) Text("For more than 4 lines the nearest known per-line price is used, so totals are estimates.",
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
                 // With every plan on the same data (e.g. only unlimited plans), "Most data" would look identical to "Lowest price".
                 if (list.map { it.plan.dataGb }.distinct().size > 1) Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -325,15 +385,17 @@ fun PlanSaverApp(repo: PlanRepository) {
                     FilterChip(selected = filterDeal, onClick = { filterDeal = !filterDeal }, label = { Text("Has a deal") })
                     FilterChip(selected = filterUnlimited, onClick = { filterUnlimited = !filterUnlimited }, label = { Text("Unlimited only") })
                 }
+                Text("PlanSaver may earn a commission if you sign up through a link.", style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 8.dp))
                 if (all.isNotEmpty()) Text("Showing ${list.size} of ${all.size} plans", style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(vertical = 8.dp))
-                if (aiLoading) Text("Asking AI for a suggestion...", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+                if (aiLoading) Text("Asking Google's Gemini (your search is sent)...", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
                 aiText?.let { suggestion ->
                     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                         Column(Modifier.padding(12.dp)) {
                             Text("AI suggestion", fontWeight = FontWeight.Bold)
                             Text(suggestion, style = MaterialTheme.typography.bodyMedium)
-                            Text("Written by Google's Gemini from the cheapest plans found below. Your search (lines, data, current bill and phone) is sent to it. Prices are unverified, so confirm on the carrier's site.",
+                            Text("Written by Google's Gemini from the cheapest plans found below. Your choices (lines, data, bill, phone, trade-in and plan options) were sent to it. Prices are unverified, so confirm on the carrier's site.",
                                 style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
                         }
                     }
@@ -356,10 +418,12 @@ fun PlanSaverApp(repo: PlanRepository) {
                 if (results != null && list.isNotEmpty()) list.sortedWith(compareBy<Result> { it.otherPhone }
                     .thenBy { if (sortByData) -(it.plan.dataGb ?: 1_000_000) else 0 }.thenBy { it.monthly })
                     .forEach {
-                        ResultCard(it, current.toDoubleOrNull() != null, lineCount, freePhone && tradeIn,
-                            Phones.brands.getValue(oldBrand).let { it[oldFamilyIdx.coerceIn(it.indices)].name(oldVariant) })
+                        key(it.plan.carrier + it.plan.name + it.otherPhone) {
+                            ResultCard(it, current.toDoubleOrNull() != null, lineCount, freePhone && tradeIn,
+                                Phones.brands.getValue(oldBrand).let { it[oldFamilyIdx.coerceIn(it.indices)].name(oldVariant) })
+                        }
                     }
-                Text("Prices researched Oct 2026 from third-party roundups, not checked with the carriers, and may have changed - confirm on the carrier's site. " +
+                Text("Prices come from third-party roundups and the carriers' own pages (see each deal's date), are not verified with the carriers, and may have changed - confirm on the carrier's site. " +
                     "PlanSaver may earn a commission if you sign up through a link.",
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 16.dp))
             }
@@ -394,7 +458,7 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, tradeIn: Boo
                 if (r.plan.freePhoneOffer) Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.",
                     style = MaterialTheme.typography.labelSmall)
             }
-            if (r.plan.dealUrl.startsWith("https://")) TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.dealUrl))) }) { Text("See the offer") }
+            if (r.plan.dealUrl.startsWith("https://")) TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, r.plan.dealUrl.toUri())) }) { Text("See the offer") }
             if (lines > 1 && r.plan.linesNote.isNotEmpty())
                 Text("Multi-line price found online" + (if (r.plan.linesDate.isNotEmpty()) " (as of ${r.plan.linesDate})" else "") +
                     ", unverified: " + r.plan.linesNote, style = MaterialTheme.typography.bodySmall,
@@ -404,7 +468,7 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, tradeIn: Boo
                 r.plan.extraNotes.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
             }
             coverageLinks(r.plan.network).forEach { (name, url) ->
-                TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }) { Text("$name coverage map") }
+                TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }) { Text("$name coverage map") }
             }
             if (r.plan.perks.isNotEmpty()) Text("Perks: " + r.plan.perks.joinToString(", "), style = MaterialTheme.typography.bodySmall)
             if (lines > 1 && r.assignments == null && lines !in r.plan.pricePerLine)
@@ -438,7 +502,7 @@ private fun ResultCard(r: Result, showSavings: Boolean, lines: Int, tradeIn: Boo
                     "but only if you stay 24-36 months, and the amount isn't checked here.", style = MaterialTheme.typography.labelSmall)
                 Text("Not included: the phone, taxes, other fees, accessories.", style = MaterialTheme.typography.labelSmall)
             }
-            TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.plan.signupUrl))) }) { Text("View plan") }
+            TextButton(onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, r.plan.signupUrl.toUri())) }) { Text("View plan") }
         }
     }
 }

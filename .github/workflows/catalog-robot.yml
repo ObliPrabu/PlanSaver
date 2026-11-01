@@ -22,7 +22,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m unittest discover -s tools -p "test_*.py"
+      - run: cp deals-data/catalog.json /tmp/old-data.json
       - run: python tools/refresh_catalog.py
+      - name: Validate before commit (fails the job so nothing is pushed)
+        run: python tools/validate_data.py deals-data/catalog.json /tmp/old-data.json
       - name: Commit if changed
         run: |
           if ! git diff --quiet deals-data/catalog.json; then

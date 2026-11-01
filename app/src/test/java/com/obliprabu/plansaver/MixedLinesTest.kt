@@ -4,6 +4,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MixedLinesTest {
@@ -26,5 +28,22 @@ class MixedLinesTest {
     @Test fun normalSearchHasNoAssignments() {
         val r = runBlocking { BundledPlanRepository().search(SearchRequest(1, null, 0.0, true)) }
         assertNull(r.first().assignments)
+    }
+
+    @Test fun freePhoneSearchStaysOnThePlansTheDealCovers() = runBlocking {
+        // 25 GB and 10 GB lines: with no restriction both lines take AT&T's cheapest unlimited plan (Value), which is not eligible
+        // for AT&T's trade-in credit; allowing only Premium/Elite makes the search pick a qualifying plan for both lines.
+        val req = SearchRequest(2, null, 0.0, includePostpaid = true, lineDataNeeds = listOf(25, 10))
+        val open = BundledPlanRepository().searchAllowing(req) { true }.first { it.plan.carrier == "AT&T" }
+        assertTrue(open.assignments!!.all { it.plan.name.startsWith("Value") })
+        val qualifying = BundledPlanRepository().searchAllowing(req) { nameMatches(it.name, listOf("Premium", "Elite")) }.first { it.plan.carrier == "AT&T" }
+        assertTrue(qualifying.assignments!!.all { it.plan.name.startsWith("Premium") })
+        assertTrue(qualifying.monthly > open.monthly)
+    }
+
+    @Test fun planNameMatchingIgnoresCaseAndEmptyMeansAnyPlan() {
+        assertTrue(nameMatches("Premium 2.0", listOf("premium", "Elite")))
+        assertFalse(nameMatches("Value 2.0", listOf("Premium", "Elite")))
+        assertTrue(nameMatches("Value 2.0", emptyList()))
     }
 }

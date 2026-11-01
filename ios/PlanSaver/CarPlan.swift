@@ -61,7 +61,7 @@ extension CarPlanEntry {
     var tiresOverKeep: Double? {
         guard let cost = parseAmount(tires) else { return nil }
         var sets = 1.0
-        if let setYears = parseAmount(tireYears), setYears > 0, let keep = keepYearsOrNil { sets = max(1, (keep / setYears).rounded(.up)) }
+        if let setYears = parseAmount(tireYears), setYears > 0, let keep = keepYearsOrNil { sets = max(1, (keep / setYears - 1e-9).rounded(.up)) }
         return cost * sets
     }
 
@@ -88,12 +88,40 @@ extension CarPlanEntry {
     }
 }
 
-private func amount(_ v: Double?) -> String {
-    guard let v = v else { return notEntered }
+/// Always US-style digits ("1,200") and halves round up (24.5 -> 25), whatever the device's region is, so both platforms
+/// print the same text.
+func usFormatter(maxFraction: Int, grouping: Bool) -> NumberFormatter {
     let f = NumberFormatter()
+    f.locale = Locale(identifier: "en_US")
     f.numberStyle = .decimal
-    f.maximumFractionDigits = 0
-    return "$" + (f.string(from: NSNumber(value: v)) ?? String(Int(v)))
+    f.roundingMode = .halfUp
+    f.usesGroupingSeparator = grouping
+    f.minimumFractionDigits = 0
+    f.maximumFractionDigits = maxFraction
+    return f
+}
+
+/// "$1,200" (whole dollars, half up); nil -> "not entered".
+func amount(_ v: Double?) -> String {
+    guard let v = v else { return notEntered }
+    return "$" + (usFormatter(maxFraction: 0, grouping: true).string(from: NSNumber(value: v)) ?? String(Int(v)))
+}
+
+/// Keeps what a number field may hold: ',' becomes '.', only ASCII 0-9 and at most one '.', at most maxLen characters.
+func cleanNumberInput(_ text: String, maxLen: Int) -> String {
+    var out = ""
+    var seenDot = false
+    for ch in text.replacingOccurrences(of: ",", with: ".") {
+        if ch == "." {
+            if seenDot { continue }
+            seenDot = true
+            out.append(ch)
+        } else if ch >= "0" && ch <= "9" {
+            out.append(ch)
+        }
+        if out.count >= maxLen { break }
+    }
+    return out
 }
 
 private func text(_ s: String) -> String {
@@ -101,14 +129,31 @@ private func text(_ s: String) -> String {
     return t.isEmpty ? notEntered : t
 }
 
-private func whole(_ v: Double?, suffix: String = "") -> String {
+/// MPG and years: no decimals for a whole number (25), one decimal when there is a fractional part (24.5).
+func whole(_ v: Double?, suffix: String = "") -> String {
     guard let v = v else { return notEntered }
-    return String(format: "%.0f", v) + suffix
+    let digits = v == v.rounded() ? 0 : 1
+    return (usFormatter(maxFraction: digits, grouping: false).string(from: NSNumber(value: v)) ?? String(v)) + suffix
+}
+
+/// Which cost parts a car entered: insurance, oil, fuel, tires. Aggregate rows only crown a winner when both match.
+func costComponents(_ e: CarPlanEntry) -> [Bool] {
+    [e.fullPerYear != nil, e.oilPerYear != nil, parseAmount(e.fuelYear) != nil, e.tiresOverKeep != nil]
 }
 
 /// Side-by-side rows for the two vehicles; a row only marks a better side when both numbers were entered and differ.
 func compareMyCars(_ a: CarPlanEntry, _ b: CarPlanEntry) -> [CompareRow] {
     func pay(_ e: CarPlanEntry) -> String { payOptions[min(max(e.payHow, 0), 2)] }
+    let sameParts = costComponents(a) == costComponents(b)
+    // A car that left parts blank would look cheaper, so with different parts entered there is no tick and values say so.
+    func agg(_ x: Double?, _ y: Double?) -> (String, String, Int?) {
+        if sameParts { return (amount(x), amount(y), winner(x, y, lowerIsBetter: true)) }
+        func t(_ v: Double?) -> String { v == nil ? notEntered : amount(v) + " (partial)" }
+        return (t(x), t(y), nil)
+    }
+    let run = agg(a.runningPerYear, b.runningPerYear)
+    let tot = agg(a.totalOverKeep, b.totalOverKeep)
+    let per = agg(a.costPerYearOfOwning, b.costPerYearOfOwning)
     return [
         CompareRow(label: "Vehicle", left: text(a.vehicle), right: text(b.vehicle), better: nil),
         CompareRow(label: "Cost of the vehicle", left: amount(parseAmount(a.price)), right: amount(parseAmount(b.price)),
@@ -127,12 +172,9 @@ func compareMyCars(_ a: CarPlanEntry, _ b: CarPlanEntry) -> [CompareRow] {
         CompareRow(label: "Fuel per year", left: amount(parseAmount(a.fuelYear)), right: amount(parseAmount(b.fuelYear)),
                    better: winner(parseAmount(a.fuelYear), parseAmount(b.fuelYear), lowerIsBetter: true)),
         CompareRow(label: "Years you plan to keep it", left: whole(a.keepYearsOrNil), right: whole(b.keepYearsOrNil), better: nil),
-        CompareRow(label: "Yearly running cost (full coverage)", left: amount(a.runningPerYear), right: amount(b.runningPerYear),
-                   better: winner(a.runningPerYear, b.runningPerYear, lowerIsBetter: true)),
-        CompareRow(label: "Total cost over the years you keep it", left: amount(a.totalOverKeep), right: amount(b.totalOverKeep),
-                   better: winner(a.totalOverKeep, b.totalOverKeep, lowerIsBetter: true)),
-        CompareRow(label: "Cost per year of owning it", left: amount(a.costPerYearOfOwning), right: amount(b.costPerYearOfOwning),
-                   better: winner(a.costPerYearOfOwning, b.costPerYearOfOwning, lowerIsBetter: true)),
+        CompareRow(label: "Yearly running cost (full coverage)", left: run.0, right: run.1, better: run.2),
+        CompareRow(label: "Total cost over the years you keep it (full coverage)", left: tot.0, right: tot.1, better: tot.2),
+        CompareRow(label: "Cost per year of owning it (full coverage)", left: per.0, right: per.1, better: per.2),
         CompareRow(label: "Why you picked it", left: text(a.why), right: text(b.why), better: nil),
         CompareRow(label: "Safety features", left: text(a.safety), right: text(b.safety), better: nil),
     ]

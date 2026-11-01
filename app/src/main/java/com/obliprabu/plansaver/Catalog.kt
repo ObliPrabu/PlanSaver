@@ -35,30 +35,34 @@ data class Catalog(val phones: List<CatalogPhone>, val cars: List<CatalogCar>, v
     companion object {
         val EMPTY = Catalog(emptyList(), emptyList(), emptyList())
 
-        private fun JSONObject.num(key: String): Double? = if (has(key) && !isNull(key)) optDouble(key).takeUnless { it.isNaN() } else null
-        private fun JSONObject.str(key: String): String? = if (has(key) && !isNull(key)) optString(key).ifEmpty { null } else null
+        // Only real JSON numbers count (a numeric string is not a number); JSON null / missing / wrong type -> null.
+        private fun JSONObject.num(key: String): Double? = (opt(key) as? Number)?.toDouble()?.takeUnless { it.isNaN() || it.isInfinite() }
+        private fun JSONObject.str(key: String): String? = (opt(key) as? String)?.ifEmpty { null }
+        private fun JSONObject.strOr(key: String, default: String = ""): String = str(key) ?: default
         private fun JSONObject.srcs(): Map<String, String> =
-            optJSONObject("sources")?.let { o -> o.keys().asSequence().associateWith { o.getString(it) } }.orEmpty()
+            optJSONObject("sources")?.let { o -> o.keys().asSequence().mapNotNull { k -> o.str(k)?.let { k to it } }.toMap() }.orEmpty()
+
+        private fun JSONObject.reqStr(key: String): String = str(key) ?: throw org.json.JSONException("missing $key")
 
         fun parse(text: String): Catalog {
             val root = JSONObject(text)
             fun <T> list(key: String, f: (JSONObject) -> T): List<T> =
-                root.optJSONArray(key)?.let { a -> (0 until a.length()).map { f(a.getJSONObject(it)) } }.orEmpty()
+                root.optJSONArray(key)?.let { a -> (0 until a.length()).mapNotNull { i -> try { f(a.getJSONObject(i)) } catch (e: Exception) { null } } }.orEmpty() // a bad entry is skipped, the rest still load
             return Catalog(
                 phones = list("phones") { o ->
-                    CatalogPhone(o.getString("id"), o.getString("name"), o.optString("brand"), o.optString("url"),
+                    CatalogPhone(o.reqStr("id"), o.reqStr("name"), o.strOr("brand"), o.strOr("url"),
                         o.num("price"), o.num("display"), o.num("batteryMah")?.toInt(), o.str("chip"), o.str("storage"),
-                        o.optString("updated"), o.srcs())
+                        o.strOr("updated"), o.srcs())
                 },
                 cars = list("cars") { o ->
-                    CatalogCar(o.getString("id"), o.getString("name"), o.optString("make"), o.optString("url"),
+                    CatalogCar(o.reqStr("id"), o.reqStr("name"), o.strOr("make"), o.strOr("url"),
                         o.num("price"), o.num("mpgCombined")?.toInt(), o.num("mpgCity")?.toInt(), o.num("mpgHighway")?.toInt(),
-                        o.optString("mpgUnit", "MPG"), o.str("fuelType"), o.str("bodyType"), o.num("annualFuelCost")?.toInt(),
-                        o.num("rangeMiles")?.toInt(), o.num("modelYear")?.toInt(), o.optString("updated"), o.srcs())
+                        o.strOr("mpgUnit", "MPG"), o.str("fuelType"), o.str("bodyType"), o.num("annualFuelCost")?.toInt(),
+                        o.num("rangeMiles")?.toInt(), o.num("modelYear")?.toInt(), o.strOr("updated"), o.srcs())
                 },
                 insurers = list("insurers") { o ->
-                    CatalogInsurer(o.getString("id"), o.getString("name"), o.optString("url"),
-                        o.num("fullMonthly"), o.num("minMonthly"), o.optString("updated"), o.srcs())
+                    CatalogInsurer(o.reqStr("id"), o.reqStr("name"), o.strOr("url"),
+                        o.num("fullMonthly"), o.num("minMonthly"), o.strOr("updated"), o.srcs())
                 },
             )
         }

@@ -59,4 +59,39 @@ class CarPlanTest {
         assertEquals("Cash", rows["Paying with"]!!.right)
         assertEquals(NOT_ENTERED, rows["Why you picked it"]!!.left)
     }
+
+    @Test fun partialComponentsSuppressWinnerAndMarkValues() {
+        val rows = compareMyCars(a, b).associateBy { it.label }
+        val r = rows["Yearly running cost (full coverage)"]!!
+        assertNull(r.better)
+        assertEquals(true, r.left.endsWith("(partial)")); assertEquals(true, r.right.endsWith("(partial)"))
+        assertNull(rows["Total cost over the years you keep it (full coverage)"]!!.better)
+        assertEquals(true, rows["Cost per year of owning it (full coverage)"]!!.left.endsWith("(partial)"))
+        // same parts entered on both: winner and plain values as before
+        val full = compareMyCars(a, a.copy(fuelYear = "3000")).associateBy { it.label }["Yearly running cost (full coverage)"]!!
+        assertEquals(0, full.better); assertEquals(false, full.left.contains("partial"))
+        // a car with nothing entered shows "not entered" without "(partial)"
+        assertEquals(NOT_ENTERED, compareMyCars(a, CarPlanEntry()).associateBy { it.label }["Total cost over the years you keep it (full coverage)"]!!.right)
+    }
+
+    @Test fun tireSetsAreNotOvercountedByFloatingPoint() {
+        assertEquals(300.0, CarPlanEntry(tires = "100", tireYears = "0.1", keepYears = "0.3").tiresOverKeep()!!, 0.001) // 0.3/0.1 = 3.0000000000000004
+        assertEquals(100.0, CarPlanEntry(tires = "100", tireYears = "10", keepYears = "3").tiresOverKeep()!!, 0.001)
+    }
+
+    @Test fun roundingAndDecimalDisplay() {
+        val rows = compareMyCars(CarPlanEntry(price = "1000.5", mpg = "24.5", keepYears = "7.25"), CarPlanEntry(price = "1000.4", mpg = "25", keepYears = "8")).associateBy { it.label }
+        assertEquals("$1,001", rows["Cost of the vehicle"]!!.left); assertEquals("$1,000", rows["Cost of the vehicle"]!!.right)
+        assertEquals("24.5 MPG", rows["Miles per gallon"]!!.left); assertEquals("25 MPG", rows["Miles per gallon"]!!.right)
+        assertEquals(1, rows["Miles per gallon"]!!.better)
+        assertEquals("7.3", rows["Years you plan to keep it"]!!.left); assertEquals("8", rows["Years you plan to keep it"]!!.right)
+    }
+
+    @Test fun cleansNumberInput() {
+        assertEquals("12.50", cleanNumberInput("12,50", 9))
+        assertEquals("1.23", cleanNumberInput("1.2.3", 9))
+        assertEquals("123", cleanNumberInput("\u0661\u0662\u0663 1a2b3", 9).takeLast(3))
+        assertEquals("1234567", cleanNumberInput("12345678901", 7))
+        assertEquals("", cleanNumberInput("abc", 9))
+    }
 }

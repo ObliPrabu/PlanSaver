@@ -43,7 +43,12 @@ def money(s):
 
 # ---------------------------------------------------------------- prices
 
-PRICE_WORDS = re.compile(r"(?:Starting\s+(?:MSRP|at|from)|MSRP\s+from|From|Starts\s+at)\s*:?\s*\$\s?(\d[\d,]*(?:\.\d\d)?)", re.I)
+# A price is rejected when what follows shows it is not the phone's price: a monthly payment ("/mo", "per month", "or $24.95/mo",
+# "for 36 months"), a trade-in credit or discount ("off", "credit", "with trade-in").
+NOT_A_PRICE = (r"(?!\d|,\d|\.\d)(?!\s*(?:/\s*(?:mo|month)\b|per\s+month|a\s+month|monthly|mo\b"
+               r"|(?:x|for)\s*\d+\s*(?:mo|months?)\b|off\b|credits?\b|back\b|trade|[^.$]{0,40}with\s+trade-?\s?in"
+               r"|(?:or|,|\+)\s*\$\s?\d[\d,.]*\s*(?:/\s*mo|per\s+month|a\s+month|monthly)))")
+PRICE_WORDS = re.compile(r"(?:Starting\s+(?:MSRP|at|from)|MSRP\s+from|From|Starts\s+at)\s*:?\s*\$\s?(\d[\d,]*(?:\.\d\d)?)" + NOT_A_PRICE, re.I)
 
 
 def price_from_text(text, low, high):
@@ -73,15 +78,38 @@ def mentions(sentence, name, all_names=()):
     return bool(re.search(r"(?<![a-z0-9])" + re.escape(name.lower()) + VARIANT_AFTER, sentence.lower()))
 
 
-def specs_from_sentences(sentences):
-    """Display (inches), battery (mAh), chip and storage options found in a phone's sentences."""
+def display_for(sentence, name):
+    """The display size (inches) the sentence gives for exactly this phone, or None. The model name must come right
+    before the size ("iPhone 17 has a 6.3-inch display"): no digit in between and no "and" / "&" / "/" / "or", so
+    "iPhone 17 and 17 Pro Max have 6.3 and 6.9-inch displays" gives nothing."""
+    pattern = r"(?<![a-z0-9])" + re.escape(name.lower()) + VARIANT_AFTER + r"([^0-9]{0,40}?)(\d\.\d{1,2})[- ]?(?:inch|in\b|\")"
+    m = re.search(pattern, sentence.lower())
+    if not m or re.search(r"\band\b|&|/|\bor\b", m.group(1)):
+        return None
+    value = float(m.group(2))
+    return value if 4.5 <= value <= 8.5 else None
+
+
+# The smallest storage option a phone is sold with; a list that starts higher is missing the base tier, so it is not shown.
+BASE_TIERS = {"64GB", "128GB", "256GB"}
+
+
+def specs_from_sentences(sentences, name=None):
+    """Display (inches), battery (mAh), chip and storage options found in a phone's sentences. With `name`, a display
+    size only counts when the name sits right before it, and storage is only returned when its smallest tier is a
+    real base tier (64/128/256GB) - otherwise it is left out (null)."""
     out = {}
     storage = []
     for s in sentences:
         if "display" not in out:
-            m = DISPLAY.search(s)
-            if m and 4.5 <= float(m.group(1)) <= 8.5 and re.search(r"display|screen|inch", s, re.I):
-                out["display"] = float(m.group(1))
+            if name is not None:
+                size = display_for(s, name)
+                if size is not None and re.search(r"display|screen|inch", s, re.I):
+                    out["display"] = size
+            else:
+                m = DISPLAY.search(s)
+                if m and 4.5 <= float(m.group(1)) <= 8.5 and re.search(r"display|screen|inch", s, re.I):
+                    out["display"] = float(m.group(1))
         if "batteryMah" not in out:
             m = BATTERY.search(s)
             if m:
@@ -101,7 +129,9 @@ def specs_from_sentences(sentences):
                     storage.append(label)
     if storage:
         order = lambda x: int(x[:-2]) * (1024 if x.endswith("TB") else 1)
-        out["storage"] = ", ".join(sorted(storage, key=order))
+        ordered = sorted(storage, key=order)
+        if name is None or ordered[0] in BASE_TIERS:
+            out["storage"] = ", ".join(ordered)
     return out
 
 
@@ -110,7 +140,7 @@ def refresh_phone(entry, all_names, shared_page=False):
     sources = {}
     sentences = []  # (sentence, url)
     try:
-        page = rd.fetch(entry["url"])
+        page = rd.fetch_page(entry["url"])
         if not shared_page:  # a page that sells several phones can't say which "From $X" is this one's
             price = price_from_text(page, 150, 2500)
             if price:
@@ -127,15 +157,18 @@ def refresh_phone(entry, all_names, shared_page=False):
         if host_ok and url.startswith("https://") and mentions(snippet, entry["name"], all_names) \
                 and not any(mentions(snippet, n) for n in all_names if n != entry["name"]):
             sentences.append((rd.tidy(snippet), url))
-    for field, value in specs_from_sentences([s for s, _ in sentences]).items():
+    for field, value in specs_from_sentences([s for s, _ in sentences], entry["name"]).items():
         found[field] = value
-        sources[field] = next((u for s, u in sentences if value_in(field, value, s)), entry["url"])
+        sources[field] = next((u for s, u in sentences if value_in(field, value, s, entry["name"])), entry["url"])
     return found, sources
 
 
-def value_in(field, value, sentence):
-    """Which sentence a spec value came from (so its source can be shown)."""
-    return bool(specs_from_sentences([sentence]).get(field) == value)
+def value_in(field, value, sentence, name=None):
+    """Which sentence a spec value came from (so its source can be shown). Storage is a list over many sentences, so any
+    sentence that shows one of its options counts."""
+    if field == "storage":
+        return any(x in value.split(", ") for x in specs_from_sentences([sentence]).get("storage", "").split(", "))
+    return bool(specs_from_sentences([sentence], name).get(field) == value)
 
 
 # ---------------------------------------------------------------- cars (EPA)
@@ -185,7 +218,7 @@ def refresh_car(entry):
             print(f"  EPA failed: {e}")
     time.sleep(PAUSE)
     try:
-        price = price_from_text(rd.fetch(entry["url"]), 12000, 250000)
+        price = price_from_text(rd.fetch_page(entry["url"]), 12000, 250000)
         if price:
             found["price"], sources["price"] = price, entry["url"]
     except Exception as e:
@@ -241,7 +274,7 @@ def page_sentences(url):
     """Sentences of a page, fetched once per run ([] when the page can't be read)."""
     if url not in _PAGES:
         try:
-            _PAGES[url] = rd.sentences(rd.fetch(url))
+            _PAGES[url] = rd.sentences(rd.fetch_page(url))
         except Exception as e:
             print(f"  page failed: {url}: {e}")
             _PAGES[url] = []
@@ -287,6 +320,7 @@ def apply(entry, found, sources):
 def main():
     with open(PATH) as f:
         data = json.load(f)
+    old = json.loads(json.dumps(data))
     work = [(kind, e) for kind in ("phones", "cars", "insurers") for e in data.get(kind, [])]
     work.sort(key=lambda w: w[1].get("checked", ""))
     phone_names = [p["name"] for p in data.get("phones", [])]
@@ -313,9 +347,8 @@ def main():
         time.sleep(PAUSE)
     if changed:
         data["updated"] = today()
-        with open(PATH, "w") as f:
-            json.dump(data, f, indent=2)
-            f.write("\n")
+        if not rd.save_validated(PATH, data, old):
+            sys.exit(1)
         print("catalog.json updated")
     else:
         print("no change")

@@ -49,4 +49,10 @@ class AiSuggestTest {
         assertNull(parseAiText("""{"text":"   "}"""))
         assertNull(parseAiText("not json"))
     }
+
+    @Test fun stripsMarkdownMarkers() {
+        assertEquals("Pick A first.\nIt is cheap.\nSecond: B", stripMarkdown("**Pick A** first.\n* It is cheap.\n- Second: B"))
+        assertEquals("a * b - c", stripMarkdown("a * b - c"))
+        assertEquals("Look at A.", parseAiText("""{"text":"**Look** at A."}"""))
+    }
 }

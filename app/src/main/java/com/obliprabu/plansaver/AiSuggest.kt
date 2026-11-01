@@ -40,9 +40,13 @@ fun buildAiRequest(req: SearchRequest, tradeInPhone: String?, results: List<Resu
     return body.toString()
 }
 
+/** Gemini sometimes answers with markdown; the card shows plain text, so drop the bold markers and leading "* " / "- " bullet marks. */
+fun stripMarkdown(text: String): String =
+    text.replace("**", "").lines().joinToString("\n") { it.replace(Regex("^\\s*[*-]\\s+"), "") }
+
 /** The suggestion text from the Worker's `{"text": "..."}` reply, or null for an error reply or anything unreadable. */
 fun parseAiText(body: String): String? = try {
-    JSONObject(body).optString("text", "").trim().ifEmpty { null }
+    stripMarkdown(JSONObject(body).optString("text", "")).trim().ifEmpty { null }
 } catch (e: Exception) {
     null
 }
@@ -57,8 +61,12 @@ suspend fun fetchAiSuggestion(requestJson: String, url: String = AI_URL): String
             readTimeout = 25_000
             setRequestProperty("Content-Type", "application/json")
         }
-        conn.outputStream.use { it.write(requestJson.toByteArray()) }
-        if (conn.responseCode == 200) parseAiText(conn.inputStream.bufferedReader().readText()) else null
+        try {
+            conn.outputStream.use { it.write(requestJson.toByteArray()) }
+            if (conn.responseCode == 200) parseAiText(conn.inputStream.bufferedReader().readText()) else null
+        } finally {
+            conn.disconnect()
+        }
     } catch (e: Exception) {
         null
     }

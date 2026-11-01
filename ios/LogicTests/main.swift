@@ -108,6 +108,14 @@ check(sourceDomain("https://www.nerdwallet.com/insurance/auto") == "nerdwallet.c
 let realCatalog = Catalog.parse(try! Data(contentsOf: URL(fileURLWithPath: "../deals-data/catalog.json")))!
 check(realCatalog.phones.count >= 10 && realCatalog.cars.count >= 10 && realCatalog.insurers.count >= 5, "the catalog file in the repo parses and has names")
 
+// ---- Free-phone searches stay on the plans a deal covers (mirrors MixedLinesTest.kt)
+let attReq = SearchRequest(lines: 2, dataNeedGb: nil, currentMonthly: 0, includePostpaid: true, lineDataNeeds: [25, 10])
+let attOpen = PlanRepository.bundledSearch(attReq).first { $0.plan.carrier == "AT&T" }
+let attQual = PlanRepository.bundledSearch(attReq) { nameMatches($0.name, ["Premium", "Elite"]) }.first { $0.plan.carrier == "AT&T" }
+check(attOpen?.assignments?.allSatisfy { $0.plan.name.hasPrefix("Value") } == true, "unrestricted: both lines take the cheapest AT&T plan (Value)")
+check(attQual?.assignments?.allSatisfy { $0.plan.name.hasPrefix("Premium") } == true && (attQual?.monthly ?? 0) > (attOpen?.monthly ?? 0), "restricted to qualifying plans: both lines take Premium")
+check(nameMatches("Premium 2.0", ["premium", "Elite"]) && !nameMatches("Value 2.0", ["Premium", "Elite"]) && nameMatches("Value 2.0", []), "plan name matching")
+
 // ---- My cars questionnaire (mirrors CarPlanTest.kt)
 let ca = CarPlanEntry(vehicle: "2022 Honda Civic", price: "$24,000", payHow: 1, mpg: "35", liability: "50", full: "100", insFreq: 0,
                       oilCost: "60", oilMonths: "6", tires: "600", tireYears: "4", fuelYear: "1,500", keepYears: "8")
@@ -152,6 +160,77 @@ check(buildAiRequest(aiReq, tradeInPhone: nil, results: []) == nil
 check(parseAiText("{\"text\":\"  Look at A first. \"}".data(using: .utf8)!) == "Look at A first."
       && parseAiText("{\"error\":\"AI unavailable.\",\"status\":503}".data(using: .utf8)!) == nil
       && parseAiText("{\"text\":\"   \"}".data(using: .utf8)!) == nil && parseAiText("not json".data(using: .utf8)!) == nil, "AI reply parsing")
+
+// Cars: partial components, tire sets, rounding, input cleaning, catalog tolerance
+func row(_ rows: [CompareRow], _ label: String) -> CompareRow { rows.first { $0.label == label }! }
+var car_ca = CarPlanEntry(); car_ca.full = "100"; car_ca.oilCost = "50"; car_ca.oilMonths = "6"; car_ca.fuelYear = "1000"; car_ca.tires = "400"; car_ca.keepYears = "4"; car_ca.price = "20000"
+var car_cb = CarPlanEntry(); car_cb.fuelYear = "500"; car_cb.keepYears = "4"; car_cb.price = "20000"
+let partialRows = compareMyCars(car_ca, car_cb)
+let runRow = row(partialRows, "Yearly running cost (full coverage)")
+check(runRow.better == nil && runRow.right == "$500 (partial)" && runRow.left.hasSuffix("(partial)"), "partial components: no tick, (partial) on values")
+check(row(partialRows, "Total cost over the years you keep it (full coverage)").better == nil
+      && row(partialRows, "Cost per year of owning it (full coverage)").better == nil, "partial: total and per-year suppressed")
+check(row(partialRows, "Fuel per year").better == 1, "single-component rows still pick a winner")
+var car_cc = car_ca; car_cc.fuelYear = "2000"
+check(row(compareMyCars(car_ca, car_cc), "Yearly running cost (full coverage)").better == 0, "same components: winner as before")
+var car_cd = CarPlanEntry(); car_cd.keepYears = "4"
+check(row(compareMyCars(car_cd, car_cb), "Yearly running cost (full coverage)").right == "$500 (partial)"
+      && row(compareMyCars(car_cd, car_cb), "Yearly running cost (full coverage)").left == notEntered, "not entered stays unmarked")
+var tt = CarPlanEntry(); tt.tires = "400"; tt.tireYears = "3"; tt.keepYears = "9"
+check(tt.tiresOverKeep == 1200, "tire sets exact division 9/3 = 3")
+tt.tireYears = "0.3"; tt.keepYears = "0.9"
+check(tt.tiresOverKeep == 1200, "tire sets float noise 0.9/0.3 stays 3")
+tt.tireYears = "3"; tt.keepYears = "4"
+check(tt.tiresOverKeep == 800, "tire sets round up")
+tt.keepYears = "1"
+check(tt.tiresOverKeep == 400, "tire sets at least one")
+check(amount(24.5) == "$25" && amount(0.5) == "$1" && amount(2.5) == "$3" && amount(1200) == "$1,200" && amount(nil) == notEntered, "amount half up en_US")
+check(whole(24.5) == "24.5" && whole(25) == "25" && whole(nil) == notEntered && whole(24.5, suffix: " MPG") == "24.5 MPG", "whole shows decimal only when fractional")
+check(cleanNumberInput("12,50", maxLen: 9) == "12.50" && cleanNumberInput("1.2.3", maxLen: 9) == "1.23", "cleanNumberInput comma and one dot")
+check(cleanNumberInput("\u{0663}4a5", maxLen: 9) == "45" && cleanNumberInput("123456789012", maxLen: 9) == "123456789"
+      && cleanNumberInput("1234567890", maxLen: 7) == "1234567" && cleanNumberInput("", maxLen: 9) == "", "cleanNumberInput ASCII only and max length")
+let pc = Catalog.parse("""
+{"phones":[{"id":"p","name":"P","price":"799","display":6.1,"batteryMah":true,"chip":null,"updated":null},{"name":"bad"}],
+ "cars":[{"id":"c","name":"C","mpgUnit":null,"updated":null,"mpgCombined":"30","mpgCity":28,"annualFuelCost":null,"url":null}]}
+""".data(using: .utf8)!)!
+check(pc.phones.count == 1 && pc.phones[0].price == nil && pc.phones[0].display == 6.1 && pc.phones[0].batteryMah == nil
+      && pc.phones[0].chip == nil && pc.phones[0].updated == "", "catalog: null/string/bool tolerated, bad entry skipped")
+check(pc.cars[0].mpgUnit == "MPG" && pc.cars[0].updated == "" && pc.cars[0].mpgCombined == nil
+      && pc.cars[0].mpgCity == 28 && pc.cars[0].url == "", "catalog car: null defaults, numeric string rejected")
+
+// ---- Plans logic fixes (ISSUE-4..7, 29-31; mirrors LiveDealsTest.kt / PhoneMatchTest.kt)
+check(dealIsBetterPhone("Free iPhone Air", phone: "iPhone 17 Pro"), "Air newer than 17")
+check(!dealIsBetterPhone("Free iPhone Air", phone: "iPhone 18"), "Air not better than 18")
+check(!dealIsBetterPhone("Free iPhone 17 Pro", phone: "iPhone Air"), "17 not better than Air")
+check(dealIsBetterPhone("iPhone 11 deal", phone: "iPhone XS"), "11 better than XS")
+check(!dealIsBetterPhone("iPhone XR deal", phone: "iPhone 11"), "XR not better than 11")
+check(!dealIsBetterPhone("iPhone XS Max deal", phone: "iPhone 12"), "XS not better than 12")
+check(!dealIsBetterPhone("iPhone 16e for $0", phone: "iPhone 16"), "16e not better than 16")
+check(dealIsBetterPhone("iPhone 16e for $0", phone: "iPhone 15"), "16e better than 15")
+check(dealIsBetterPhone("iPhone 16 for $0", phone: "iPhone 16e"), "16 better than 16e")
+check(dealIsBetterPhone("iPhone Duo", phone: "iPhone Air"), "Duo newest")
+let dj = """
+{"deals":[{"carrier":"T-Mobile","deal":"A","freePhone":true,"requiresPlans":["Experience"]},{"deal":"no carrier"},
+{"carrier":"Mint Mobile","deal":"Promo","freePhone":true,"expires":"2026-10-22"},
+{"carrier":"Visible","deal":"P","freePhone":true,"ignoreFreePhone":true,"extras":{"tradein":{"text":"t"},"activation":{"text":"a"}}}]}
+""".data(using: .utf8)!
+check(parseLiveDeals(dj, phone: nil, today: "2026-10-01")!.map { $0.carrier } == ["T-Mobile", "Mint Mobile", "Visible"], "bad entry skipped")
+check(parseLiveDeals(dj, phone: nil, today: "2026-10-31")!.map { $0.carrier } == ["T-Mobile", "Visible"], "expired skipped")
+check(dealExpired("2026-10-22", today: "2026-10-23") && !dealExpired("2026-10-22", today: "2026-10-22") && !dealExpired("", today: "2026-10-31"), "dealExpired")
+let visDeal = parseLiveDeals(dj, phone: nil, today: "2026-10-01")!.first { $0.carrier == "Visible" }!
+check(!visDeal.freePhone, "ignoreFreePhone")
+check(visDeal.extras == ["Activation: a", "Trade-in: t"], "extras labels sorted")
+func staleResult(_ c: String, _ n: String) -> SearchResult {
+    var p = PlanData.plans.first { $0.carrier == c }!
+    p.name = n; p.deal = "old"; p.freePhoneOffer = true; p.dealUrl = "u"; p.dealDate = "d"
+    return SearchResult(plan: p, monthly: 10, yearlySavings: 0)
+}
+let attLive = LiveDeal(carrier: "AT&T", deal: "new", freePhone: true, url: "", plans: [], updated: "", linesNote: "", linesUpdated: "", extras: [], activationFee: nil, tradeInMax: nil, requiresPlans: ["Premium", "Elite"])
+let mg = mergeLiveDeals([staleResult("AT&T", "Value 2.0"), staleResult("AT&T", "Premium 2.0"), staleResult("Cricket", "X")], [attLive])
+check(mg[0].plan.deal == nil && !mg[0].plan.freePhoneOffer && mg[0].plan.dealUrl == "" && mg[0].plan.dealDate == "", "uncovered plan cleared")
+check(mg[1].plan.deal == "new" && mg[1].liveDeal, "covered plan gets live deal")
+check(mg[2].plan.deal == "old", "carrier without live deals keeps bundled")
+check(mergeLiveDeals([staleResult("AT&T", "Value 2.0")], nil)[0].plan.deal == "old", "offline enforces nothing")
 
 print("\(count - failures) of \(count) checks passed" + (failures == 0 ? "" : ", \(failures) FAILED"))
 exit(failures == 0 ? 0 : 1)

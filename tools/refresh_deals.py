@@ -6,21 +6,28 @@ deal-sounding sentence that came from the carrier's OWN domain, and store it. An
 blocked request can never wipe the deals. "phones" is never guessed. A "plans" scope is kept only while the new text still
 names one of its plans. freePhone is re-derived when the deal text changes; "updated" on each entry is the date its text
 last changed. A new text must score clearly higher than the stored one, so candidates can't flip-flop.
+Before anything is written the whole file is validated (see validate_data) and written atomically; a carrier page that
+robots.txt disallows is skipped. The workflow asks to run hourly.
 Usage: python tools/refresh_deals.py [path/to/deals.json]
 """
 import base64
 import html
 import json
+import os
 import re
 import sys
+import tempfile
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
+import urllib.robotparser
 from datetime import date
 from html.parser import HTMLParser
 
 PATH = sys.argv[1] if len(sys.argv) > 1 else "deals-data/deals.json"
-UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+# An honest user agent: says what this is and where to reach the people running it (instead of pretending to be Chrome).
+UA = "PlanSaverRobot/1.0 (+https://github.com/ObliPrabu/PlanSaver; open-source plan comparison app)"
 KEYWORDS = ("free", "off", "save", "switch", "trade", "bill credit", "per month", "/mo", "iphone", "galaxy", "pixel")
 MIN_SCORE = 5
 MARGIN = 2  # a new deal text must beat the stored one by this much
@@ -34,6 +41,116 @@ def fetch(url):
         if r.status != 200:
             raise IOError(r.status)
         return r.read(2_000_000).decode("utf-8", errors="replace")
+
+
+_ROBOTS = {}  # "scheme://host" -> RobotFileParser, or None when robots.txt could not be read (then everything is allowed)
+
+
+def robots_allowed(url):
+    """False when the site's robots.txt disallows our robot from fetching this URL. A missing (404) or unreachable
+    robots.txt allows it, as the standard says; a 401/403 on robots.txt means keep out."""
+    parts = urllib.parse.urlparse(url)
+    origin = f"{parts.scheme}://{parts.netloc}"
+    if origin not in _ROBOTS:
+        parser = urllib.robotparser.RobotFileParser()
+        try:
+            parser.parse(fetch(origin + "/robots.txt").splitlines())
+            _ROBOTS[origin] = parser
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 403):
+                parser.disallow_all = True
+                _ROBOTS[origin] = parser
+            else:
+                _ROBOTS[origin] = None
+        except Exception:
+            _ROBOTS[origin] = None
+    parser = _ROBOTS[origin]
+    return parser is None or parser.can_fetch("PlanSaverRobot", url)
+
+
+def fetch_page(url):
+    """fetch() for a page on a carrier's / maker's own site: skipped (IOError) when robots.txt disallows it."""
+    if not robots_allowed(url):
+        raise IOError("disallowed by robots.txt: " + url)
+    return fetch(url)
+
+
+# ---------------------------------------------------------------- validation (nothing unchecked is ever written)
+
+MAX_TEXT = 400
+CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+INJECTION = re.compile(r"ignore (all |any )?(previous|prior) instructions|system prompt|you are now", re.I)
+
+
+def safe_text(text):
+    """True when a scraped text is fine to store: at most 400 characters, no control characters, no prompt-injection phrases."""
+    return isinstance(text, str) and len(text) <= MAX_TEXT and not CONTROL.search(text) and not INJECTION.search(text)
+
+
+def _walk(node, path=""):
+    if isinstance(node, dict):
+        for k, v in node.items():
+            yield from _walk(v, f"{path}.{k}")
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            yield from _walk(v, f"{path}[{i}]")
+    else:
+        yield path, node
+
+
+def validate_data(new, old=None):
+    """List of problems with a deals/catalog document ([] = fine). Checks: every list of entries is no shorter than in
+    `old`; every `url` (and every value under `sources`) starts with https://; every string is at most 400 characters,
+    has no control characters and no injection phrase."""
+    problems = []
+    if not isinstance(new, dict):
+        return ["top level is not an object"]
+    if isinstance(old, dict):
+        for key, value in old.items():
+            if isinstance(value, list) and value and isinstance(value[0], dict):
+                n = len(new.get(key) or [])
+                if n < len(value):
+                    problems.append(f"'{key}' shrank from {len(value)} to {n} entries")
+    for path, value in _walk(new):
+        if not isinstance(value, str):
+            continue
+        last = path.rsplit(".", 1)[-1]
+        if (last == "url" or ".sources." in path + ".") and not value.startswith("https://"):
+            problems.append(f"{path}: not an https:// link")
+        if len(value) > MAX_TEXT:
+            problems.append(f"{path}: longer than {MAX_TEXT} characters")
+        if CONTROL.search(value):
+            problems.append(f"{path}: control characters")
+        if INJECTION.search(value):
+            problems.append(f"{path}: looks like an instruction to an AI")
+    return problems
+
+
+def write_json_atomic(path, data):
+    """Write JSON to a temp file in the same folder, then os.replace it, so a crash never leaves a half-written file."""
+    folder = os.path.dirname(os.path.abspath(path))
+    fd, tmp = tempfile.mkstemp(dir=folder, prefix=".tmp-", suffix=".json")
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+            f.write("\n")
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
+
+
+def save_validated(path, data, old):
+    """Validate, then write atomically. Returns False (and writes nothing) when validation fails."""
+    problems = validate_data(data, old)
+    if problems:
+        print("VALIDATION FAILED, nothing written:")
+        for p in problems[:20]:
+            print("  " + p)
+        return False
+    write_json_atomic(path, data)
+    return True
 
 
 class TextOnly(HTMLParser):
@@ -239,6 +356,9 @@ NUMBER_FIELDS = {"activation": ("activationFee", activation_amount), "tradein": 
 
 def update_extra(entry, kind, best):
     new_score, text, _ = best
+    if not safe_text(text):
+        print(f"  rejected unsafe {kind} text, keeping old")
+        return False
     notes = entry.setdefault("extras", {})
     old = notes.get(kind, {}).get("text", "")
     if text == old or (old and new_score < extra_score(kind, old) + MARGIN):
@@ -300,7 +420,7 @@ def gather(entry):
     base = entry["url"]
     out = []
     try:
-        out += [(tidy(x), base) for x in sentences(fetch(base))]
+        out += [(tidy(x), base) for x in sentences(fetch_page(base))]
     except Exception as e:
         print(f"  page failed: {e}")
     for query in (entry["carrier"] + " phone deals", entry["carrier"] + " plans price per line multiple lines",
@@ -330,6 +450,9 @@ def best_lines(found):
 
 def update_deal(entry, best):
     new_score, text, url = best
+    if not safe_text(text) or not url.startswith("https://"):
+        print("  rejected unsafe deal text/link, keeping old")
+        return False
     if text == entry["deal"] and url == entry["url"]:
         return False
     # Only replace a deal when the new text is clearly better, so two similar candidates can't flip-flop forever.
@@ -349,6 +472,9 @@ def update_deal(entry, best):
 def update_lines(entry, best):
     """Store the best multi-line price sentence as a note (shown on cards; never used to compute prices)."""
     new_score, text, _ = best
+    if not safe_text(text):
+        print("  rejected unsafe multi-line text, keeping old")
+        return False
     old = entry.get("lines", "")
     if text == old or (old and new_score < lines_score(old) + MARGIN):
         return False
@@ -358,9 +484,11 @@ def update_lines(entry, best):
     return True
 
 
-def main():
-    with open(PATH) as f:
+def main(path=None):
+    path = path or PATH
+    with open(path) as f:
         data = json.load(f)
+    old = json.loads(json.dumps(data))
     changed = False
     for entry in data["deals"]:
         print(entry["carrier"])
@@ -384,9 +512,8 @@ def main():
                 changed |= update_extra(entry, kind, extra)
     if changed:
         data["updated"] = date.today().isoformat()
-        with open(PATH, "w") as f:
-            json.dump(data, f, indent=2)
-            f.write("\n")
+        if not save_validated(path, data, old):
+            sys.exit(1)
         print("deals.json updated")
     else:
         print("no change")

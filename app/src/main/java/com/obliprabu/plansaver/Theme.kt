@@ -39,7 +39,7 @@ private val DarkColors = darkColorScheme(primary = PlanSaverBlueDark, secondary 
 // so that badge could silently become any hue - pin it to a literal orange
 // instead, independent of colorScheme, matching the iOS build's Color.orange
 // for the same badge.
-private val DealOrangeLight = Color(0xFFEF6C00)
+private val DealOrangeLight = Color(0xFFB34700)
 private val DealOrangeDark = Color(0xFFFFB74D)
 
 private val LocalDarkTheme = staticCompositionLocalOf { false }

@@ -2,7 +2,7 @@ name: Deals robot
 
 on:
   schedule:
-    - cron: "*/5 * * * *" # asks for every 5 minutes (GitHub's minimum), but GitHub decides: in practice anywhere from 5 minutes to 1 day apart
+    - cron: "0 * * * *" # asks for hourly; GitHub decides, in practice it can run later or less often
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m unittest discover -s tools -p "test_*.py"
+      - run: cp deals-data/deals.json /tmp/old-data.json
       - run: python tools/refresh_deals.py
+      - name: Validate before commit (fails the job so nothing is pushed)
+        run: python tools/validate_data.py deals-data/deals.json /tmp/old-data.json
       - name: Commit if changed
         run: |
           if ! git diff --quiet deals-data/deals.json; then

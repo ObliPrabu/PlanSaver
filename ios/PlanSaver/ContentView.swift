@@ -1,6 +1,24 @@
 import SwiftUI
 import UIKit
 
+/// Keeps a money field to a plain number: a decimal comma becomes '.', only ASCII 0-9 and at most one '.' stay (isNumber also
+/// accepts non-ASCII digits, which Double() cannot read), and the length is capped. Mirrors Android's filter.
+func sanitizeDecimalInput(_ v: String, maxLength: Int = 7) -> String {
+    var seenDot = false
+    var out = ""
+    for ch in v {
+        let c: Character = ch == "," ? "." : ch
+        if c == "." {
+            if seenDot { continue }
+            seenDot = true
+            out.append(c)
+        } else if c >= "0" && c <= "9" {
+            out.append(c)
+        }
+    }
+    return String(out.prefix(maxLength))
+}
+
 private let dataChoices: [(label: String, gb: Int?)] = [("1-5 GB", 5), ("10 GB", 10), ("25 GB", 25), ("Unlimited", nil)]
 
 /// Shown as a floating top-right toggle over the whole screen - matches the
@@ -55,6 +73,8 @@ struct ContentView: View {
     @State private var searchedLines = 1
     @State private var aiText: String? = nil   // the AI suggestion for the current results (AiSuggest.swift)
     @State private var aiLoading = false
+    @State private var askAi = true            // opt-out: when off, nothing is sent to the AI server
+    @Environment(\.colorScheme) private var colorScheme
     @State private var aiRun = 0               // a newer search makes an older, slower AI reply be ignored
 
     private var families: [PhoneFamily] { Phones.brands[brand] ?? [] }
@@ -115,7 +135,7 @@ struct ContentView: View {
                         TextField("0", text: $current)
                             .keyboardType(.decimalPad)
                             .onChange(of: current) { v in
-                                let f = String(v.filter { $0.isNumber || $0 == "." }.prefix(7))
+                                let f = sanitizeDecimalInput(v)
                                 if f != v { current = f }
                             }
                     }
@@ -133,6 +153,9 @@ struct ContentView: View {
                             .foregroundColor(.white).cornerRadius(10)
                     }.disabled(loading)
                     if loading { ProgressView() }
+                    Toggle("Ask AI for a suggestion after searching", isOn: $askAi)
+                    Text("Searching with AI sends your choices (lines, data, bill, phone, trade-in and plan options) to Google's Gemini through PlanSaver's own server. Turn it off to keep them on this device.")
+                        .font(.footnote).foregroundColor(.secondary)
                 }
                 .padding(16)
                 .frame(maxWidth: contentMaxWidth) // readable width on an iPad; iPhones are narrower, so nothing changes
@@ -148,7 +171,7 @@ struct ContentView: View {
             TextField(label, text: text)
                 .keyboardType(.decimalPad)
                 .onChange(of: text.wrappedValue) { v in
-                    let f = String(v.filter { $0.isNumber || $0 == "." }.prefix(7))
+                    let f = sanitizeDecimalInput(v)
                     if f != v { text.wrappedValue = f }
                 }
         }
@@ -243,7 +266,9 @@ struct ContentView: View {
             aiRun += 1
             let myRun = aiRun
             let tradeInName: String? = (freePhone && tradeIn) ? oldFamily.name(oldVariant) : nil
-            if let body = buildAiRequest(request, tradeInPhone: tradeInName, results: found) {
+            if !askAi {
+                aiLoading = false
+            } else if let body = buildAiRequest(request, tradeInPhone: tradeInName, results: found) {
                 aiLoading = true
                 fetchAiSuggestion(body) { text in
                     if myRun == aiRun { aiText = text; aiLoading = false }
@@ -258,10 +283,19 @@ struct ContentView: View {
         let list = applyFilters(all, filters)
         return VStack(spacing: 0) {
             HStack {
-                Button("< Back") { results = nil }
+                Button("< Back") {
+                    // A reply still in flight for these results must not pop up later or on the next search.
+                    aiRun += 1
+                    aiLoading = false
+                    aiText = nil
+                    results = nil
+                }
                 Text("Results").font(.title2).bold()
                 Spacer()
-            }.padding(16)
+            }
+            .padding(16)
+            .frame(maxWidth: contentMaxWidth) // same width as the cards below
+            .frame(maxWidth: .infinity)
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     if let phone = searchedPhone {
@@ -289,17 +323,18 @@ struct ContentView: View {
                             chip("Unlimited only", on: filters.unlimitedOnly) { filters.unlimitedOnly.toggle() }
                         }
                     }
+                    Text("PlanSaver may earn a commission if you sign up through a link.").font(.footnote)
                     if !all.isEmpty { Text("Showing \(list.count) of \(all.count) plans").font(.footnote) }
                     if lines > 4 {
-                        Text("For more than 4 lines the 4-line price per line is used, so totals are estimates.")
+                        Text("For more than 4 lines the nearest known per-line price is used, so totals are estimates.")
                             .font(.footnote)
                     }
-                    if aiLoading { Text("Asking AI for a suggestion...").font(.footnote) }
+                    if aiLoading { Text("Asking Google's Gemini (your search is sent)...").font(.footnote) }
                     if let suggestion = aiText {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("AI suggestion").bold()
-                            Text(suggestion)
-                            Text("Written by Google's Gemini from the cheapest plans found below. Your search (lines, data, current bill and phone) is sent to it. Prices are unverified, so confirm on the carrier's site.")
+                            Text(plainAiText(suggestion))
+                            Text("Written by Google's Gemini from the cheapest plans found below. Your choices (lines, data, bill, phone, trade-in and plan options) were sent to it. Prices are unverified, so confirm on the carrier's site.")
                                 .font(.caption2)
                         }
                         .padding(12)
@@ -327,7 +362,7 @@ struct ContentView: View {
                         }
                         ForEach(sorted(list)) { card($0, lines: searchedLines) }
                     }
-                    Text("Prices researched Oct 2026 from third-party roundups, not checked with the carriers, and may have changed - confirm on the carrier's site. PlanSaver may earn a commission if you sign up through a link.")
+                    Text("Prices come from third-party roundups and the carriers' own pages (see each deal's date), are not verified with the carriers, and may have changed - confirm on the carrier's site. PlanSaver may earn a commission if you sign up through a link.")
                         .font(.footnote).padding(.vertical, 16)
                 }
                 .padding(.horizontal, 16)
@@ -335,6 +370,11 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity)
             }
         }
+    }
+
+    /// Orange that stays readable: plain .orange is only about 2:1 on white, so light mode uses a darker #B34700.
+    private var dealColor: Color {
+        colorScheme == .dark ? .orange : Color(red: 179.0 / 255, green: 71.0 / 255, blue: 0)
     }
 
     private func chip(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
@@ -376,7 +416,7 @@ struct ContentView: View {
             if let deal = r.plan.deal {
                 Text((r.liveDeal ? "Live " : "") + (r.otherPhone ? "better phone deal: " : (r.plan.freePhoneOffer ? "phone deal: " : "deal: ")) + deal
                      + (r.plan.dealDate.isEmpty ? "" : " (as of \(r.plan.dealDate))"))
-                    .font(.footnote).foregroundColor(.orange)
+                    .font(.footnote).foregroundColor(dealColor)
                 if r.plan.freePhoneOffer {
                     Text("Usually needs a trade-in and 24-36 months of bill credits - leaving early forfeits them.")
                         .font(.caption2)
@@ -389,7 +429,7 @@ struct ContentView: View {
             if lines > 1 && !r.plan.linesNote.isEmpty {
                 Text("Multi-line price found online" + (r.plan.linesDate.isEmpty ? "" : " (as of \(r.plan.linesDate))")
                      + ", unverified: " + r.plan.linesNote)
-                    .font(.footnote).foregroundColor(.orange)
+                    .font(.footnote).foregroundColor(dealColor)
             }
             if !r.plan.extraNotes.isEmpty {
                 Text("Found online for \(r.plan.carrier) (unverified; may differ by plan):").font(.caption2)
@@ -431,7 +471,7 @@ struct ContentView: View {
                         Text(String(format: "Trade-in%@: this carrier's own text says up to $%.0f. That is a best case; what your phone gets depends on its model and condition, so confirm with the carrier.",
                                     old.isEmpty ? "" : " of \(old)", max)).font(.caption2)
                     } else {
-                        Text("No trade-in amount found for \(r.plan.carrier), - ask the carrier what your \(old.isEmpty ? "old phone" : old) gets.").font(.caption2)
+                        Text("No trade-in amount found for \(r.plan.carrier) - ask the carrier what your \(old.isEmpty ? "old phone" : old) gets.").font(.caption2)
                     }
                 }
                 if r.plan.freePhoneOffer {

@@ -33,7 +33,20 @@ func buildAiRequest(_ req: SearchRequest, tradeInPhone: String?, results: [Searc
 func parseAiText(_ data: Data) -> String? {
     guard let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
           let text = (obj["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
-    return text
+    return plainAiText(text)
+}
+
+/// Gemini sometimes answers with markdown; the card shows plain text, so this removes '**', drops a leading '* ' or '- ' bullet
+/// marker on each line, collapses runs of 3+ newlines to 2 and trims. Mirrors Android's plainAiText.
+func plainAiText(_ s: String) -> String {
+    let lines = s.replacingOccurrences(of: "**", with: "").components(separatedBy: "\n").map { line -> String in
+        let trimmed = line.drop(while: { $0 == " " || $0 == "\t" })
+        if trimmed.hasPrefix("* ") || trimmed.hasPrefix("- ") { return String(trimmed.dropFirst(2)) }
+        return line
+    }
+    var out = lines.joined(separator: "\n")
+    while out.contains("\n\n\n") { out = out.replacingOccurrences(of: "\n\n\n", with: "\n\n") }
+    return out.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 /// Asks the Worker; nil on any failure (offline, busy, not set up), so the caller simply shows nothing. Calls back on the main thread.

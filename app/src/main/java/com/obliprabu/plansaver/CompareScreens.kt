@@ -1,8 +1,9 @@
 package com.obliprabu.plansaver
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -50,14 +51,14 @@ fun AppShell(repo: PlanRepository, catalogRepo: CatalogRepository, themeMode: Th
     BoxWithConstraints(Modifier.fillMaxSize()) {
         if (maxWidth >= WIDE_SCREEN) {
             Row(Modifier.fillMaxSize()) {
-                NavigationRail {
+                NavigationRail(Modifier.windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))) {
                     Spacer(Modifier.weight(1f))
                     tabs.forEachIndexed { i, (label, emoji) ->
                         NavigationRailItem(selected = tab == i, onClick = { tab = i }, icon = { Text(emoji) }, label = { Text(label) })
                     }
                     Spacer(Modifier.weight(1f))
                 }
-                Box(Modifier.weight(1f).fillMaxHeight()) { content() }
+                Box(Modifier.weight(1f).fillMaxHeight().windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))) { content() }
             }
         } else {
             Column(Modifier.fillMaxSize()) {
@@ -112,7 +113,7 @@ private fun Loading(catalog: Catalog?, empty: Boolean, what: String) {
 }
 
 private fun open(ctx: android.content.Context, url: String) {
-    if (url.startsWith("https://")) ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    if (url.startsWith("https://")) ctx.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
 }
 
 // ------------------------------------------------------------------ insurance
@@ -128,13 +129,13 @@ fun InsuranceScreen(catalog: Catalog?, onSearch: () -> Unit) {
     var searchedCurrent by rememberSaveable { mutableStateOf("") }
     ScreenFrame("Car insurance", "Average monthly costs for full coverage or the state minimum.") {
         Text("Coverage", fontWeight = FontWeight.SemiBold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
             FilterChip(selected = full, onClick = { full = true }, label = { Text("Full coverage") })
             FilterChip(selected = !full, onClick = { full = false }, label = { Text("Minimum (liability)") })
         }
         OutlinedTextField(
             value = current,
-            onValueChange = { v -> current = v.filter { it.isDigit() || it == '.' }.take(7) },
+            onValueChange = { v -> current = cleanNumberInput(v, 7) },
             label = { Text("What you pay now (per month, optional)") },
             prefix = { Text("$") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -246,13 +247,16 @@ fun CarsScreen(catalog: Catalog?) {
     val cars = catalog?.cars.orEmpty()
     var a by rememberSaveable { mutableIntStateOf(0) }
     var b by rememberSaveable { mutableIntStateOf(1) }
+    // Both vehicles' answers live here (not in the form) so switching modes does not throw them away.
+    var carA by rememberSaveable(stateSaver = CarPlanEntrySaver) { mutableStateOf(CarPlanEntry()) }
+    var carB by rememberSaveable(stateSaver = CarPlanEntrySaver) { mutableStateOf(CarPlanEntry()) }
     var mode by rememberSaveable { mutableIntStateOf(0) } // 0 = catalog cars, 1 = "My own questions" (CarPlanScreen.kt)
     ScreenFrame("Compare cars", if (mode == 0) "Pick two cars to see them side by side." else "Answer the questions for two vehicles to compare them.") {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 8.dp)) {
             FilterChip(selected = mode == 0, onClick = { mode = 0 }, label = { Text("Catalog cars") })
             FilterChip(selected = mode == 1, onClick = { mode = 1 }, label = { Text("My own questions") })
         }
-        if (mode == 1) { MyCarsForm(); return@ScreenFrame }
+        if (mode == 1) { MyCarsForm(carA, { carA = it }, carB, { carB = it }); return@ScreenFrame }
         Loading(catalog, cars.isEmpty(), "cars")
         if (cars.size >= 2) {
             val left = cars[a.coerceIn(cars.indices)]

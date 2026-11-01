@@ -27,7 +27,10 @@
       },
       "activationFee": 35.0,
       "tradeInMax": 1200.0,
-      "updated": "2026-10-24"
+      "updated": "2026-10-24",
+      "requiresPlans": [
+        "Experience"
+      ]
     },
     {
       "carrier": "Verizon",
@@ -47,6 +50,10 @@
       },
       "ignore": [
         "activation"
+      ],
+      "requiresPlans": [
+        "Ultimate",
+        "Plus"
       ]
     },
     {
@@ -68,6 +75,10 @@
       "ignore": [
         "activation",
         "tradein"
+      ],
+      "requiresPlans": [
+        "Premium",
+        "Elite"
       ]
     },
     {
@@ -79,6 +90,7 @@
       "plans": [
         "6-month"
       ],
+      "expires": "2026-10-22",
       "lines": "Introducing The Modern Family Plan ! Premium wireless starting at $15/month per line , and you only need 2 lines to get started. Mix & match data plans so everyone gets what they need with no overages.",
       "linesUpdated": "2026-10-19",
       "extras": {
@@ -114,7 +126,8 @@
       },
       "plans": [
         "Visible+"
-      ]
+      ],
+      "ignoreFreePhone": true
     },
     {
       "carrier": "Total Wireless",

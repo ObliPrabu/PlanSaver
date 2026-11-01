@@ -35,6 +35,7 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
+        ITSAppUsesNonExemptEncryption: false
         # Allowed in every orientation and not full-screen-only, so the app can use the whole
         # inner screen of a foldable (the iPhone Duo) instead of sitting in a portrait strip.
         UISupportedInterfaceOrientations:

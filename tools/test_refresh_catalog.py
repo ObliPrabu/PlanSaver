@@ -101,3 +101,30 @@ class VariantTests(unittest.TestCase):
         self.assertTrue(c.mentions("The iPhone 17 has a 6.3-inch display.", "iPhone 17"))
         self.assertTrue(c.mentions("The Galaxy S26+ has a 6.7-inch display.", "Galaxy S26+"))
         self.assertTrue(c.mentions("Pixel 10 Pro XL: 6.8-inch.", "Pixel 10 Pro XL"))
+
+
+class PriceRuleTests(unittest.TestCase):
+    def test_monthly_and_credit_prices_rejected(self):
+        for text in ("From $25/mo", "From $25 /mo for 36 months", "From $24.95 per month", "From $200 off with trade-in",
+                     "Starting at $830 credit", "From $0 with trade-in", "From $899 or $24.95/mo for 36 mo", "From $24.95 monthly"):
+            self.assertIsNone(c.price_from_text(text, 5, 2500), text)
+
+    def test_real_price_still_accepted(self):
+        self.assertEqual(799.0, c.price_from_text("From $25/mo. Starting at $799.", 5, 2500))
+        self.assertEqual(1199.0, c.price_from_text("From $1,199 with 256GB.", 150, 2500))
+
+
+class SpecRuleTests(unittest.TestCase):
+    def test_iphone_17_not_the_69_inch_phone(self):
+        s = "iPhone 17 and 17 Pro Max have 6.3-inch and 6.9-inch Super Retina displays."
+        self.assertIsNone(c.display_for(s, "iPhone 17"))
+        self.assertEqual({}, c.specs_from_sentences([s], "iPhone 17"))
+
+    def test_name_right_before_size(self):
+        self.assertEqual(6.3, c.display_for("iPhone 17 has a 6.3-inch display.", "iPhone 17"))
+        self.assertIsNone(c.display_for("The 6.9-inch display is on the iPhone 17.", "iPhone 17"))
+        self.assertIsNone(c.display_for("iPhone 17 Pro Max has a 6.9-inch display.", "iPhone 17"))
+
+    def test_storage_needs_base_tier(self):
+        self.assertNotIn("storage", c.specs_from_sentences(["iPhone 17 storage: 512GB."], "iPhone 17"))
+        self.assertEqual("256GB, 512GB", c.specs_from_sentences(["iPhone 17 storage: 256GB and 512GB."], "iPhone 17")["storage"])

@@ -62,6 +62,8 @@ Cars tab "My own questions" (2026-10-31): a toggle at the top of the Cars tab sw
 
 AI search (2026-10-31): after the normal search shows results, both apps call a Cloudflare Worker (`ai-proxy/worker.js`, deployed as `plansaver-ai` at https://plansaver-ai.plansaver-app.workers.dev) that holds the Gemini key as a Worker secret (a parent created the key; the owner is a minor) and answers with `{text}`. `AiSuggest.kt`/`AiSuggest.swift` build the request from the whole `SearchRequest` (`lines`, `dataNeedGb`, `currentMonthly` only if entered, `includePostpaid`, `freePhoneOnly`, `includeOtherPhones`, `phone`, per-line `lineDataNeeds`, `tradeInPhone` when a trade-in is on) plus the 12 cheapest plans for the picked phone (no other-phone deals), so the AI answers for exactly what was searched; the Worker's `buildPrompt` turns each field into a sentence and show an "AI suggestion" card above the results; on any failure or a busy Gemini (it answers 503 at times) nothing is shown and the normal results stand. Gemini only sees plans the app already found. The Search button keeps its label. The apps never contain the key. The Worker's default model is `gemini-3.5-flash-lite` (Google retired 2.5-flash for new users; 3.8-flash was often overloaded with 503s and gemini-4-argon returned 429 quota-exceeded on the free key, so a lighter model was chosen on 2026-10-31); a `GEMINI_MODEL` Worker variable overrides it, so remove that variable if a model starts failing. The Worker also gives Gemini at most 20 s and allows 2000 output tokens (newer models spend output tokens on hidden thinking, and 400 cut answers off mid-sentence). Tests: `AiSuggestTest.kt` and `ios/LogicTests/main.swift`. The owner removed the assistant's Cloudflare access; redeploying the Worker needs a new login.
 
+Deal plan requirement (2026-10-31): a deals.json entry may carry `requiresPlans` (e.g. AT&T: `["Premium","Elite"]`, because AT&T's trade-in credit needs Premium 2.0 or Elite 2.0 per tradein.att.com), a hand-set rule that the robot never edits (unlike `plans`, which the robot drops when the new deal text stops naming it). The deal text and its free-phone flag apply only to plans whose name contains one of the fragments, and a free-phone search (`freePhoneOnly`) only considers plans its carrier's free-phone deal covers (`searchAllowing` / `bundledSearch(allow:)`), so custom-line searches pick a qualifying plan instead of the cheapest non-qualifying one. Tests: `MixedLinesTest.kt` and `ios/LogicTests/main.swift`.
+
 Search flow (identical on both platforms): `MainActivity.kt`/`ContentView.swift` build a `SearchRequest` -> 
 `RemotePlanRepository.search` (Android) / `PlanRepository.search` (iOS) -> results screen.
 1. Filter + sort the bundled plans (`PlanData`): postpaid toggle, data need, and a plan is dropped when `lines` is below
@@ -184,3 +186,265 @@ privacy policy URL, Data Safety form (the app sends only a GET to raw.githubuser
 rating, signed release config (none yet in `app/build.gradle.kts`; `./gradlew bundleRelease` would produce an unsigned
 bundle), and a decision on repo visibility (public is required for the live deals download; NOTES.md exposes the
 affiliate research while public).
+
+## Known Issues
+
+_Maintained by the PlanSaver QA pass (run `/test-app`-style review; first pass 2026-10-31). Entries are numbered and never reused._
+
+### Open
+
+#### ISSUE-8: Catalog data looks wrong for at least one phone, and the robot's regexes allow it
+- **Severity:** MEDIUM
+- **Area:** data
+- **File:** deals-data/catalog.json (iPhone 17); tools/refresh_catalog.py:46-105
+- **Found by:** QA review (2026-10-31)
+- **Description:** iPhone 17 shows 6.9 in and storage '512GB' only; the price regex accepts 'From $X/mo', trade-in credits and promos.
+- **Suggested fix:** Add a negative lookahead after prices, require the model name before a display size, label storage 'options found'.
+- **Last attempt:** 2026-10-31 — Robot code fixed 2026-10-31 (prices followed by /mo, trade-in or credit are rejected; a display size needs the model name right before it; storage only when the smallest tier is seen; 38 tests), but deals-data/catalog.json still holds the old iPhone 17 values (6.9 in, 512GB) until the robot refreshes it or someone corrects it by hand.
+
+#### ISSUE-14: Android status-bar/dark-mode handling is likely wrong (light XML theme, no enableEdgeToEdge, wide layout ignores bottom inset)
+- **Severity:** MEDIUM
+- **Area:** ui
+- **File:** res/values/themes.xml:2; MainActivity.kt:31-40; CompareScreens.kt:50-72
+- **Found by:** QA review (2026-10-31)
+- **Description:** In-app Dark or system dark probably draws dark status-bar icons on a dark surface; white flash on cold start; content can sit under the gesture bar on wide screens. Not confirmed without running.
+- **Suggested fix:** Call enableEdgeToEdge with SystemBarStyle from the effective ThemeMode, DayNight parent theme with a night variant, add navigation-bar padding.
+- **Last attempt:** 2026-10-31 — Partly done 2026-10-31: `enableEdgeToEdge` with a theme-driven `SystemBarStyle`, a `values-night` theme and the wide-layout bottom inset were added. Not verified on a device: status-bar icon colour in each theme mode and the cold-start flash. The parent theme is still plain Material (not DayNight).
+
+#### ISSUE-15: Android chip rows aren't scrollable and overflow at large text on a 360dp phone
+- **Severity:** MEDIUM
+- **Area:** ui
+- **File:** CompareScreens.kt:131-134; CarPlanScreen.kt:90-92; MainActivity.kt:208-217,254-259
+- **Found by:** QA review (2026-10-31)
+- **Description:** 'Every 6 months' row, Insurance coverage row and brand chips have no horizontalScroll while the app scales type by 1.25.
+- **Suggested fix:** Add horizontalScroll or FlowRow.
+- **Last attempt:** 2026-10-31 — Partly done 2026-10-31: the Insurance coverage chips and the car form's pay-method/insurance-frequency chips scroll horizontally. The brand chips and other chip rows in MainActivity.kt were not changed.
+
+#### ISSUE-18: Lint: UseKtx x4, launcher icon not round x5, UseTomlInstead x2, newer Gradle/AGP/org.json
+- **Severity:** LOW
+- **Area:** build
+- **File:** CompareScreens.kt:115; MainActivity.kt:397,407,441; res/mipmap-*; app/build.gradle.kts:50-51
+- **Found by:** QA review (2026-10-31)
+- **Description:** Style/tooling nags; builds and tests pass.
+- **Suggested fix:** Use toUri(), provide a round/adaptive icon, move to version catalog, bump versions when convenient.
+- **Last attempt:** 2026-10-31 — Partly done 2026-10-31: the UseKtx items in MainActivity.kt and CompareScreens.kt use `toUri()`. Still open: round launcher icon, UseTomlInstead, newer Gradle/AGP/org.json.
+
+#### ISSUE-22: Theme chip can collide with titles at big text; orange deal text fails contrast on light backgrounds
+- **Severity:** LOW
+- **Area:** ui
+- **File:** CompareScreens.kt:92,101; Theme.kt:42; ContentView.swift:379,392
+- **Found by:** QA review (2026-10-31)
+- **Description:** Floating chip reserves a fixed 72dp/80pt; #EF6C00 on white is about 3.3:1 and iOS .orange about 2:1.
+- **Suggested fix:** Put the chip in a header row; use a darker orange in light mode.
+- **Last attempt:** 2026-10-31 — Partly done 2026-10-31: light-mode deal orange darkened on both platforms; the title reserve for the chip is 100dp on the Plans screen. The Insurance/Phones/Cars titles in CompareScreens.kt still reserve the old width.
+
+#### ISSUE-24: Commission disclosure is only at the bottom of Plans results; 'Prices researched Oct 2026' is hardcoded
+- **Severity:** LOW
+- **Area:** ui
+- **File:** MainActivity.kt:362-364; ContentView.swift:330; CompareScreens.kt:175
+- **Found by:** QA review (2026-10-31)
+- **Description:** Insurance/Phones/Cars links carry no disclosure; the date will go stale.
+- **Suggested fix:** Show a short disclosure near the first link and in the Insurance footer; derive the date from the data.
+- **Last attempt:** 2026-10-31 — Partly done 2026-10-31: the Plans results show the commission line at the top as well and the bottom text no longer says 'Oct 2026'. The Insurance, Phones and Cars screens still have no commission disclosure.
+
+### Fixed
+
+#### ISSUE-1: AI Worker is an open, unauthenticated, unthrottled endpoint and returns Google's error details
+- **Severity:** HIGH
+- **Area:** security
+- **File:** ai-proxy/worker.js:53-88
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** `worker.js` refuses any request with an `Origin` header (403), requires `content-type: application/json` (415), rate-limits per IP (Cloudflare `RATE_LIMITER` binding, 20/60 s, plus an in-memory fallback of 20/min per isolate) and no longer returns Google's `status`/`detail` (only when the `DEBUG` variable is "1"). Deployed and tested live: 405/403/415 and a normal 200 work. Limit: a fast burst on one connection is blocked (429), but requests spread over many new connections landed on different servers and were not limited, so a patient script is not stopped; a Cloudflare WAF rate-limit rule (dashboard) would be stronger.
+
+#### ISSUE-2: Typed answers in "My own questions" are lost when switching to "Catalog cars" and back (both platforms)
+- **Severity:** MEDIUM
+- **Area:** cars
+- **File:** CompareScreens.kt:249-255 + CarPlanScreen.kt:30-31; ios CompareViews.swift:195,204 + CarPlanView.swift:6-7
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** `CarsScreen`/`CarsView` own the two `CarPlanEntry` states and pass them to the form, so switching Catalog/My-questions keeps the answers. Verified on the vivo: typed text survived the flip.
+
+#### ISSUE-3: The green tick favours a car that simply left fields blank
+- **Severity:** MEDIUM
+- **Area:** cars
+- **File:** CarPlan.kt:70-82,109-111; CarPlan.swift:69-88
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Aggregate rows (running cost, total, per year) mark no winner and append " (partial)" when the two cars entered different sets of components (insurance, oil, fuel, tires); identical on both platforms with tests.
+
+#### ISSUE-4: T-Mobile and Verizon deals apply to every plan, so a free-phone search can choose a non-qualifying plan
+- **Severity:** MEDIUM
+- **Area:** plans
+- **File:** deals-data/deals.json:4-51; PlanRepository.kt:76-81; PlanRepository.swift:90-93
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Hand-set `requiresPlans` added to the T-Mobile (`["Experience"]`, matching its trade-in text) and Verizon (`["Ultimate","Plus"]`) entries in deals.json. Verizon's text names only Ultimate; Plus was added as the other premium tier and should be confirmed against Verizon's real terms.
+
+#### ISSUE-5: AT&T Value 2.0 keeps its stale bundled deal and free-phone flag when the live deal's requiresPlans excludes it
+- **Severity:** MEDIUM
+- **Area:** plans
+- **File:** PlanRepository.kt:91-95; PlanRepository.swift:104; PlanData.kt:35-36
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** When a carrier has live deals but none covers a plan, that plan's bundled deal, free-phone flag, link and date are cleared (`mergeLiveDeals`, both platforms); offline keeps the bundled data and says so in a comment.
+
+#### ISSUE-6: 'Better phone' logic treats iPhone Air/XS/XR as generation 0
+- **Severity:** MEDIUM
+- **Area:** plans
+- **File:** Plan.kt:98-114; Plan.swift:116-134
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** `brandGen` now uses an x10 scale: numbered iPhones N*10, XS/XR 105, Air 175, Duo 990, `e` models N*10-5, so Air/XS/XR order correctly and an e-model is never 'better' than the same number.
+
+#### ISSUE-7: Android drops ALL live deals or the whole live catalog if one entry is malformed (iOS skips just that entry)
+- **Severity:** MEDIUM
+- **Area:** plans
+- **File:** PlanRepository.kt:149-164; Catalog.kt:46-61 vs PlanRepository.swift:170-182, Catalog.swift:63-82
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Android parses deals (`parseLiveDeals`) and the catalog (`Catalog.parse`) per entry inside its own try, so one bad entry is skipped; JSON null gives the default, not the text "null", and numeric helpers accept only real numbers (iOS also rejects booleans).
+
+#### ISSUE-9: Android Plans tab re-runs the search and the Gemini request every time you return to the tab
+- **Severity:** MEDIUM
+- **Area:** plans
+- **File:** MainActivity.kt:69-81,94-117
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** A `PlansCache` keyed by the form inputs keeps results, AI text and phone across tab switches; process-death restore re-searches but asks no AI; a late search answer no longer reopens results after Back. Verified on the vivo (tab switch restored results and the same AI text). Limit: an AI request still in flight when you leave the tab is lost.
+
+#### ISSUE-10: The AI data-sharing notice appears only after the data was sent, is incomplete, and has no opt-in
+- **Severity:** MEDIUM
+- **Area:** privacy
+- **File:** MainActivity.kt:105-112,330-338; ContentView.swift:246-251,293-308
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Both apps have an "Ask AI for a suggestion after searching" switch (default on, off = nothing is sent) with a note under it listing what is sent, a loading line that says the search is sent to Google's Gemini, and a fuller card footnote. Verified on the vivo.
+
+#### ISSUE-11: iOS PlanSaver has no PrivacyInfo.xcprivacy and store privacy forms aren't addressed
+- **Severity:** MEDIUM
+- **Area:** privacy
+- **File:** ios/ (none found); ios/project.yml
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Added `ios/PlanSaver/PrivacyInfo.xcprivacy` (no tracking; Other User Content for AppFunctionality; no accessed-API entries since the app uses no UserDefaults) and `ITSAppUsesNonExemptEncryption=false`; built into the app. The App Store / Play data-safety forms themselves still have to be filled in by the owner or a parent.
+
+#### ISSUE-12: Robots publish scraped text straight to main with no validation, and it flows into app UI and AI prompts
+- **Severity:** MEDIUM
+- **Area:** security
+- **File:** tools/refresh_deals.py:300-396; .github/workflows/deals-robot.yml
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** `tools/validate_data.py` plus shared validation in `refresh_deals.py`/`refresh_catalog.py`: JSON must parse, entry lists must not shrink, every url/source must be https, strings at most 400 chars with no control characters or injection phrases; atomic temp-file writes; both workflows run the validator before committing; hand-set keys (`requiresPlans`, `ignore`, `expires`, `ignoreFreePhone`) survive. 38 robot tests pass.
+
+#### ISSUE-13: Prompt injection through Worker-visible fields; system prompt doesn't tell the model to treat them as data
+- **Severity:** MEDIUM
+- **Area:** security
+- **File:** ai-proxy/worker.js:8-43
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** The Worker's system prompt now says to treat plan/carrier/deal/phone fields as data only, answer in plain text with no markdown, and mention only listed plans by exact name. The optional JSON-picks-validated-by-the-app step was not built.
+
+#### ISSUE-16: Car-form fields have no accessible label (both platforms)
+- **Severity:** MEDIUM
+- **Area:** ui
+- **File:** CarPlanScreen.kt:68-84; CarPlanView.swift:53-88
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Every question field has an accessible label "<vehicle>: <question>" (Android semantics, iOS accessibilityLabel) and the pickers have real labels.
+
+#### ISSUE-17: iOS forces extra-extra-large text, including on Mac Catalyst
+- **Severity:** MEDIUM
+- **Area:** ui
+- **File:** ios/PlanSaver/PlanSaverApp.swift:6-9
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** The extra-extra-large text floor applies only off Mac Catalyst and updates on content-size changes.
+
+#### ISSUE-19: Scraping politeness: spoofed Chrome user agent, no robots.txt check, DuckDuckGo/Bing HTML scraping, 5-minute cron
+- **Severity:** LOW
+- **Area:** security
+- **File:** tools/refresh_deals.py:15-33,306-320; refresh_catalog.py
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Honest User-Agent with the project URL, robots.txt respected for direct page fetches, deals workflow cron slowed to hourly. (The Deals pipeline paragraph above still says every 5 minutes.)
+
+#### ISSUE-20: AI card gaps: Back doesn't bump aiRun, connection never disconnect()ed, Gemini markdown shows literal asterisks
+- **Severity:** LOW
+- **Area:** ai
+- **File:** MainActivity.kt:101-113; AiSuggest.kt:51-65; AiSuggest.swift:40-49
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Back bumps `aiRun`; `disconnect()` runs in a finally; `stripMarkdown`/`plainAiText` remove `**` and bullet markers; tests on both platforms.
+
+#### ISSUE-21: Android manifest: allowBackup=true with no rules; release build not minified
+- **Severity:** LOW
+- **Area:** build
+- **File:** AndroidManifest.xml; app/build.gradle.kts:32
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** `allowBackup="false"` in the manifest.
+
+#### ISSUE-23: Decimal-comma keyboards turn '12,50' into 1250; '1.2.3' silently becomes 'not entered'
+- **Severity:** LOW
+- **Area:** ui
+- **File:** MainActivity.kt:186; CarPlanScreen.kt:78; CarPlanView.swift:80 (and Insurance, iOS ContentView.swift:118,150)
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Number inputs map ',' to '.', accept only ASCII 0-9 and one '.', in the Plans, Insurance and car fields on both platforms (`cleanNumberInput`/`sanitizeNumberInput`); no 'enter a number' hint was added.
+
+#### ISSUE-25: iOS typo and parity nits: stray comma in trade-in text; Insurance chip says 'Minimum' vs 'Minimum (liability)'; iOS Back button outside the 720 frame
+- **Severity:** LOW
+- **Area:** ui
+- **File:** ContentView.swift:434; CompareViews.swift:80; ContentView.swift:260-264
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Removed the stray comma, constrained the iOS results header to the card width, and the iOS Insurance chip now says "Minimum (liability)".
+
+#### ISSUE-26: Android and iOS round numbers differently (half-up vs half-even) and format with different locales; MPG winner is picked on exact values
+- **Severity:** LOW
+- **Area:** cars
+- **File:** CarPlan.kt:86,100-108; CarPlan.swift:91-107; Catalog.kt:97; Catalog.swift:122-128
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Both platforms format amounts en_US with half-up rounding; MPG and years show one decimal only when fractional.
+
+#### ISSUE-27: Tire sets can be off by one from floating-point division; liability is shown but never used in totals; total rows don't say they assume full coverage
+- **Severity:** LOW
+- **Area:** cars
+- **File:** CarPlan.kt:65,70-82; CarPlan.swift:64
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Tire sets use `ceil(keep/setYears - 1e-9)`; the total and per-year rows are labelled "(full coverage)".
+
+#### ISSUE-28: Catalog parsing differs: Android optString turns JSON null into 'null' and coerces numeric strings; iOS doesn't
+- **Severity:** LOW
+- **Area:** data
+- **File:** Catalog.kt:49-61; Catalog.swift:67-82
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Android and iOS read catalog and deal fields the same way (null gives the default; booleans and numeric strings are not numbers).
+
+#### ISSUE-29: Android total-cost expansion follows list position, not the plan; 'More than 4 lines' note misdescribes most plans; extras show raw keys in different order per platform
+- **Severity:** LOW
+- **Area:** plans
+- **File:** MainActivity.kt:402,221; ContentView.swift:293-296; PlanRepository.kt:124-131; PlanRepository.swift:142-149
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** ResultCard is wrapped in `key(...)` on Android; the 'More than 4 lines' note says the nearest known per-line price is used; extras get 'Activation'/'Trade-in' labels and sort alphabetically on both platforms.
+
+#### ISSUE-30: Mixed-line results: random order for equal totals on iOS, carrier-wide deal shown even if only some lines use the covered plan, Android maxBy throws on empty needs
+- **Severity:** LOW
+- **Area:** plans
+- **File:** PlanRepository.swift:62; PlanRepository.kt:38
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Mixed-line results sort by total then carrier name on both platforms; Android no longer throws for empty needs.
+
+#### ISSUE-31: Deal data nits: Visible marked free-phone though its text is a plan promo; Mint promo that 'ends Oct 22, 2026' still shown on Oct 31
+- **Severity:** LOW
+- **Area:** data
+- **File:** deals-data/deals.json:79,101-103
+- **Found by:** QA review (2026-10-31)
+- **Fixed by:** fixer agent on 2026-10-31
+- **Summary:** Visible got a hand-set `ignoreFreePhone: true` (both apps treat it as not free-phone, robot-proof) and Mint a hand-set `expires: 2026-10-22`; both apps skip an expired deal.
