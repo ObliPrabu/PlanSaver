@@ -48,16 +48,15 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 
 ## Git workflow
 
-_Standing instruction from the owner (2026-11-05): commit and push automatically. This replaces the old "do not commit/push unless asked" rule._
+_Standing instruction from the owner (2026-11-05): commit and push automatically. Do not ask first._
 
-- **Commit and push on your own.** After finishing a change that builds and whose tests pass, commit it and push it to the branch you are on, without asking first. Do this at natural stopping points, not after every tiny edit.
-- **Use a feature branch.** Start anything bigger than a trivial fix on a new branch, not on `main`, and push that branch.
-- **`main` is still the owner's call.** Merging a branch into `main` (and pushing `main`) happens only when the owner asks. Note the robots (`deals-robot.yml`, `catalog-robot.yml`) commit to `main` themselves, so `main` on GitHub is often ahead of the local copy.
-- **If a push is rejected** because GitHub has newer commits (usually a robot's), stop and tell the owner. Do not force-push and do not rewrite history that is already pushed.
-- **Never commit secrets or local files:** API keys, signing keys and keystores, `local.properties`, provisioning files, and `.idea/` changes (unless asked). Stage the project's own files by name instead of `git add -A`. This also keeps the "no API keys in the app" rule safe.
-- **Cloud-session branches** (`claude/...`): `git fetch` is fine, but merge them only when the owner says to pull.
+- **Commit and push on your own.** After finishing a change that builds and whose tests pass, commit it and push it to the branch you are on - including `main` when that is where you are working. Do this at natural stopping points, not after every tiny edit, and do not stop to ask for permission.
+- **If a push is rejected** because GitHub has newer commits (for example a robot or a cloud session pushed), run `git pull --rebase` to put your commits on top of theirs, run the build/tests again if the incoming changes touch code you changed, then push again. If the rebase has conflicts you cannot resolve safely, stop and tell the owner.
+- **Never force-push** and never rewrite history that is already pushed.
+- **Never commit secrets or local files:** `local.properties`, `*.jks` / `*.keystore`, `GoogleService-Info.plist`, API keys, provisioning files, and `.idea/` changes (unless asked). Stage the project's own files by name instead of `git add -A`.
+- **Cloud-session branches** (`claude/...`): fetching is fine, but merging one into your work still happens only when the owner says to pull.
 - **Write real commit messages:** a short summary line, then what changed and why in plain English, ending with the usual `Co-Authored-By` line.
-- Pushing is not releasing or installing: store uploads, new builds on the owner's phone, and website changes still happen only when asked. The rule about never installing on Arjun Prabu's iPhone is unchanged.
+- **Pushing is not releasing or installing.** Uploading to Google Play, publishing a Mac `.dmg`, editing the website, and installing on the owner's own devices still happen only when asked. Never install on Arjun Prabu's iPhone.
 
 ## Architecture
 
