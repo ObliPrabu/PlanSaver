@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-27",
+  "updated": "2026-11-05",
   "deals": [
     {
       "carrier": "T-Mobile",
@@ -46,6 +46,10 @@
         "hotspot": {
           "text": "Get Unlimited Plus 5G or an Unlimited data plan for your hotspot or jetpack. Ditch Wi-Fi and get connected with a low monthly plan for connected devices from Verizon .",
           "updated": "2026-10-23"
+        },
+        "tradein": {
+          "text": "Details Starts at $13.33/mo for 36 months, 0% APR Buy Apple iPad (A16) Trade in and save up to $600.",
+          "updated": "2026-11-05"
         }
       },
       "ignore": [
@@ -54,7 +58,8 @@
       "requiresPlans": [
         "Ultimate",
         "Plus"
-      ]
+      ],
+      "tradeInMax": 600.0
     },
     {
       "carrier": "AT&T",
@@ -131,7 +136,7 @@
     },
     {
       "carrier": "Total Wireless",
-      "deal": "5-year price lock for new customers who bring their own phone (Base 5G Unlimited at $20/month with taxes included).",
+      "deal": "Switch now iPhone 17e ON US** with Total ALL ACCESS^^ $0 down, $0/mo for 24 months^^ for well-qualified customers through Glow Financial Services.",
       "freePhone": false,
       "phones": [],
       "url": "https://www.totalwireless.com",
@@ -155,7 +160,8 @@
       },
       "lines": "Unlimited 5G data, just $25/mo per line With 4 lines on the Total STARTER Plan. Price guaranteed for 5 years, taxes & fees included.",
       "linesUpdated": "2026-10-19",
-      "activationFee": 0.0
+      "activationFee": 0.0,
+      "updated": "2026-11-05"
     }
   ]
 }
