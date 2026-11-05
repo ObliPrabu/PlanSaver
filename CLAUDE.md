@@ -36,7 +36,7 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 - NEVER install/download the app on Arjun Prabu's iPhone (`A9E704CA-91F2-5E2D-A171-093F439E4808`), under any
   circumstances, even if asked generically to install "on my devices" - the only iPhone target is Mithran Prabu's
   (`C13C4BB8-65E2-5CA7-BB9F-425747B421EE`).
-- Do not install on Mithran Prabu's iPhone unless asked (the owner often uses it); do not commit/push unless asked.
+- Do not install on Mithran Prabu's iPhone unless asked (the owner often uses it). Committing and pushing is automatic - see "Git workflow" below.
 - Keep Android and iOS in sync: every logic/data change goes into both. The 45 plans in `PlanData.kt` were converted to
   `ios/PlanSaver/PlanData.swift` by a script - edit both by hand or re-convert.
 - Version is kept equal on both: Android `versionCode`/`versionName` in `app/build.gradle.kts`, iOS
@@ -44,6 +44,20 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 - No paid services and no API keys. A search/AI key must never be inside the app. The owner is a minor: anything needing
   an adult account (affiliate networks CJ/Impact, a Gemini key, Play payouts) is deferred until a parent does it.
 - Do not invent facts: plan prices/deals come from third-party roundups, unverified against carrier sites - say so.
+
+
+## Git workflow
+
+_Standing instruction from the owner (2026-11-05): commit and push automatically. This replaces the old "do not commit/push unless asked" rule._
+
+- **Commit and push on your own.** After finishing a change that builds and whose tests pass, commit it and push it to the branch you are on, without asking first. Do this at natural stopping points, not after every tiny edit.
+- **Use a feature branch.** Start anything bigger than a trivial fix on a new branch, not on `main`, and push that branch.
+- **`main` is still the owner's call.** Merging a branch into `main` (and pushing `main`) happens only when the owner asks. Note the robots (`deals-robot.yml`, `catalog-robot.yml`) commit to `main` themselves, so `main` on GitHub is often ahead of the local copy.
+- **If a push is rejected** because GitHub has newer commits (usually a robot's), stop and tell the owner. Do not force-push and do not rewrite history that is already pushed.
+- **Never commit secrets or local files:** API keys, signing keys and keystores, `local.properties`, provisioning files, and `.idea/` changes (unless asked). Stage the project's own files by name instead of `git add -A`. This also keeps the "no API keys in the app" rule safe.
+- **Cloud-session branches** (`claude/...`): `git fetch` is fine, but merge them only when the owner says to pull.
+- **Write real commit messages:** a short summary line, then what changed and why in plain English, ending with the usual `Co-Authored-By` line.
+- Pushing is not releasing or installing: store uploads, new builds on the owner's phone, and website changes still happen only when asked. The rule about never installing on Arjun Prabu's iPhone is unchanged.
 
 ## Architecture
 
