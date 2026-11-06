@@ -32,7 +32,7 @@ requests - test against a COPY of the file, it rewrites in place). Manual workfl
 
 ## Working rules (from the owner)
 
-- Simulators/emulators are fine to use (the old no-simulator rule came from an earlier computer that was short on disk space; this one has room). iOS can also be compiled for the generic device, and Android is normally installed on the real vivo.
+- Simulators and emulators: **do not start, boot, install on or drive any unless the owner asks for it in that message** (owner's standing instruction, 2026-11-05). If asked, say what you are starting and shut it down again when the task is done. iOS can still be compiled for the generic device (`-destination 'generic/platform=iOS'`), which needs no simulator, and Android is normally installed on the real vivo only when asked.
 - NEVER install/download the app on Arjun Prabu's iPhone (`A9E704CA-91F2-5E2D-A171-093F439E4808`), under any
   circumstances, even if asked generically to install "on my devices" - the only iPhone target is Mithran Prabu's
   (`C13C4BB8-65E2-5CA7-BB9F-425747B421EE`).
