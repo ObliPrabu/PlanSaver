@@ -259,10 +259,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Midsize Cars",
-      "annualFuelCost": 1250,
+      "annualFuelCost": 1200,
       "modelYear": 2026,
-      "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "updated": "2026-11-07",
+      "checked": "2026-11-07"
     },
     {
       "id": "toyota-rav4",
@@ -286,10 +286,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Small Sport Utility Vehicle 2WD",
-      "annualFuelCost": 1500,
+      "annualFuelCost": 1450,
       "modelYear": 2026,
-      "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "updated": "2026-11-07",
+      "checked": "2026-11-07"
     },
     {
       "id": "honda-civic",
@@ -313,10 +313,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Midsize Cars",
-      "annualFuelCost": 1900,
+      "annualFuelCost": 1850,
       "modelYear": 2026,
-      "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "updated": "2026-11-07",
+      "checked": "2026-11-07"
     },
     {
       "id": "honda-accord",
@@ -340,10 +340,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Large Cars",
-      "annualFuelCost": 2000,
+      "annualFuelCost": 1950,
       "modelYear": 2026,
-      "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "updated": "2026-11-07",
+      "checked": "2026-11-07"
     },
     {
       "id": "honda-crv",
@@ -367,10 +367,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Midsize Station Wagons",
-      "annualFuelCost": 2150,
+      "annualFuelCost": 2100,
       "modelYear": 2026,
-      "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "updated": "2026-11-07",
+      "checked": "2026-11-07"
     },
     {
       "id": "tesla-model-3",
@@ -399,7 +399,7 @@
       "rangeMiles": 321,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "checked": "2026-11-07"
     },
     {
       "id": "tesla-model-y",
@@ -428,7 +428,7 @@
       "rangeMiles": 303,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "checked": "2026-11-07"
     },
     {
       "id": "ford-f150",
@@ -452,10 +452,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Standard Pickup Trucks 2WD",
-      "annualFuelCost": 3050,
+      "annualFuelCost": 2950,
       "modelYear": 2026,
-      "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "updated": "2026-11-07",
+      "checked": "2026-11-07"
     },
     {
       "id": "ford-maverick",
@@ -480,10 +480,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Small Pickup Trucks 2WD",
-      "annualFuelCost": 2450,
+      "annualFuelCost": 2400,
       "modelYear": 2026,
-      "updated": "2026-11-01",
-      "checked": "2026-11-06",
+      "updated": "2026-11-07",
+      "checked": "2026-11-07",
       "price": 59190.0
     },
     {
@@ -508,10 +508,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Midsize Cars",
-      "annualFuelCost": 2050,
+      "annualFuelCost": 2000,
       "modelYear": 2026,
-      "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "updated": "2026-11-07",
+      "checked": "2026-11-07"
     },
     {
       "id": "hyundai-ioniq-5",
@@ -540,7 +540,7 @@
       "rangeMiles": 318,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "checked": "2026-11-07"
     },
     {
       "id": "subaru-outback",
@@ -565,11 +565,11 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Small Sport Utility Vehicle 4WD",
-      "annualFuelCost": 2400,
+      "annualFuelCost": 2300,
       "modelYear": 2026,
       "price": 32995.0,
-      "updated": "2026-10-23",
-      "checked": "2026-11-06"
+      "updated": "2026-11-07",
+      "checked": "2026-11-07"
     },
     {
       "id": "chevrolet-equinox",
