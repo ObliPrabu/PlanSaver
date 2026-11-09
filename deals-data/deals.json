@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-05",
+  "updated": "2026-11-09",
   "deals": [
     {
       "carrier": "T-Mobile",
@@ -30,7 +30,9 @@
       "updated": "2026-10-24",
       "requiresPlans": [
         "Experience"
-      ]
+      ],
+      "lines": "Plus 4 lines for $25/line/mo.",
+      "linesUpdated": "2026-11-09"
     },
     {
       "carrier": "Verizon",
