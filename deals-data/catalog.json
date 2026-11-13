@@ -262,7 +262,7 @@
       "annualFuelCost": 1200,
       "modelYear": 2026,
       "updated": "2026-11-07",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "toyota-rav4",
@@ -289,7 +289,7 @@
       "annualFuelCost": 1400,
       "modelYear": 2026,
       "updated": "2026-11-12",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "honda-civic",
@@ -316,7 +316,7 @@
       "annualFuelCost": 1750,
       "modelYear": 2026,
       "updated": "2026-11-12",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "honda-accord",
@@ -343,7 +343,7 @@
       "annualFuelCost": 1900,
       "modelYear": 2026,
       "updated": "2026-11-12",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "honda-crv",
@@ -370,7 +370,7 @@
       "annualFuelCost": 2000,
       "modelYear": 2026,
       "updated": "2026-11-12",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "tesla-model-3",
@@ -399,7 +399,7 @@
       "rangeMiles": 321,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "tesla-model-y",
@@ -428,7 +428,7 @@
       "rangeMiles": 303,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "ford-f150",
@@ -455,7 +455,7 @@
       "annualFuelCost": 2850,
       "modelYear": 2026,
       "updated": "2026-11-12",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "ford-maverick",
@@ -483,7 +483,7 @@
       "annualFuelCost": 2300,
       "modelYear": 2026,
       "updated": "2026-11-12",
-      "checked": "2026-11-12",
+      "checked": "2026-11-13",
       "price": 59190.0
     },
     {
@@ -511,7 +511,7 @@
       "annualFuelCost": 1950,
       "modelYear": 2026,
       "updated": "2026-11-12",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "hyundai-ioniq-5",
@@ -540,7 +540,7 @@
       "rangeMiles": 318,
       "modelYear": 2026,
       "updated": "2026-10-23",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "subaru-outback",
@@ -569,7 +569,7 @@
       "modelYear": 2026,
       "price": 32995.0,
       "updated": "2026-11-12",
-      "checked": "2026-11-12"
+      "checked": "2026-11-13"
     },
     {
       "id": "chevrolet-equinox",
