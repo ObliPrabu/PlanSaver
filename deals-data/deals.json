@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-09",
+  "updated": "2026-11-24",
   "deals": [
     {
       "carrier": "T-Mobile",
@@ -61,7 +61,9 @@
         "Ultimate",
         "Plus"
       ],
-      "tradeInMax": 600.0
+      "tradeInMax": 600.0,
+      "lines": "Details Starts at $30.66/mo for 36 months, 0% APR Buy Switch to Simplicity Plan and get 4 lines for $100/mo $25/line/mo after Auto Pay and switch discount.",
+      "linesUpdated": "2026-11-24"
     },
     {
       "carrier": "AT&T",
