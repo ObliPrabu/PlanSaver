@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-25",
+  "updated": "2026-11-26",
   "note": "Names only. tools/refresh_catalog.py fills every number (with its source and date); nothing here is hand-researched.",
   "phones": [
     {
@@ -14,7 +14,7 @@
         "storage": "https://www.gsmarena.com/apple_iphone_17-14050.php"
       },
       "updated": "2026-11-01",
-      "checked": "2026-11-25",
+      "checked": "2026-11-26",
       "display": 6.3,
       "batteryMah": 3692,
       "chip": "A19",
@@ -594,11 +594,11 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Small Sport Utility Vehicle 2WD",
-      "annualFuelCost": 2100,
+      "annualFuelCost": 2000,
       "modelYear": 2026,
       "price": 32400.0,
-      "updated": "2026-11-24",
-      "checked": "2026-11-24"
+      "updated": "2026-11-26",
+      "checked": "2026-11-26"
     },
     {
       "id": "kia-sportage",
@@ -622,10 +622,10 @@
       "mpgUnit": "MPG",
       "fuelType": "Regular",
       "bodyType": "Small Sport Utility Vehicle 2WD",
-      "annualFuelCost": 2050,
+      "annualFuelCost": 1950,
       "modelYear": 2026,
-      "updated": "2026-11-24",
-      "checked": "2026-11-24"
+      "updated": "2026-11-26",
+      "checked": "2026-11-26"
     }
   ],
   "insurers": [
@@ -638,7 +638,7 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     },
     {
       "id": "geico",
@@ -651,7 +651,7 @@
       },
       "fullMonthly": 143.0,
       "updated": "2026-10-23",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     },
     {
       "id": "progressive",
@@ -662,7 +662,7 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     },
     {
       "id": "allstate",
@@ -673,25 +673,25 @@
         "fullMonthly": "https://www.shopback.com/blog/finance/us-car-insurance-geico-vs-progressive-vs-state-farm-vs-allstate-2026"
       },
       "updated": "2026-10-23",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     },
     {
       "id": "nationwide",
       "name": "Nationwide",
       "url": "https://www.nationwide.com/personal/insurance/auto/",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     },
     {
       "id": "farmers",
       "name": "Farmers",
       "url": "https://www.farmers.com/auto/",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     },
     {
       "id": "liberty-mutual",
       "name": "Liberty Mutual",
       "url": "https://www.libertymutual.com/auto-insurance",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     },
     {
       "id": "travelers",
@@ -702,13 +702,13 @@
         "fullMonthly": "https://www.nerdwallet.com/insurance/auto/cheapest-car-insurance"
       },
       "updated": "2026-11-03",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     },
     {
       "id": "american-family",
       "name": "American Family",
       "url": "https://www.amfam.com/insurance/car",
-      "checked": "2026-11-24"
+      "checked": "2026-11-26"
     }
   ],
   "insurancePages": [
